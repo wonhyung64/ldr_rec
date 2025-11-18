@@ -8,7 +8,7 @@ import numpy as np
 import scipy.sparse as sps
 from datetime import datetime
 from sklearn.metrics import roc_auc_score
-from module.model import NCF, MF, LRD
+from module.model import NCF, MF, LDR
 from module.metric import ndcg_func, recall_func, ap_func
 from module.dataset import binarize, load_data, generate_total_sample
 from module.utils import set_device, set_seed
@@ -102,8 +102,8 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
         model = NCF(num_users, num_items, args.embedding_k, depth=args.depth)
     elif args.base_model == "mf":
         model = MF(num_users, num_items, args.embedding_k)
-    elif args.base_model == "lrd":
-        model = LRD(num_users, num_items, args.embedding_k)
+    elif args.base_model == "ldr":
+        model = LDR(num_users, num_items, args.embedding_k, depth=args.depth)
     model = model.to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     loss_fcn = torch.nn.BCELoss(reduction="mean")

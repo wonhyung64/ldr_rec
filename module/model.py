@@ -75,12 +75,12 @@ class LinearCF(nn.Module):
         return out, user_embed, item_embed
 
 
-class LRD(nn.Module):
+class LDR(nn.Module):
     """
     Neural Collaborative Filtering
     """
     def __init__(self, num_users:int, num_items:int, embedding_k:int, depth:int=0):
-        super(LRD, self).__init__()
+        super(LDR, self).__init__()
         self.num_users = num_users
         self.num_items = num_items
         self.embedding_k = embedding_k

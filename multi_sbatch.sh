@@ -65,9 +65,9 @@ wd_options=(
 )
 
 experiments=(
-    "main.py --base-model=mf"
-    "main.py --base-model=ncf"
-    "main.py --base-model=lrd"
+    "main.py --base-model=mf --depth=2"
+    "main.py --base-model=ncf --depth=2"
+    "main.py --base-model=lrd --depth=2"
 )
 
 

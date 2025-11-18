@@ -48,16 +48,6 @@ set_seed(args.random_seed)
 args.device = set_device()
 args.expt_name = f"{args.base_model}_{expt_num}"
 
-wandb_login = False
-try:
-    wandb_login = wandb.login(key = open(f"{args.data_dir}/wandb_key.txt", 'r').readline())
-except:
-    pass
-if wandb_login:
-    configs = vars(args)
-    wandb_var = wandb.init(project="ldr_rec", config=configs)
-    wandb.run.name = args.expt_name
-
 
 #%%
 x_train_cv = np.load(f"{args.data_dir}/{args.dataset_name}/train.npy")
@@ -70,6 +60,19 @@ y_test = binarize(y_test)
 
 kf = KFold(n_splits=4, shuffle=True, random_state=args.random_seed)
 for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
+
+    wandb_login = False
+    try:
+        wandb_login = wandb.login(key = open(f"{args.data_dir}/wandb_key.txt", 'r').readline())
+    except:
+        pass
+    if wandb_login:
+        configs = vars(args)
+        wandb_var = wandb.init(project="ldr_rec", config=configs)
+        wandb.run.name = args.expt_name
+
+
+
     x_train = x_train_cv[train_idx]
     y_train = y_train_cv[train_idx]
     x_valid = x_train_cv[valid_idx]
@@ -191,7 +194,6 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
                 ap_dict[f"best_test_ap_{top_k}"] = ap_dict[f"test_ap_{top_k}"]
 
 
-
         print(f"NDCG: {ndcg_dict}")
         print(f"Recall: {recall_dict}")
         print(f"AP: {ap_dict}")
@@ -203,11 +205,12 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
             wandb_var.log(recall_dict)
             wandb_var.log(ap_dict)
             wandb_var.log(auc_dict)
+            wandb_var.log({"cv_num":cv_num})
 
 
-if wandb_login:
-    wandb.finish()
+    save_dir = f"{args.weights_dir}/{args.dataset_name}"
+    os.makedirs(save_dir, exist_ok=True) 
+    torch.save(model.state_dict(), f"{save_dir}/{args.expt_name}.pth")
 
-save_dir = f"{args.weights_dir}/{args.dataset_name}"
-os.makedirs(save_dir, exist_ok=True) 
-torch.save(model.state_dict(), f"{save_dir}/{args.expt_name}.pth")
+    if wandb_login:
+        wandb.finish()

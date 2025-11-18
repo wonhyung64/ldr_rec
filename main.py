@@ -139,6 +139,7 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
         print(f"[Epoch {epoch:>4d} Train Loss] rec: {epoch_total_loss.item():.4f}")
 
 
+        best_epoch = 0
         if epoch % args.evaluate_interval == 0:
             model.eval()
 
@@ -185,6 +186,7 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
             auc_dict["test_auc"] = test_auc
 
             if valid_auc > best_valid_auc:
+                best_epoch = epoch
                 best_valid_auc = valid_auc
                 auc_dict["best_valid_auc"] = auc_dict["valid_auc"]
                 auc_dict["best_test_auc"] = auc_dict["test_auc"]
@@ -205,7 +207,7 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
                 wandb_var.log(recall_dict)
                 wandb_var.log(ap_dict)
                 wandb_var.log(auc_dict)
-                wandb_var.log({"cv_num":cv_num})
+                wandb_var.log({"cv_num":cv_num, "best_epoch":best_epoch})
 
 
     save_dir = f"{args.weights_dir}/{args.dataset_name}"

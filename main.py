@@ -139,73 +139,73 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
         print(f"[Epoch {epoch:>4d} Train Loss] rec: {epoch_total_loss.item():.4f}")
 
 
-    if epoch % args.evaluate_interval == 0:
-        model.eval()
+        if epoch % args.evaluate_interval == 0:
+            model.eval()
 
-        # valdation
-        if args.base_model == "ldr":
-            _, pred, __ = model(x_valid_tensor)
-        else:
-            pred, _, __ = model(x_valid_tensor)
-        pred = pred.flatten().cpu().detach().numpy()
+            # valdation
+            if args.base_model == "ldr":
+                _, pred, __ = model(x_valid_tensor)
+            else:
+                pred, _, __ = model(x_valid_tensor)
+            pred = pred.flatten().cpu().detach().numpy()
 
-        ndcg_dict: dict = {}
-        recall_dict: dict = {}
-        ap_dict: dict = {}
-        auc_dict = {}
+            ndcg_dict: dict = {}
+            recall_dict: dict = {}
+            ap_dict: dict = {}
+            auc_dict = {}
 
-        valid_ndcg_res = ndcg_func(pred, x_valid, y_valid, args.top_k_list)
-        valid_recall_res = recall_func(pred, x_valid, y_valid, args.top_k_list)
-        valid_ap_res = ap_func(pred, x_valid, y_valid, args.top_k_list)
-        valid_auc = roc_auc_score(y_valid, pred)
+            valid_ndcg_res = ndcg_func(pred, x_valid, y_valid, args.top_k_list)
+            valid_recall_res = recall_func(pred, x_valid, y_valid, args.top_k_list)
+            valid_ap_res = ap_func(pred, x_valid, y_valid, args.top_k_list)
+            valid_auc = roc_auc_score(y_valid, pred)
 
-        for top_k in args.top_k_list:
-            ndcg_dict[f"valid_ndcg_{top_k}"] = np.mean(valid_ndcg_res[f"ndcg_{top_k}"])
-            recall_dict[f"valid_recall_{top_k}"] = np.mean(valid_recall_res[f"recall_{top_k}"])
-            ap_dict[f"valid_ap_{top_k}"] = np.mean(valid_ap_res[f"ap_{top_k}"])
-        auc_dict["valid_auc"] = valid_auc
-
-
-        # test
-        if args.base_model == "ldr":
-            _, pred, __ = model(x_test_tensor)
-        else:
-            pred, _, __ = model(x_test_tensor)
-        pred = pred.flatten().cpu().detach().numpy()
-
-        test_ndcg_res = ndcg_func(pred, x_test, y_test, args.top_k_list)
-        test_recall_res = recall_func(pred, x_test, y_test, args.top_k_list)
-        test_ap_res = ap_func(pred, x_test, y_test, args.top_k_list)
-        test_auc = roc_auc_score(y_test, pred)
-
-        for top_k in args.top_k_list:
-            ndcg_dict[f"test_ndcg_{top_k}"] = np.mean(test_ndcg_res[f"ndcg_{top_k}"])
-            recall_dict[f"test_recall_{top_k}"] = np.mean(test_recall_res[f"recall_{top_k}"])
-            ap_dict[f"test_ap_{top_k}"] = np.mean(test_ap_res[f"ap_{top_k}"])
-        auc_dict["test_auc"] = test_auc
-
-        if valid_auc > best_valid_auc:
-            best_valid_auc = valid_auc
-            auc_dict["best_valid_auc"] = auc_dict["valid_auc"]
-            auc_dict["best_test_auc"] = auc_dict["test_auc"]
             for top_k in args.top_k_list:
-                ndcg_dict[f"best_test_ndcg_{top_k}"] = ndcg_dict[f"test_ndcg_{top_k}"]
-                recall_dict[f"best_test_recall_{top_k}"] = recall_dict[f"test_recall_{top_k}"]
-                ap_dict[f"best_test_ap_{top_k}"] = ap_dict[f"test_ap_{top_k}"]
+                ndcg_dict[f"valid_ndcg_{top_k}"] = np.mean(valid_ndcg_res[f"ndcg_{top_k}"])
+                recall_dict[f"valid_recall_{top_k}"] = np.mean(valid_recall_res[f"recall_{top_k}"])
+                ap_dict[f"valid_ap_{top_k}"] = np.mean(valid_ap_res[f"ap_{top_k}"])
+            auc_dict["valid_auc"] = valid_auc
 
 
-        print(f"NDCG: {ndcg_dict}")
-        print(f"Recall: {recall_dict}")
-        print(f"AP: {ap_dict}")
-        print(f"AUC: {auc_dict}")
+            # test
+            if args.base_model == "ldr":
+                _, pred, __ = model(x_test_tensor)
+            else:
+                pred, _, __ = model(x_test_tensor)
+            pred = pred.flatten().cpu().detach().numpy()
+
+            test_ndcg_res = ndcg_func(pred, x_test, y_test, args.top_k_list)
+            test_recall_res = recall_func(pred, x_test, y_test, args.top_k_list)
+            test_ap_res = ap_func(pred, x_test, y_test, args.top_k_list)
+            test_auc = roc_auc_score(y_test, pred)
+
+            for top_k in args.top_k_list:
+                ndcg_dict[f"test_ndcg_{top_k}"] = np.mean(test_ndcg_res[f"ndcg_{top_k}"])
+                recall_dict[f"test_recall_{top_k}"] = np.mean(test_recall_res[f"recall_{top_k}"])
+                ap_dict[f"test_ap_{top_k}"] = np.mean(test_ap_res[f"ap_{top_k}"])
+            auc_dict["test_auc"] = test_auc
+
+            if valid_auc > best_valid_auc:
+                best_valid_auc = valid_auc
+                auc_dict["best_valid_auc"] = auc_dict["valid_auc"]
+                auc_dict["best_test_auc"] = auc_dict["test_auc"]
+                for top_k in args.top_k_list:
+                    ndcg_dict[f"best_test_ndcg_{top_k}"] = ndcg_dict[f"test_ndcg_{top_k}"]
+                    recall_dict[f"best_test_recall_{top_k}"] = recall_dict[f"test_recall_{top_k}"]
+                    ap_dict[f"best_test_ap_{top_k}"] = ap_dict[f"test_ap_{top_k}"]
 
 
-        if wandb_login:
-            wandb_var.log(ndcg_dict)
-            wandb_var.log(recall_dict)
-            wandb_var.log(ap_dict)
-            wandb_var.log(auc_dict)
-            wandb_var.log({"cv_num":cv_num})
+            print(f"NDCG: {ndcg_dict}")
+            print(f"Recall: {recall_dict}")
+            print(f"AP: {ap_dict}")
+            print(f"AUC: {auc_dict}")
+
+
+            if wandb_login:
+                wandb_var.log(ndcg_dict)
+                wandb_var.log(recall_dict)
+                wandb_var.log(ap_dict)
+                wandb_var.log(auc_dict)
+                wandb_var.log({"cv_num":cv_num})
 
 
     save_dir = f"{args.weights_dir}/{args.dataset_name}"

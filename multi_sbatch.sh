@@ -67,7 +67,17 @@ wd_options=(
 experiments=(
     "main.py --base-model=mf --depth=2"
     "main.py --base-model=ncf --depth=2"
-    "main.py --base-model=lrd --depth=2"
+    "main.py --base-model=ldr --depth=2"
+
+    "main.py --base-model=mf --depth=0 --embedding-k=128"
+    "main.py --base-model=ncf --depth=0 --embedding-k=128"
+    "main.py --base-model=ldr --depth=0 --embedding-k=128"
+
+    "main.py --base-model=mf --depth=2 --embedding-k=128"
+    "main.py --base-model=ncf --depth=2 --embedding-k=128"
+    "main.py --base-model=ldr --depth=2 --embedding-k=128"
+
+
 )
 
 

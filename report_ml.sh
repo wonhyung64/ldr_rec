@@ -87,7 +87,8 @@ for index in ${!experiments[*]}; do
     for index_lr in ${!lr_options[*]}; do
         for index_wd in ${!wd_options[*]}; do
 
-            echo "\"$ENV ${experiments[$index]} ${lr_options[$index_lr]} ${wd_options[$index_wd]} ${lambda1_options[$index_lambda1]}\"" >> runner.sh
+            # echo "\"$ENV ${experiments[$index]} ${lr_options[$index_lr]} ${wd_options[$index_wd]} ${lambda1_options[$index_lambda1]}\"" >> runner.sh
+            echo "\"$ENV ${experiments[$index]} ${lr_options[$index_lr]} ${wd_options[$index_wd]}\"" >> runner.sh
             (( COUNTER++ ))
 
             if [ "$COUNTER" -eq 4  ]; then

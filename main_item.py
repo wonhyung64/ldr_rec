@@ -109,6 +109,8 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
         model = MF(num_users, num_items, args.embedding_k)
     elif args.base_model == "ldr":
         model = LDR(num_users, num_items, args.embedding_k, depth=args.depth)
+    elif args.base_model == "ldr_w":
+        model = LDR(num_users, num_items, args.embedding_k, depth=args.depth)
     elif args.base_model == "ldrmf":
         model = LDRMF(num_users, num_items, args.embedding_k, depth=args.depth)
     model = model.to(args.device)
@@ -170,7 +172,7 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
             # valdation
             if args.base_model == "ldr":
                 _, pred, __ = model(x_valid_tensor)
-            else:
+            elif args.base_model == "ldr_w":
                 pred, _, __ = model(x_valid_tensor)
             pred = pred.flatten().cpu().detach().numpy()
 
@@ -194,7 +196,7 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
             # test
             if args.base_model == "ldr":
                 _, pred, __ = model(x_test_tensor)
-            else:
+            elif args.base_model == "ldr_w":
                 pred, _, __ = model(x_test_tensor)
             pred = pred.flatten().cpu().detach().numpy()
 

@@ -72,7 +72,8 @@ lambda1_options=(
 )
 
 experiments=(
-    "main_item.py --base-model=ldr --depth=0"
+    "main_item.py --base-model=ldr --depth=0 --embedding-k=8"
+    "main.py --base-model=ldr --depth=0 --embedding-k=8"
 )
 
 

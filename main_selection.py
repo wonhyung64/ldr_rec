@@ -155,7 +155,7 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
 
             _, pred_t, _ = model(sub_x)
             select_loss = loss_fcn(torch.nn.Sigmoid()(pred_t), sub_t)
-            epoch_margin_loss += margin_loss
+            epoch_margin_loss += select_loss
 
 
             total_loss = rec_loss + args.lambda1*select_loss

@@ -73,9 +73,9 @@ lambda1_options=(
 
 experiments=(
     "main_selection.py --base-model=shared_ncf --depth=0 --embedding-k=64"
-    "main_selection.py --base-model=shared_mf --depth=0 --embedding-k=64"
+    "main_selection.py --base-model=shared_mf --embedding-k=64"
     "main_selection.py --base-model=shared_ncf --depth=0 --embedding-k=8"
-    "main_selection.py --base-model=shared_mf --depth=0 --embedding-k=8"
+    "main_selection.py --base-model=shared_mf --embedding-k=8"
     # "main_item.py --base-model=ldr_w --depth=0 --embedding-k=64"
     # "main_item.py --base-model=ldr_w --depth=0 --embedding-k=8"
     # "main.py --base-model=ldr --depth=0 --embedding-k=8"

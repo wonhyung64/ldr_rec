@@ -154,7 +154,7 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
 
             _, user_margin, item_margin = model(sub_x)
             user_margin_loss = loss_fcn(torch.nn.Sigmoid()(user_margin), sub_t)
-            item_margin_loss += loss_fcn(torch.nn.Sigmoid()(item_margin), sub_t)
+            item_margin_loss = loss_fcn(torch.nn.Sigmoid()(item_margin), sub_t)
 
 
             total_loss = rec_loss + args.lambda1*user_margin_loss + args.lambda2*item_margin_loss

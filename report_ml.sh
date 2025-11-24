@@ -71,11 +71,21 @@ lambda1_options=(
     "--lambda1=0.001"
 )
 
+lambda2_options=(
+    "--lambda2=2."
+    "--lambda2=1."
+    "--lambda2=0.1"
+    "--lambda2=0.01"
+    "--lambda2=0.001"
+)
+
+
 experiments=(
-    "main_selection.py --base-model=shared_ncf --depth=0 --embedding-k=64"
-    "main_selection.py --base-model=shared_mf --embedding-k=64"
-    "main_selection.py --base-model=shared_ncf --depth=0 --embedding-k=8"
-    "main_selection.py --base-model=shared_mf --embedding-k=8"
+    # "main_selection.py --base-model=shared_ncf --depth=0 --embedding-k=64"
+    # "main_selection.py --base-model=shared_mf --embedding-k=64"
+    # "main_selection.py --base-model=shared_ncf --depth=0 --embedding-k=8"
+    # "main_selection.py --base-model=shared_mf --embedding-k=8"
+    "main_item.py --base-model=ldr_double --depth=0 --embedding-k=64"
     # "main_item.py --base-model=ldr_w --depth=0 --embedding-k=64"
     # "main_item.py --base-model=ldr_w --depth=0 --embedding-k=8"
     # "main.py --base-model=ldr --depth=0 --embedding-k=8"
@@ -89,38 +99,41 @@ COUNTER=0
 
 for index in ${!experiments[*]}; do
     for index_lambda1 in ${!lambda1_options[*]}; do
-        for index_lr in ${!lr_options[*]}; do
-            for index_wd in ${!wd_options[*]}; do
+        for index_lambda2 in ${!lambda2_options[*]}; do
+            for index_lr in ${!lr_options[*]}; do
+                for index_wd in ${!wd_options[*]}; do
 
-                echo "\"$ENV ${experiments[$index]} ${lr_options[$index_lr]} ${wd_options[$index_wd]} ${lambda1_options[$index_lambda1]}\"" >> runner.sh
-                # echo "\"$ENV ${experiments[$index]} ${lr_options[$index_lr]} ${wd_options[$index_wd]}\"" >> runner.sh
-                (( COUNTER++ ))
+                    # echo "\"$ENV ${experiments[$index]} ${lr_options[$index_lr]} ${wd_options[$index_wd]} ${lambda1_options[$index_lambda1]}\"" >> runner.sh
+                    echo "\"$ENV ${experiments[$index]} ${lr_options[$index_lr]} ${wd_options[$index_wd]} ${lambda1_options[$index_lambda1]} ${lambda2_options[$index_lambda2]}\"" >> runner.sh
+                    # echo "\"$ENV ${experiments[$index]} ${lr_options[$index_lr]} ${wd_options[$index_wd]}\"" >> runner.sh
+                    (( COUNTER++ ))
 
-                if [ "$COUNTER" -eq 4  ]; then
-                    echo "$EXECUTER" >> runner.sh
-                    chmod +x runner.sh
+                    if [ "$COUNTER" -eq 4  ]; then
+                        echo "$EXECUTER" >> runner.sh
+                        chmod +x runner.sh
 
-                    while true; do
-                        JOB_COUNT=$(qstat -u wonhyung64 | awk 'NR>5 {count++} END {print count}')
+                        while true; do
+                            JOB_COUNT=$(qstat -u wonhyung64 | awk 'NR>5 {count++} END {print count}')
 
-                        if [ "$JOB_COUNT" -ge 20 ]; then
-                            echo "Max jobs (20) running. Waiting..."
-                            sleep 1m
-                        else
-                            echo "Job count is $JOB_COUNT, submitting new jobs..."
-                            break
-                        fi
-                    done
+                            if [ "$JOB_COUNT" -ge 20 ]; then
+                                echo "Max jobs (20) running. Waiting..."
+                                sleep 1m
+                            else
+                                echo "Job count is $JOB_COUNT, submitting new jobs..."
+                                break
+                            fi
+                        done
 
-                    sbatch runner.sh
-                    rm runner.sh
+                        sbatch runner.sh
+                        rm runner.sh
 
-                    echo "$SLURM_SCRIPT" >> runner.sh
-                    COUNTER=0
+                        echo "$SLURM_SCRIPT" >> runner.sh
+                        COUNTER=0
 
-                fi
-                                    
-                sleep 1
+                    fi
+                                        
+                    sleep 1
+                done
             done
         done
     done

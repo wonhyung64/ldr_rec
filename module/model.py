@@ -163,3 +163,68 @@ class LDRMF(nn.Module):
         item_out = self.item_out(item_embed)
 
         return joint_out+user_out+item_out, joint_out+user_out, item_out
+
+
+class SharedNCF(nn.Module):
+    """
+    Neural Collaborative Filtering with Embedding Sharing
+    """
+    def __init__(self, num_users:int, num_items:int, embedding_k:int, depth:int=0):
+        super(SharedNCF, self).__init__()
+        self.num_users = num_users
+        self.num_items = num_items
+        self.embedding_k = embedding_k
+        self.depth = depth
+        self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
+        self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
+        self.ctr = nn.Sequential(
+            nn.Linear(self.embedding_k*2, self.embedding_k),
+            nn.ReLU(),
+            nn.Linear(self.embedding_k, 1, bias=False),
+        )
+        layers_y1 = [nn.Linear(self.embedding_k*2, self.embedding_k), nn.ReLU()]
+        for _ in range(self.depth):
+            layers_y1.append(nn.Linear(self.embedding_k, self.embedding_k))
+            layers_y1.append(nn.ReLU())
+        layers_y1.append(nn.Linear(self.embedding_k, 1, bias=False))
+        self.y1 = nn.Sequential(*layers_y1)
+
+    def forward(self, x):
+        user_idx = x[:,0]
+        item_idx = x[:,1]
+        user_embed = self.user_embedding(user_idx)
+        item_embed = self.item_embedding(item_idx)
+        z_embed = torch.cat([user_embed, item_embed], axis=1)
+        ctr = self.ctr(z_embed)
+        cvr = self.y1(z_embed)
+        ctcvr = torch.mul(nn.Sigmoid()(ctr), nn.Sigmoid()(cvr))
+        return cvr, ctr, ctcvr
+
+
+class SharedMF(nn.Module):
+    """
+    Matrix Factorization with Embedding Sharing
+    """
+    def __init__(self, num_users:int, num_items:int, embedding_k:int):
+        super(SharedMF, self).__init__()
+        self.num_users = num_users
+        self.num_items = num_items
+        self.embedding_k = embedding_k
+        self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
+        self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
+        self.ctr = nn.Sequential(
+            nn.Linear(self.embedding_k*2, self.embedding_k),
+            nn.ReLU(),
+            nn.Linear(self.embedding_k, 1, bias=False),
+        )
+
+    def forward(self, x):
+        user_idx = x[:,0]
+        item_idx = x[:,1]
+        user_embed = self.user_embedding(user_idx)
+        item_embed = self.item_embedding(item_idx)
+        z_embed = torch.cat([user_embed, item_embed], axis=1)
+        ctr = self.ctr(z_embed)
+        cvr = torch.sum(user_embed.mul(item_embed), 1).unsqueeze(-1)
+        ctcvr = torch.mul(nn.Sigmoid()(ctr), nn.Sigmoid()(cvr))
+        return cvr, ctr, ctcvr

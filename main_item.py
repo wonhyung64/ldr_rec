@@ -8,7 +8,7 @@ import numpy as np
 import scipy.sparse as sps
 from datetime import datetime
 from sklearn.metrics import roc_auc_score
-from module.model import NCF, MF, LDR, LDRMF
+from module.model import NCF, MF, LDR, LDRMF, LDRDouble
 from module.metric import ndcg_func, recall_func, ap_func
 from module.dataset import binarize, load_data, generate_total_sample
 from module.utils import set_device, set_seed
@@ -37,6 +37,7 @@ parser.add_argument("--weights-dir", type=str, default="./weights")
 parser.add_argument("--base-model", type=str, default="ncf")
 parser.add_argument("--depth", type=int, default=0)
 parser.add_argument("--lambda1", type=float, default=1e-4)
+parser.add_argument("--lambda2", type=float, default=1e-4)
 try:
     args = parser.parse_args()
 except:
@@ -113,6 +114,8 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
         model = LDR(num_users, num_items, args.embedding_k, depth=args.depth)
     elif args.base_model == "ldrmf":
         model = LDRMF(num_users, num_items, args.embedding_k, depth=args.depth)
+    elif args.base_model == "ldr_double":
+        model = LDRDouble(num_users, num_items, args.embedding_k, depth=args.depth)
     model = model.to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     loss_fcn = torch.nn.BCELoss(reduction="mean")
@@ -149,12 +152,12 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
             sub_t = obs[selected_idx]
             sub_t = torch.Tensor(sub_t).unsqueeze(-1).to(args.device)
 
-            _, __, item_margin = model(sub_x)
-            margin_loss = loss_fcn(torch.nn.Sigmoid()(item_margin), sub_t)
-            epoch_margin_loss += margin_loss
+            _, user_margin, item_margin = model(sub_x)
+            user_margin_loss = loss_fcn(torch.nn.Sigmoid()(user_margin), sub_t)
+            item_margin_loss += loss_fcn(torch.nn.Sigmoid()(item_margin), sub_t)
 
 
-            total_loss = rec_loss + args.lambda1*margin_loss
+            total_loss = rec_loss + args.lambda1*user_margin_loss + args.lambda2*item_margin_loss
             epoch_total_loss += total_loss
 
             optimizer.zero_grad()
@@ -172,7 +175,8 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
             # valdation
             if args.base_model == "ldr":
                 _, pred, __ = model(x_valid_tensor)
-            elif args.base_model == "ldr_w":
+            # elif: args.base_model == "ldr_w":
+            else:
                 pred, _, __ = model(x_valid_tensor)
             pred = pred.flatten().cpu().detach().numpy()
 
@@ -196,7 +200,8 @@ for cv_num, (train_idx, valid_idx) in enumerate(kf.split(x_train_cv)):
             # test
             if args.base_model == "ldr":
                 _, pred, __ = model(x_test_tensor)
-            elif args.base_model == "ldr_w":
+            # elif: args.base_model == "ldr_w":
+            else:
                 pred, _, __ = model(x_test_tensor)
             pred = pred.flatten().cpu().detach().numpy()
 

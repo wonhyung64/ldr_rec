@@ -45,26 +45,16 @@ def parse_args():
     parser.add_argument('--path', type=str,default="./checkpoints",
                         help="path to save weights")
     parser.add_argument('--topks', type=list, default=[10, 20, 50, 100])
-    parser.add_argument('--tensorboard', type=int,default=0,
-                        help="enable tensorboard")
-    parser.add_argument('--comment', type=str,default="mf_tpab")
-    parser.add_argument('--load', type=int,default=0)
     parser.add_argument('--epochs', type=int,default=600)
-    parser.add_argument('--multicore', type=int, default=0, help='whether we use multiprocessing or not in test')
     parser.add_argument('--pretrain', type=int, default=0, help='whether we use pretrained weight or not')
     parser.add_argument('--seed', type=int, default=2018, help='random seed')
     parser.add_argument('--model', type=str, default='mf', help='rec-model, support [mf, lgn]')
-    parser.add_argument('--log_name', type=str, default='log', help='log name')
-    parser.add_argument('--gpu', type=str, default='0')
     parser.add_argument('--period', type=int, default=8, help='number of stage')
     parser.add_argument('--log', type=str, help='the name of your log')
     parser.add_argument('--predict', type=float, default=0.2)
     parser.add_argument('--a-split', type=bool, default=False)
     parser.add_argument('--bigdata', type=bool, default=False)
 
-
-    parser.add_argument('--algo', type=str, default='tpab', help='rec_algo, support []')
-    parser.add_argument('--log_file', type=str,default="./log/customized_file_name", help="path of the log file.")
 
     # TPAB
     parser.add_argument('--n_pop_group', type=int, default=20, help='number of popularity groups')

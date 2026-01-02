@@ -30,7 +30,7 @@ except:
     pass
 if wandb_login:
     configs = vars(args)
-    wandb_var = wandb.init(project="pop_shift", config=configs)
+    wandb_var = wandb.init(project="ldr_rec", config=configs)
     wandb.run.name = args.expt_name
 
 

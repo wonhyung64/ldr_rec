@@ -9,7 +9,7 @@ def reg_loss_fn(embs: list):
 	return torch.tensor([emb.norm(2).pow(2)/2 for emb in embs]).sum()
 
 
-def bootstrap_loss_fn(users_emb, pos_emb, neg_emb, users_pop_emb, pos_pop_emb, neg_pop_emb, batch_size):
+def bootstrap_loss_fn(users_emb, pos_emb, neg_emb, users_pop_emb, pos_pop_emb, neg_pop_emb, batch_size, decay):
 	users_ori = torch.cat([users_pop_emb, users_emb], dim=1)
 	random_order = torch.randperm(len(users_emb))
 	pos_pop_new = pos_pop_emb[random_order]
@@ -20,8 +20,9 @@ def bootstrap_loss_fn(users_emb, pos_emb, neg_emb, users_pop_emb, pos_pop_emb, n
 	pos_scores = score_fn(users_ori, pos_new)
 	neg_scores = score_fn(users_ori, neg_new)
 	boots_bpr_loss = bpr_loss_fn(pos_scores, neg_scores)
+	reg_loss = reg_loss_fn([users_ori, pos_new, neg_new]) / len(batch_users)
 
-	return boots_bpr_loss
+	return boots_bpr_loss + reg_loss * decay
 
 
 def score_fn(user_emb, item_emb):

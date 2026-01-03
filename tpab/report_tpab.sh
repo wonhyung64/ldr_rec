@@ -55,18 +55,18 @@ RANDOM_SEED=0
 
 
 experiments=(
-    "main.py --dataset=micro_video --lambda1=1. --seed=2018 --decay=0.002"
-    # "main.py --dataset=micro_video --lambda1=1. --seed=2018"
-    # "main.py --dataset=micro_video --lambda1=1. --seed=0"
-    # "main.py --dataset=micro_video --lambda1=1. --seed=1"
-    # "main.py --dataset=micro_video --lambda1=1. --seed=2"
-    # "main.py --dataset=micro_video --lambda1=1. --seed=3"
-    # "main.py --dataset=micro_video --lambda1=1. --seed=4"
-    # "main.py --dataset=kuairand --lambda1=3. --seed=0"
-    # "main.py --dataset=kuairand --lambda1=3. --seed=1"
-    # "main.py --dataset=kuairand --lambda1=3. --seed=2"
-    # "main.py --dataset=kuairand --lambda1=3. --seed=3"
-    # "main.py --dataset=kuairand --lambda1=3. --seed=4"
+    # "main.py --dataset=micro_video --lambda1=1. --seed=2018 --decay=0.002"
+    "main.py --dataset=micro_video --lambda1=1. --seed=2018"
+    "main.py --dataset=micro_video --lambda1=1. --seed=0"
+    "main.py --dataset=micro_video --lambda1=1. --seed=1"
+    "main.py --dataset=micro_video --lambda1=1. --seed=2"
+    "main.py --dataset=micro_video --lambda1=1. --seed=3"
+    "main.py --dataset=micro_video --lambda1=1. --seed=4"
+    "main.py --dataset=kuairand --lambda1=3. --seed=0"
+    "main.py --dataset=kuairand --lambda1=3. --seed=1"
+    "main.py --dataset=kuairand --lambda1=3. --seed=2"
+    "main.py --dataset=kuairand --lambda1=3. --seed=3"
+    "main.py --dataset=kuairand --lambda1=3. --seed=4"
 )
 
 

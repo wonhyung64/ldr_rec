@@ -51,7 +51,7 @@ model = MF_TPAB(args.recdim, dataset.n_users, dataset.m_items, dataset.num_item_
 model = model.to(args.device)
 predictor = PopPredictor(args)
 predictor = predictor.to(args.device)
-optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
+optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 
 #%%
@@ -84,7 +84,7 @@ for epoch in range(1, args.epochs+1):
 		bpr_loss = bpr_loss_fn(pos_scores, neg_scores) 
 		reg_loss = reg_loss_fn([users_emb, pos_emb, neg_emb, users_pop_emb, pos_pop_emb, neg_pop_emb]) / len(batch_users)
 		bootstrap_loss = bootstrap_loss_fn(users_emb, pos_emb, neg_emb, users_pop_emb, pos_pop_emb, neg_pop_emb, args.batch_size) * args.lambda1
-		total_loss = bpr_loss + reg_loss + bootstrap_loss
+		total_loss = bpr_loss + reg_loss * args.decay + bootstrap_loss
 				
 		total_loss.backward()
 		optimizer.step()

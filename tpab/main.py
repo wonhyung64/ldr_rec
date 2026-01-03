@@ -83,7 +83,7 @@ for epoch in range(1, args.epochs+1):
 		"""loss"""
 		bpr_loss = bpr_loss_fn(pos_scores, neg_scores) 
 		reg_loss = reg_loss_fn([users_emb, pos_emb, neg_emb, users_pop_emb, pos_pop_emb, neg_pop_emb]) / len(batch_users)
-		bootstrap_loss = bootstrap_loss_fn(users_emb, pos_emb, neg_emb, users_pop_emb, pos_pop_emb, neg_pop_emb, args.batch_size, args.decay) * args.lambda1
+		bootstrap_loss = bootstrap_loss_fn(users_emb, pos_emb, neg_emb, users_pop_emb, pos_pop_emb, neg_pop_emb, len(batch_users), args.decay) * args.lambda1
 		total_loss = bpr_loss + reg_loss * args.decay + bootstrap_loss
 				
 		total_loss.backward()

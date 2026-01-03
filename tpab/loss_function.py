@@ -20,7 +20,7 @@ def bootstrap_loss_fn(users_emb, pos_emb, neg_emb, users_pop_emb, pos_pop_emb, n
 	pos_scores = score_fn(users_ori, pos_new)
 	neg_scores = score_fn(users_ori, neg_new)
 	boots_bpr_loss = bpr_loss_fn(pos_scores, neg_scores)
-	reg_loss = reg_loss_fn([users_ori, pos_new, neg_new]) / len(batch_users)
+	reg_loss = reg_loss_fn([users_ori, pos_new, neg_new]) / batch_size
 
 	return boots_bpr_loss + reg_loss * decay
 

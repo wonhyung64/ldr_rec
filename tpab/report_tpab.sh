@@ -55,6 +55,7 @@ RANDOM_SEED=0
 
 
 experiments=(
+    "main.py --dataset=micro_video --lambda1=1. --seed=2018"
     "main.py --dataset=micro_video --lambda1=1. --seed=0"
     "main.py --dataset=micro_video --lambda1=1. --seed=1"
     "main.py --dataset=micro_video --lambda1=1. --seed=2"

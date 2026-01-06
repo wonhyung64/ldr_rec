@@ -54,12 +54,13 @@ RANDOM_SEED=0
 
 
 lambda1_options=(
-    "--lambda1=5e-3"
-    "--lambda1=1e-2"
+    "--lambda1=5e-2"
     "--lambda1=1e-1"
+    "--lambda1=5e-1"
+    "--lambda1=1e-0"
+    "--lambda1=5e-0."
     "--lambda1=1e+1"
-    "--lambda1=1e+2"
-    "--lambda1=5e+2"
+    "--lambda1=5e+1"
 )
 
 lr_options=(
@@ -71,11 +72,8 @@ lr_options=(
 )
 wd_options=(
     "--decay=0."
-    "--decay=1e-1"
     "--decay=1e-2"
-    "--decay=1e-3"
     "--decay=1e-4"
-    "--decay=1e-5"
     "--decay=1e-6"
 )
 

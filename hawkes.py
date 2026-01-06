@@ -83,7 +83,7 @@ for epoch in range(1, args.epochs+1):
 		utv_loss = nn.BCEWithLogitsLoss()(pred, true)
 		hawkes_loss = -log_p_tv.mean()
 
-		total_loss = utv_loss + hawkes_loss
+		total_loss = utv_loss + hawkes_loss * args.lambda1
 				
 		total_loss.backward()
 		optimizer.step()

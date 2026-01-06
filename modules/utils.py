@@ -7,11 +7,10 @@ import numpy as np
 def parse_args():
     parser = argparse.ArgumentParser(description="")
     parser.add_argument('--batch_size', type=int,default=2048,)
-                       
     parser.add_argument('--recdim', type=int,default=64,)
-                       
     parser.add_argument('--lr', type=float,default=0.001,)
     parser.add_argument('--decay', type=float,default=0.,)
+    parser.add_argument('--lambda1', type=float,default=1.,)
     parser.add_argument('--data_path', type=str, default='./data',
                         help='the path to dataset')
     parser.add_argument('--cred_path', type=str, default='./assets',

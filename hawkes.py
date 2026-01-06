@@ -123,12 +123,12 @@ for epoch in range(1, args.epochs+1):
 				wandb_var.log({"best_epoch": best_epoch, "best_recall": best_recall})
 
 		# early stopping
-		if epoch > 100:
-			if valid_results[1][0] - best_recall < 1e-4:
-				cnt += 1
-			else:
-				cnt = 1
-			if cnt >= 20:
-				break
+		# if epoch > 100:
+		# 	if valid_results[1][0] - best_recall < 1e-4:
+		# 		cnt += 1
+		# 	else:
+		# 		cnt = 1
+		# 	if cnt >= 20:
+		# 		break
 
 # %%

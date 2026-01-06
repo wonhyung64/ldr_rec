@@ -60,8 +60,11 @@ def parse_args():
     parser.add_argument('--n_pop_group', type=int, default=20, help='number of popularity groups')
     parser.add_argument('--lambda1', type=float, default=1.0,
                         help='weight for bootstrapping loss')
-
-    return parser.parse_args()
+    
+    try: 
+        return parser.parse_args()
+    except: 
+        return parser.parse_args([])
 
 
 def minibatch(tensors, batch_size):

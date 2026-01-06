@@ -80,7 +80,9 @@ class DisenData(Dataset):
 		self.items_D = np.array(self.UserItemNet.sum(axis=0)).squeeze()
 		self.items_D[self.items_D == 0.] = 1.
 		# pre-calculate
-		self._allPos = self.getUserPosItems(list(range(self.n_user))) # interacted items for all users
+		self._allPos = self.getUserPosItems(list(range(self.n_user)))
+		self._allPosUsers = self.getItemPosUsers(list(range(self.m_items)))
+
 		self.pair_stage, self.item_inter = self.get_item_inter(
 			self.train_dict, self.valid_dict, self.test_dict, self.time_dict, self.period)
 		# pair_stage: stage of interaction
@@ -185,6 +187,12 @@ class DisenData(Dataset):
 			posItems.append(self.UserItemNet[user].nonzero()[1])
 		return posItems
 
+	def getItemPosUsers(self, items):
+		posUsers = []
+		for item in items:
+			posUsers.append(self.UserItemNet[:,item].nonzero()[0])
+		return posUsers
+
 	def getUserValidItems(self, users):
 		validItems = []
 		for user in users:
@@ -194,9 +202,6 @@ class DisenData(Dataset):
 	
 	def get_pair_bpr(self):
 		"""
-		the original impliment of BPR Sampling in LightGCN
-		:return:
-			np.array
 		"""
 		user_num = self.traindataSize
 		# print(user_num)
@@ -230,6 +235,37 @@ class DisenData(Dataset):
 				if cnt == user_num:
 					break
 			if cnt == user_num:
+				break
+
+
+	def get_pair_bpr_item(self):
+		sample_num = self.traindataSize
+		items = np.random.randint(0, self.m_item, sample_num)
+
+		self.item = []
+		self.posUser = []
+		self.negUser = []
+
+		cnt = 0
+		for item in items:
+			posForItem = self._allPosUsers[item]
+			if len(posForItem) == 0:
+				continue
+			cnt += 1
+			posindex = np.random.randint(0, len(posForItem))
+			posuser = posForItem[posindex]
+
+			while True:
+				neguser = np.random.randint(0, self.n_user)
+				if neguser in posForItem:
+					continue
+				else:
+					break
+
+			self.item.append(item)
+			self.posUser.append(posuser)
+			self.negUser.append(neguser)
+			if cnt == sample_num:
 				break
 
 	@property
@@ -268,8 +304,10 @@ class DisenData(Dataset):
 	def allPos(self):
 		return self._allPos
 
+	# def __getitem__(self, idx):
+	# 	return self.user[idx], self.posItem[idx], self.negItem[idx], self.pair_stage[(self.user[idx], self.posItem[idx])], self.item_inter[self.posItem[idx]], self.item_inter[self.negItem[idx]]
 	def __getitem__(self, idx):
-		return self.user[idx], self.posItem[idx], self.negItem[idx], self.pair_stage[(self.user[idx], self.posItem[idx])], self.item_inter[self.posItem[idx]], self.item_inter[self.negItem[idx]]
+		return self.item[idx], self.posUser[idx], self.negUser[idx], self.pair_stage[(self.posUser[idx], self.item[idx])]#, self.item_inter[self.posItem[idx]], self.item_inter[self.negItem[idx]]
 	
 	def __len__(self):
 		return self.traindataSize

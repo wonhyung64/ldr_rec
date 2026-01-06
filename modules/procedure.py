@@ -52,7 +52,7 @@ def evaluate(args, flag, dataset, model, item_pop):
 			exclude_items.extend(valid_items)
 		pred[exclude_items] = -(9999)
 		_, pred_k = torch.topk(pred.squeeze(-1), k=max(args.topks))
-		pred_list.append(list(pred_k.cpu().numpy()))
+		pred_list.append(pred_k.cpu())
 	
 	return true_list, pred_list
 

@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch import optim
 from datetime import datetime
 from torch.utils.data import DataLoader
+from sklearn.metrics import roc_auc_score
 
 from modules.utils import parse_args, set_seed, set_device
 from modules.dataset import DisenData
@@ -97,7 +98,6 @@ for epoch in range(1, args.epochs+1):
 
 	if epoch % 5 == 0:
 
-		from sklearn.metrics import roc_auc_score
 
 		true_list, pred_list = evaluate(args, "valid", dataset, model, item_pop)
 

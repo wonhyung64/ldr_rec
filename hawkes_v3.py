@@ -91,31 +91,50 @@ if wandb_login:
 dataset = UserItemTime(args)
 train_loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
-#%%
 
+#%%
 model = JointRec(dataset.n_user, dataset.m_item, args.recdim, args.device)
 model = model.to(args.device)
 optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=args.decay)
 
+
 #%%
-item_batch = 2024
-item_batch_num = dataset.m_item // item_batch
-all_item = list(range(dataset.m_item))
+mini_batch = args.batch_size // args.neg_size
+batch_num = dataset.trainDataSize // mini_batch
+all_idxs = np.arange(dataset.trainDataSize)
+dataset.get_pair_item_bpr(args.neg_size-1)
+dataset.get_pair_user_bpr(args.neg_size-1)
+
+
+
+#%%
+
 
 for epoch in range(1, args.epochs+1):
 	torch.cuda.empty_cache()
 	model.train()
-	train_loader.dataset.get_pair_bpr()
+	if epoch % 10 == 0:
+		dataset.get_pair_item_bpr(args.neg_size-1)
+		dataset.get_pair_user_bpr(args.neg_size-1)
+
+	np.random.shuffle(all_idxs)
 	epoch_total_loss = 0.
 
-	all_idxs = np.arange(dataset.m_item)
-	np.random.shuffle(all_idxs)
+    for idx in range(batch_num):
+        sample_idx = all_idxs[mini_batch*idx : (idx+1)*mini_batch]
 
-	# for idx in range(total_batch):
-	for X in train_loader:
+		pos_item = torch.tensor(np.array(dataset.pos_item_list)[sample_idx]).unsqueeze(-1)
+		neg_items = torch.tensor(np.array(dataset.neg_item_list)[sample_idx])
+		pos_time = torch.tensor(np.array(dataset.user_time_list)[sample_idx])
+		pos_time_all = torch.tensor(np.array(dataset.user_time_all)[sample_idx])
+
+		torch.concat([pos_item, neg_items], -1).flatten()
 		pos_item = (X[0]).to(args.device)
+
 		batch_time = (X[3]).to(args.device)/60/60/24
 		batch_time_all = (X[4]).to(args.device)/60/60/24
+		
+		neg_item = 
 		
 		for i in range(0, item_batch_num+1):
 			batch_items = all_item[i*item_batch : (i+1)*item_batch]

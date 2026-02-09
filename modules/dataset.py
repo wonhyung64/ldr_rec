@@ -416,10 +416,36 @@ class UserItemTime(Dataset):
 				validItems.append(valid_dict[user])
 		return validItems
 
-	def get_pair_bpr(self):
+	def get_pair_user_bpr(self, neg_size):
+		sample_num = self.trainDataSize
+		users = np.random.randint(0, self.n_user, sample_num)
+
+		self.user_list, self.pos_item_list, self.neg_item_list, self.user_time_list, self.user_time_all = [], [], [], [], []
+		cnt = 0
+		for user in users:
+			pos_items = self._allPos[user]
+			if len(pos_items) == 0:
+				continue
+			cnt += 1
+			idx = np.random.randint(0, len(pos_items))
+			pos_item = pos_items[idx]
+			while True:
+				neg_item = np.random.randint(0, self.m_item, size=neg_size)
+				if np.isin(neg_item, pos_item).any():
+					continue
+				break
+			self.user_list.append(user)
+			self.pos_item_list.append(pos_item)
+			self.neg_item_list.append(neg_item)
+			self.time_list.append(self.train_user_item_time[(user, pos_item)])
+			self.time_all.append(self.item_time_array[pos_item])
+			if cnt == sample_num:
+				break
+
+	def get_pair_item_bpr(self, neg_size):
 		sample_num = self.trainDataSize
 		items = np.random.randint(0, self.m_item, sample_num)
-		self.item_list, self.pos_user_list, self.neg_user_list, self.time_list, self.time_all = [], [], [], [], []
+		self.item_list, self.pos_user_list, self.neg_user_list, self.item_time_list, self.item_time_all = [], [], [], [], []
 		cnt = 0
 		for item in items:
 			pos_users = self._allPosUsers[item]
@@ -429,11 +455,10 @@ class UserItemTime(Dataset):
 			idx = np.random.randint(0, len(pos_users))
 			pos_user = pos_users[idx]
 			while True:
-				neg_user = np.random.randint(0, self.n_user)
-				if neg_user in pos_users:
+				neg_user = np.random.randint(0, self.n_user, size=neg_size)
+				if np.isin(neg_user, pos_users).any():
 					continue
-				else:
-					break
+				break
 			self.item_list.append(item)
 			self.pos_user_list.append(pos_user)
 			self.neg_user_list.append(neg_user)
@@ -442,8 +467,9 @@ class UserItemTime(Dataset):
 			if cnt == sample_num:
 				break
 
+
 	def __getitem__(self, idx):
-		return self.item_list[idx], self.pos_user_list[idx], self.neg_user_list[idx], self.time_list[idx], self.time_all[idx]
+		return self.item_list[idx], self.pos_user_list[idx], self.neg_user_list[idx], self.item_time_list[idx], self.item_time_all[idx]
 	
 	def __len__(self):
 		return self.trainDataSize

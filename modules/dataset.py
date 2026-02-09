@@ -15,6 +15,7 @@ class DisenData(Dataset):
 		self.Graph = None
 		self.n_user = 0
 		self.m_item = 0
+		self.time_type = args.time_type
 
 		time_file = path + '/interaction_time_dict.npy'
 		train_file = path + '/training_dict.npy'
@@ -75,16 +76,15 @@ class DisenData(Dataset):
 
 		self.UserItemNet = csr_matrix((np.ones(self.trainDataSize), (self.trainUser, self.trainItem)),
 										shape=(self.n_user, self.m_item))  # all (user, item) matrix of train, if interacted 1.
-		self.users_D = np.array(self.UserItemNet.sum(axis=1)).squeeze()
-		self.users_D[self.users_D == 0.] = 1
-		self.items_D = np.array(self.UserItemNet.sum(axis=0)).squeeze()
-		self.items_D[self.items_D == 0.] = 1.
 		# pre-calculate
 		self._allPos = self.getUserPosItems(list(range(self.n_user)))
 		self._allPosUsers = self.getItemPosUsers(list(range(self.m_items)))
-
-		self.pair_stage, self.item_inter = self.get_item_inter(
-			self.train_dict, self.valid_dict, self.test_dict, self.time_dict, self.period)
+		if self.time_type == "discrete":
+			self.pair_stage, self.item_inter = self.get_item_inter(
+				self.train_dict, self.valid_dict, self.test_dict, self.time_dict, self.period)
+		elif self.time_type == "continuous":
+			self.pair_stage, self.item_inter = self.get_item_inter(
+				self.train_dict, self.valid_dict, self.test_dict, self.time_dict, 0)
 		# pair_stage: stage of interaction
 		# item_inter: interaction num per user
 
@@ -113,7 +113,10 @@ class DisenData(Dataset):
 		for user in train_dict:
 			for item in train_dict[user]:
 				time = time_dict[user][item]
-				pair_stage[(user,item)] = time_stage[time]
+				if period:
+					pair_stage[(user,item)] = time_stage[time]
+				else:
+					pair_stage[(user,item)] = time
 				stage_all_inter[int(time_stage[time])] += 1
 				if item not in item_inter:
 					item_inter[item] = [0] * (period + 1 * 2)
@@ -122,7 +125,10 @@ class DisenData(Dataset):
 		for user in valid_dict:
 			for item in valid_dict[user]:
 				time = time_dict[user][item]
-				pair_stage[(user,item)] = time_stage[time]
+				if period:
+					pair_stage[(user,item)] = time_stage[time]
+				else:
+					pair_stage[(user,item)] = time
 				stage_all_inter[int(time_stage[time])] += 1
 				if item not in item_inter:
 					item_inter[item] = [0] * (period + 1 * 2)
@@ -131,7 +137,10 @@ class DisenData(Dataset):
 		for user in test_dict:
 			for item in test_dict[user]:
 				time = time_dict[user][item]
-				pair_stage[(user,item)] = time_stage[time]
+				if period:
+					pair_stage[(user,item)] = time_stage[time]
+				else:
+					pair_stage[(user,item)] = time
 				stage_all_inter[int(time_stage[time])] += 1
 				if item not in item_inter:
 					item_inter[item] = [0] * (period + 1 * 2)
@@ -311,3 +320,130 @@ class DisenData(Dataset):
 	
 	def __len__(self):
 		return self.traindataSize
+
+
+class UserItemTime(Dataset):
+	def __init__(self, args):
+		path = f"{args.data_path}/{args.dataset}"
+		time_file = path + '/interaction_time_dict.npy'
+		train_file = path + '/training_dict.npy'
+		valid_file = path + '/validation_dict.npy'
+		test_file = path + '/testing_dict.npy'
+
+		self.time_dict = np.load(time_file, allow_pickle=True).item() # {user:{item:timestamp},}
+		self.train_dict = np.load(train_file, allow_pickle=True).item() # {user:[item,],}
+		self.valid_dict = np.load(valid_file, allow_pickle=True).item()
+		self.test_dict = np.load(test_file, allow_pickle=True).item()
+
+		self.trainUniqueUsers, self.trainUser, self.trainItem, self.trainDataSize = self.load_set(self.train_dict)
+		self.validUniqueUsers, self.validUser, self.validItem, self.validDataSize = self.load_set(self.valid_dict)
+		self.testUniqueUsers, self.testUser, self.testItem, self.testDataSize = self.load_set(self.test_dict)
+
+		self.m_item = max(self.trainItem.max(), self.validItem.max(), self.testItem.max()) + 1
+		self.n_user = max(self.trainUser.max(), self.validUser.max(), self.testUser.max()) + 1
+		self.UserItemNet = csr_matrix((np.ones(self.trainDataSize), (self.trainUser, self.trainItem)), shape=(self.n_user, self.m_item))
+		# all (user, item) matrix of train, if interacted 1.
+
+		# pre-calculate
+		self._allPos = self.getUserPosItems(list(range(self.n_user)), self.UserItemNet)
+		self._allPosUsers = self.getItemPosUsers(list(range(self.m_item)), self.UserItemNet)
+
+		self.train_user_item_time = self.set_to_pair(self.train_dict, self.time_dict)
+		self.valid_user_item_time = self.set_to_pair(self.valid_dict, self.time_dict)
+		self.test_user_item_time = self.set_to_pair(self.test_dict, self.time_dict)
+		self.item_time_array = self.time_dict_to_array(self.time_dict)
+
+	def load_set(self, set_dict):
+		UniqueUsers, Item, User = [], [], []
+		dataSize = 0
+		for uid in set_dict.keys():
+			if len(set_dict[uid]) != 0:
+				UniqueUsers.append(uid)
+				User.extend([uid] * len(set_dict[uid]))
+				Item.extend(set_dict[uid])
+				dataSize += len(set_dict[uid])
+		UniqueUsers = np.array(UniqueUsers)
+		User = np.array(User)  # [interact1_user, interact2_user, interact3_user, ...]
+		Item = np.array(Item)  # [interact1_item, interact2_item, interact3_item, ...]
+		return UniqueUsers, User, Item, dataSize
+
+	def set_to_pair(self, set_dict, time_dict):
+		user_item_time = {}
+		for user in set_dict:
+			for item in set_dict[user]:
+				time = time_dict[user][item]
+				user_item_time[(user,item)] = time
+		return user_item_time
+
+	def time_dict_to_array(self, time_dict):
+		max_pos, item_time_dict, item_time_array = 0, {}, []
+		for _, user_dict in time_dict.items():
+			for item_idx, times in user_dict.items():
+				try:
+					assert item_time_dict[item_idx]
+				except:
+					item_time_dict[item_idx] = []
+				item_time_dict[item_idx].append(times)
+		for i in range(max(item_time_dict.keys())+1):
+			try:
+				times = np.array(item_time_dict[i])
+			except:
+				times = np.array([])
+			max_pos = max(max_pos, len(times))
+			times.sort()
+			item_time_array.append(times)
+		for i in range(max(item_time_dict.keys())+1):
+			item_time_array[i] = np.pad(item_time_array[i], (0, max_pos - len(item_time_array[i])), "constant", constant_values=9999999999)
+		item_time_array = np.stack(item_time_array, 0)
+		return item_time_array
+
+	def getUserPosItems(self, users, UserItemNet):
+		posItems = []
+		for user in users:
+			posItems.append(UserItemNet[user,:].nonzero()[1])
+		return posItems
+
+	def getItemPosUsers(self, items, UserItemNet):
+		posUsers = []
+		for item in items:
+			posUsers.append(UserItemNet[:,item].nonzero()[0])
+		return posUsers
+
+	def getUserValidItems(self, users, valid_dict):
+		validItems = []
+		for user in users:
+			if user in valid_dict:
+				validItems.append(valid_dict[user])
+		return validItems
+
+	def get_pair_bpr(self):
+		sample_num = self.trainDataSize
+		items = np.random.randint(0, self.m_item, sample_num)
+		self.item_list, self.pos_user_list, self.neg_user_list, self.time_list, self.time_all = [], [], [], [], []
+		cnt = 0
+		for item in items:
+			pos_users = self._allPosUsers[item]
+			if len(pos_users) == 0:
+				continue
+			cnt += 1
+			idx = np.random.randint(0, len(pos_users))
+			pos_user = pos_users[idx]
+			while True:
+				neg_user = np.random.randint(0, self.n_user)
+				if neg_user in pos_users:
+					continue
+				else:
+					break
+			self.item_list.append(item)
+			self.pos_user_list.append(pos_user)
+			self.neg_user_list.append(neg_user)
+			self.time_list.append(self.train_user_item_time[(pos_user, item)])
+			self.time_all.append(self.item_time_array[item])
+			if cnt == sample_num:
+				break
+
+	def __getitem__(self, idx):
+		return self.item_list[idx], self.pos_user_list[idx], self.neg_user_list[idx], self.time_list[idx], self.time_all[idx]
+	
+	def __len__(self):
+		return self.trainDataSize

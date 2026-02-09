@@ -25,6 +25,7 @@ def parse_args():
     parser.add_argument('--period', type=int, default=8, help='number of stage')
     parser.add_argument('--n_pop_group', type=int, default=20, help='number of popularity groups')
     parser.add_argument('--ablation-model', type=str, default='pv') # [pv, puv, ptv, ptv_pv, puv_pv]
+    parser.add_argument('--time-type', type=str, default='continuous') # [pv, puv, ptv, ptv_pv, puv_pv]
 
     try:
         return parser.parse_args()

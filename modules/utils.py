@@ -6,7 +6,7 @@ import numpy as np
 
 def parse_args():
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument('--batch_size', type=int,default=2048,)
+    parser.add_argument('--batch_size', type=int,default=32768,)
     parser.add_argument('--recdim', type=int,default=64,)
     parser.add_argument('--lr', type=float,default=0.001,)
     parser.add_argument('--decay', type=float,default=0.,)
@@ -26,7 +26,8 @@ def parse_args():
     parser.add_argument('--n_pop_group', type=int, default=20, help='number of popularity groups')
     parser.add_argument('--ablation-model', type=str, default='pv') # [pv, puv, ptv, ptv_pv, puv_pv]
     parser.add_argument('--time-type', type=str, default='continuous') # [pv, puv, ptv, ptv_pv, puv_pv]
-    parser.add_argument('--neg-size', type=int, default=16)
+    parser.add_argument('--contrast-size', type=int, default=16)
+    parser.add_argument('--evaluate-interval', type=int, default=20)
 
     try:
         return parser.parse_args()
@@ -47,7 +48,7 @@ def set_seed(random_seed):
 def set_device(device="none"):
     if device == "none":
         if torch.cuda.is_available():
-            device = "cuda"
+            device = "cuda:1"
         elif torch.backends.mps.is_available():
             device = "mps"
         else: 

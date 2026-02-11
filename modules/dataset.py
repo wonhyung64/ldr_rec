@@ -420,7 +420,7 @@ class UserItemTime(Dataset):
 		sample_num = self.trainDataSize
 		users = np.random.randint(0, self.n_user, sample_num)
 
-		self.user_list, self.pos_item_list, self.neg_item_list, self.user_time_list, self.user_time_all = [], [], [], [], []
+		self.user_list, self.pos_item_list, self.neg_item_list, self.pos_time_list, self.pos_time_all, self.neg_time_all = [], [], [], [], [], []
 		cnt = 0
 		for user in users:
 			pos_items = self._allPos[user]
@@ -437,10 +437,17 @@ class UserItemTime(Dataset):
 			self.user_list.append(user)
 			self.pos_item_list.append(pos_item)
 			self.neg_item_list.append(neg_item)
-			self.time_list.append(self.train_user_item_time[(user, pos_item)])
-			self.time_all.append(self.item_time_array[pos_item])
+			self.pos_time_list.append(self.train_user_item_time[(user, pos_item)])
+			self.pos_time_all.append(self.item_time_array[pos_item])
+			self.neg_time_all.append(self.item_time_array[neg_item])
 			if cnt == sample_num:
 				break
+		self.user_list = np.array(self.user_list)
+		self.pos_item_list = np.array(self.pos_item_list)
+		self.neg_item_list = np.array(self.neg_item_list)
+		self.pos_time_list = np.array(self.pos_time_list)
+		self.pos_time_all = np.array(self.pos_time_all)
+		self.neg_time_all = np.array(self.neg_time_all)
 
 	def get_pair_item_bpr(self, neg_size):
 		sample_num = self.trainDataSize
@@ -462,8 +469,8 @@ class UserItemTime(Dataset):
 			self.item_list.append(item)
 			self.pos_user_list.append(pos_user)
 			self.neg_user_list.append(neg_user)
-			self.time_list.append(self.train_user_item_time[(pos_user, item)])
-			self.time_all.append(self.item_time_array[item])
+			self.item_time_list.append(self.train_user_item_time[(pos_user, item)])
+			self.item_time_all.append(self.item_time_array[item])
 			if cnt == sample_num:
 				break
 

@@ -13,6 +13,7 @@ from modules.utils import parse_args, set_seed, set_device
 from modules.dataset import UserItemTime
 from modules.procedure import evaluate, computeTopNAccuracy
 
+"""EXPERIMENT FOR THE SIMPLEST p(v|t,H_t) WITH HAWKES PROCESS"""
 
 class JointRec(nn.Module):
 	"""Model for Joint Probability P(u,v,t) = P(u|t,v)P(t|v)p(v)"""

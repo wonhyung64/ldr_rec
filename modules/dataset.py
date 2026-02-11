@@ -371,7 +371,7 @@ class UserItemTime(Dataset):
 		user_item_time = {}
 		for user in set_dict:
 			for item in set_dict[user]:
-				time = time_dict[user][item]
+				time = time_dict[user][item] /60/60/24
 				user_item_time[(user,item)] = time
 		return user_item_time
 
@@ -386,7 +386,7 @@ class UserItemTime(Dataset):
 				item_time_dict[item_idx].append(times)
 		for i in range(max(item_time_dict.keys())+1):
 			try:
-				times = np.array(item_time_dict[i])
+				times = np.array(item_time_dict[i]) /60/60/24
 			except:
 				times = np.array([])
 			max_pos = max(max_pos, len(times))
@@ -452,7 +452,7 @@ class UserItemTime(Dataset):
 	def get_pair_item_bpr(self, neg_size):
 		sample_num = self.trainDataSize
 		items = np.random.randint(0, self.m_item, sample_num)
-		self.item_list, self.pos_user_list, self.neg_user_list, self.item_time_list, self.item_time_all = [], [], [], [], []
+		self.item_list, self.pos_user_list, self.neg_user_list, self.pos_user_time_list, self.pos_user_time_all = [], [], [], [], []
 		cnt = 0
 		for item in items:
 			pos_users = self._allPosUsers[item]
@@ -469,10 +469,16 @@ class UserItemTime(Dataset):
 			self.item_list.append(item)
 			self.pos_user_list.append(pos_user)
 			self.neg_user_list.append(neg_user)
-			self.item_time_list.append(self.train_user_item_time[(pos_user, item)])
-			self.item_time_all.append(self.item_time_array[item])
+			self.pos_user_time_list.append(self.train_user_item_time[(pos_user, item)])
+			self.pos_user_time_all.append(self.item_time_array[item])
 			if cnt == sample_num:
 				break
+
+		self.item_list = np.array(self.item_list)
+		self.pos_user_list = np.array(self.pos_user_list)
+		self.neg_user_list = np.array(self.neg_user_list)
+		self.pos_user_time_list.append(self.pos_user_time_list)
+		self.pos_user_time_all.append(self.pos_user_time_all)
 
 
 	def __getitem__(self, idx):

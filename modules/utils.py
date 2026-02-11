@@ -6,7 +6,7 @@ import numpy as np
 
 def parse_args():
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument('--batch_size', type=int,default=32768,)
+    parser.add_argument('--batch_size', type=int,default=32384)
     parser.add_argument('--recdim', type=int,default=64,)
     parser.add_argument('--lr', type=float,default=0.001,)
     parser.add_argument('--decay', type=float,default=0.,)

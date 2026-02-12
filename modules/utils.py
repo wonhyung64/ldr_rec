@@ -48,7 +48,7 @@ def set_seed(random_seed):
 def set_device(device="none"):
     if device == "none":
         if torch.cuda.is_available():
-            device = "cuda:1"
+            device = "cuda"
         elif torch.backends.mps.is_available():
             device = "mps"
         else: 

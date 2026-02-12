@@ -290,14 +290,14 @@ for epoch in range(1, args.epochs+1):
 				pred_list.append(pred_k.cpu())
 				gt_list.append([item])
 
-				valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
+			valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
 
-				if wandb_login:
+			if wandb_login:
 
-					wandb_var.log(dict(zip([f"valid_precision_{k}" for k in args.topks], valid_results[0])))
-					wandb_var.log(dict(zip([f"valid_recall_{k}" for k in args.topks], valid_results[1])))
-					wandb_var.log(dict(zip([f"valid_ndcg_{k}" for k in args.topks], valid_results[2])))
-					wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
+				wandb_var.log(dict(zip([f"valid_precision_{k}" for k in args.topks], valid_results[0])))
+				wandb_var.log(dict(zip([f"valid_recall_{k}" for k in args.topks], valid_results[1])))
+				wandb_var.log(dict(zip([f"valid_ndcg_{k}" for k in args.topks], valid_results[2])))
+				wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
 
 
 wandb_var.finish()

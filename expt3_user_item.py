@@ -117,7 +117,6 @@ for epoch in range(1, args.epochs+1):
 		dataset.get_pair_user_bpr(args.contrast_size-1)
 
 	np.random.shuffle(all_idxs)
-	epoch_total_loss = 0.
 	epoch_item_loss = 0.
 	epoch_user_loss = 0.
 	for idx in range(batch_num):
@@ -155,13 +154,10 @@ for epoch in range(1, args.epochs+1):
 		optimizer_user.step()
 		optimizer_user.zero_grad()
 
-		total_loss = user_loss + item_loss
-
 		epoch_user_loss += user_loss
 		epoch_item_loss += item_loss
-		epoch_total_loss += total_loss
 
-	print(f"[Epoch {epoch:>4d} Train Loss] total: {epoch_total_loss.item()/batch_num:.4f} / user: {epoch_user_loss.item()/batch_num:.4f} / item: {epoch_item_loss.item()/batch_num:.4f}")
+	print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss.item()/batch_num:.4f} / item: {epoch_item_loss.item()/batch_num:.4f}")
 
 
 	if epoch % args.evaluate_interval == 0:
@@ -234,10 +230,12 @@ for epoch in range(1, args.epochs+1):
 			wandb_var.log(dict(zip([f"valid_ndcg_{k}" for k in args.topks], valid_results[2])))
 			wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
 
-			wandb_var.log({"train_item_nll_partial": epoch_total_loss.item() / batch_num})
+			wandb_var.log({"train_item_nll_partial": epoch_item_loss.item() / batch_num})
 			wandb_var.log({"valid_item_nll_partial": torch.stack(nll_partial_list).mean().item()})
 			wandb_var.log({"valid_item_nll_all": torch.stack(nll_all_list).mean().item()})
-			wandb_var.log({"valid_user_nll_partial": torch.stack(nll_user_partial_list).mean().item()})
-			wandb_var.log({"valid_user_nll_all": torch.stack(nll_user_all_list).mean().item()})
+
+			wandb_var.log({"train_user_nll_partial": epoch_user_loss.item() / batch_num})
+			wandb_var.log({"valid_user_nll_partial": np.mean(nll_user_partial_list)})
+			wandb_var.log({"valid_user_nll_all": np.mean(nll_user_all_list)})
 
 wandb_var.finish()

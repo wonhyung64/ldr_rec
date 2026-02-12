@@ -245,24 +245,61 @@ for epoch in range(1, args.epochs+1):
 			user_train = 0
 			break
 
-		if (user_cnt >= 2) | (item_cnt >= 2):
-			pred = user_score[user,:].log().cpu() - torch.log(user_score.sum(0)).cpu() + logits_all.log()
-			exclude_items = list(dataset._allPos[user])
-			pred[exclude_items] = -(9999)
-			_, pred_k = torch.topk(pred.squeeze(-1), k=max(args.topks))
-			pred_list.append(pred_k.cpu())
-			gt_list.append([item])
+		if (user_cnt == 1) | (item_cnt == 1):
 
-			valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
+			best_user_model.eval()
+			best_item_model.eval()
 
-			print(f"[Epoch {epoch:>4d} Valid NLL] total: {torch.stack(nll_all_list).mean().item():.4f}")
+			with torch.no_grad():
+				user_score = torch.matmul(best_user_model.user_embedding.weight, best_user_model.item_embedding.weight.T)
+			user_score = user_score.exp()
 
-			if wandb_login:
+			base_all = []
+			amplitude_all = []
+			for idx in range(dataset.m_item//args.batch_size + 1):
+				item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
+				item_idx = torch.Tensor(item_idx).int().to(args.device)
+				with torch.no_grad():
+					base = best_item_model.soft(best_item_model.base_fn(item_idx))
+					amplitude = best_item_model.soft(best_item_model.amplitude_fn(item_idx))
+				base_all.append(base)
+				amplitude_all.append(amplitude)
 
-				wandb_var.log(dict(zip([f"valid_precision_{k}" for k in args.topks], valid_results[0])))
-				wandb_var.log(dict(zip([f"valid_recall_{k}" for k in args.topks], valid_results[1])))
-				wandb_var.log(dict(zip([f"valid_ndcg_{k}" for k in args.topks], valid_results[2])))
-				wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
+			pred_list = []
+			gt_list = []
+			for i, ((user, item), pos_time) in enumerate((dataset.valid_user_item_time).items()):
+				logits_all = []
+				pos_time = torch.Tensor([pos_time]).to(args.device)
+				for idx in range(dataset.m_item//args.batch_size + 1):
+					item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
+					batch_time_all = torch.Tensor(dataset.item_time_array[item_idx]).to(args.device)
+					batch_time_mask = batch_time_all < pos_time
+					batch_time_delta = pos_time - batch_time_all
+					item_idx = torch.Tensor(item_idx).int().to(args.device)
+					with torch.no_grad():
+						intensity_decay = best_item_model.soft(best_item_model.intensity_decay)
+						time_intensity = (torch.exp(-intensity_decay * batch_time_delta * batch_time_mask) * batch_time_mask).sum(-1, keepdim=True)
+						logits = (base_all[idx] + amplitude_all[idx] * time_intensity).flatten().cpu()
+					logits_all.append(logits)
+				logits_all = torch.concat(logits_all)
+
+				pred = user_score[user,:].log().cpu() - torch.log(user_score.sum(0)).cpu() + logits_all.log()
+				exclude_items = list(dataset._allPos[user])
+				pred[exclude_items] = -(9999)
+				_, pred_k = torch.topk(pred.squeeze(-1), k=max(args.topks))
+				pred_list.append(pred_k.cpu())
+				gt_list.append([item])
+
+				valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
+
+				print(f"[Epoch {epoch:>4d} Valid NLL] total: {torch.stack(nll_all_list).mean().item():.4f}")
+
+				if wandb_login:
+
+					wandb_var.log(dict(zip([f"valid_precision_{k}" for k in args.topks], valid_results[0])))
+					wandb_var.log(dict(zip([f"valid_recall_{k}" for k in args.topks], valid_results[1])))
+					wandb_var.log(dict(zip([f"valid_ndcg_{k}" for k in args.topks], valid_results[2])))
+					wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
 
 
 wandb_var.finish()

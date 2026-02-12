@@ -150,7 +150,7 @@ for epoch in range(1, args.epochs+1):
 			item_loss.backward()
 			optimizer.step()
 			optimizer.zero_grad()
-			epoch_user_loss += user_loss
+			epoch_item_loss += item_loss
 
 		"""USER"""
 		if user_train:
@@ -168,7 +168,7 @@ for epoch in range(1, args.epochs+1):
 			user_loss.backward()
 			optimizer_user.step()
 			optimizer_user.zero_grad()
-			epoch_item_loss += item_loss
+			epoch_user_loss += user_loss
 
 	print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss.item()/batch_num:.4f} / item: {epoch_item_loss.item()/batch_num:.4f}")
 

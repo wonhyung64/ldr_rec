@@ -1,5 +1,6 @@
 #%%
 import os
+import copy
 import wandb
 import torch
 import numpy as np
@@ -24,26 +25,36 @@ class JointRec(nn.Module):
 		self.embedding_k = embedding_k
 		self.depth = depth
 		self.mini_batch = mini_batch
-		self.base_fn = nn.Embedding(num_items, 1)
-		self.amplitude_fn = nn.Embedding(num_items, 1)
+
+		base_fn = [nn.Linear(embedding_k, 1),]
+		self.base_fn = nn.Sequential(*base_fn)
+
+		amplitude_fn = [nn.Linear(embedding_k, 1)]
+		self.amplitude_fn = nn.Sequential(*amplitude_fn)
+
 		self.intensity_decay = torch.autograd.Variable(torch.randn(1), requires_grad=True).to(device)
 		self.soft = nn.Softplus()
 		self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
 		self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
 
 
-	def forward(self, batch_items, pos_time, batch_time_all):
-		"""intensity"""
-		base = self.soft(self.base_fn(batch_items)).reshape(self.mini_batch, -1)
-		amplitude = self.soft(self.amplitude_fn(batch_items)).reshape(self.mini_batch, -1)
+	def hawkes(self, batch_items, pos_time, batch_time_all):
+		item_embed = self.item_embedding(batch_items)
+		base = self.soft(self.base_fn(item_embed)).reshape(self.mini_batch, -1)
+		amplitude = self.soft(self.amplitude_fn(item_embed)).reshape(self.mini_batch, -1)
 		batch_time_mask = batch_time_all < pos_time
 		batch_time_delta = pos_time - batch_time_all
 		intensity_decay = self.soft(self.intensity_decay)
 		time_intensity = torch.exp(-intensity_decay * batch_time_delta * batch_time_mask) * batch_time_mask
-
-		"""score"""
-
 		return base + (time_intensity.sum(-1) * amplitude)
+
+	def mf(self, x):
+		user_idx = x[:,0]
+		item_idx = x[:,1]
+		user_embed = self.user_embedding(user_idx)
+		item_embed = self.item_embedding(item_idx)
+		out = torch.sum(user_embed.mul(item_embed), 1).unsqueeze(-1)
+		return out, user_embed, item_embed
 
 
 class MF(nn.Module):
@@ -55,21 +66,13 @@ class MF(nn.Module):
         self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
         self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
 
-    def forward(self, x):
-        user_idx = x[:,0]
-        item_idx = x[:,1]
-        user_embed = self.user_embedding(user_idx)
-        item_embed = self.item_embedding(item_idx)
-        out = torch.sum(user_embed.mul(item_embed), 1).unsqueeze(-1)
-        return out, user_embed, item_embed
-
 
 #%%
 args = parse_args()
 expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
 set_seed(args.seed)
 args.device = set_device()
-args.expt_name = f"item_user_{expt_num}"
+args.expt_name = f"item_user_earlynll_{expt_num}"
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True) 
 
@@ -101,16 +104,14 @@ model = JointRec(dataset.n_user, dataset.m_item, args.recdim, mini_batch, args.d
 model = model.to(args.device)
 optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=args.decay)
 
-model_user = MF(dataset.n_user, dataset.m_item, 4)
-model_user = model_user.to(args.device)
-optimizer_user = optim.Adam(model_user.parameters(), lr=1e-3, weight_decay=args.decay)
-
-
 #%%
+best_recall = 999.
+best_item_model = copy.copy(model)
+cnt = 1
+
 for epoch in range(1, args.epochs+1):
 	torch.cuda.empty_cache()
 	model.train()
-	model_user.train()
 	if epoch % 10 == 0:
 		print("Reset negative pairs")
 		dataset.get_pair_item_bpr(args.contrast_size-1)
@@ -119,6 +120,8 @@ for epoch in range(1, args.epochs+1):
 	np.random.shuffle(all_idxs)
 	epoch_item_loss = 0.
 	epoch_user_loss = 0.
+
+	
 	for idx in range(batch_num):
 		sample_idx = all_idxs[mini_batch*idx : (idx+1)*mini_batch]
 
@@ -131,12 +134,8 @@ for epoch in range(1, args.epochs+1):
 		batch_items = torch.concat([pos_item, neg_items], -1).reshape([args.batch_size])
 		batch_time_all = torch.concat([pos_time_all.unsqueeze(1), neg_time_all], 1)
 
-		logits = model(batch_items, pos_time, batch_time_all)
+		logits = model.hawkes(batch_items, pos_time, batch_time_all)
 		item_loss = -torch.log(logits[:,0]/logits.sum(-1)).mean()
-
-		item_loss.backward()
-		optimizer.step()
-		optimizer.zero_grad()
 
 		"""USER"""
 		anchor_item = torch.tensor(dataset.item_list[sample_idx])
@@ -146,26 +145,23 @@ for epoch in range(1, args.epochs+1):
 		batch_users = torch.concat([pos_user, neg_users], -1).reshape([args.batch_size])
 		batch_x = torch.stack([batch_users, batch_items], -1)
 
-		batch_scores, _, __ = model_user(batch_x)
+		batch_scores, _, __ = model.mf(batch_x)
 		batch_scores = batch_scores.reshape([mini_batch, args.contrast_size])
 		user_loss = -torch.log(batch_scores[:,0].exp() / batch_scores.exp().sum(-1)).mean()
 
-		user_loss.backward()
-		optimizer_user.step()
-		optimizer_user.zero_grad()
-
-		epoch_user_loss += user_loss
 		epoch_item_loss += item_loss
+		epoch_user_loss += user_loss
+		(user_loss+item_loss).backward()
+		optimizer.step()
+		optimizer.zero_grad()
 
 	print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss.item()/batch_num:.4f} / item: {epoch_item_loss.item()/batch_num:.4f}")
 
-
 	if epoch % args.evaluate_interval == 0:
 		model.eval()
-		model_user.eval()
 
 		with torch.no_grad():
-			user_score = torch.matmul(model_user.user_embedding.weight, model_user.item_embedding.weight.T)
+			user_score = torch.matmul(model.user_embedding.weight, model.item_embedding.weight.T)
 		user_score = user_score.exp()
 
 		sampled_idx = np.random.choice(len(user_score), args.contrast_size-1)
@@ -176,8 +172,8 @@ for epoch in range(1, args.epochs+1):
 			item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
 			item_idx = torch.Tensor(item_idx).int().to(args.device)
 			with torch.no_grad():
-				base = model.soft(model.base_fn(item_idx))
-				amplitude = model.soft(model.amplitude_fn(item_idx))
+				base = model.soft(model.base_fn(model.item_embedding(item_idx)))
+				amplitude = model.soft(model.amplitude_fn(model.item_embedding(item_idx)))
 			base_all.append(base)
 			amplitude_all.append(amplitude)
 
@@ -211,7 +207,7 @@ for epoch in range(1, args.epochs+1):
 			partial_nll = -torch.log(pos_score/(user_score[sampled_idx, item].sum()+pos_score)).item()
 			nll_user_all_list.append(full_nll)
 			nll_user_partial_list.append(partial_nll)
-		
+
 			pred = user_score[user,:].log().cpu() - torch.log(user_score.sum(0)).cpu() + logits_all.log()
 			exclude_items = list(dataset._allPos[user])
 			pred[exclude_items] = -(9999)
@@ -221,7 +217,6 @@ for epoch in range(1, args.epochs+1):
 
 		valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
 
-		print(f"[Epoch {epoch:>4d} Valid NLL] total: {torch.stack(nll_all_list).mean().item():.4f}")
 
 		if wandb_login:
 

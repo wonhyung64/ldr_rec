@@ -70,7 +70,7 @@ args = parse_args()
 expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
 set_seed(args.seed)
 args.device = set_device()
-args.expt_name = f"item_usermf_{expt_num}"
+args.expt_name = f"item_user_earlynll_{expt_num}"
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True) 
 
@@ -291,8 +291,6 @@ for epoch in range(1, args.epochs+1):
 				gt_list.append([item])
 
 				valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
-
-				print(f"[Epoch {epoch:>4d} Valid NLL] total: {torch.stack(nll_all_list).mean().item():.4f}")
 
 				if wandb_login:
 

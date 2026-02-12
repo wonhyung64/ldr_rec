@@ -99,7 +99,7 @@ all_user_idxs = np.arange(dataset.n_user)
 #%%
 model_user = MF(dataset.n_user, dataset.m_item, 4)
 model_user = model_user.to(args.device)
-optimizer_user = optim.Adam(model_user.parameters(), lr=1e-4, weight_decay=args.decay)
+optimizer_user = optim.Adam(model_user.parameters(), lr=1e-3, weight_decay=args.decay)
 
 
 #%%

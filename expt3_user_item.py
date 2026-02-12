@@ -69,7 +69,7 @@ args = parse_args()
 expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
 set_seed(args.seed)
 args.device = set_device()
-args.expt_name = f"cond_item_mf_{expt_num}"
+args.expt_name = f"item_usermf_{expt_num}"
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True) 
 
@@ -135,6 +135,10 @@ for epoch in range(1, args.epochs+1):
 		logits = model(batch_items, pos_time, batch_time_all)
 		item_loss = -torch.log(logits[:,0]/logits.sum(-1)).mean()
 
+		item_loss.backward()
+		optimizer.step()
+		optimizer.zero_grad()
+
 		"""USER"""
 		anchor_item = torch.tensor(dataset.item_list[sample_idx])
 		pos_user = torch.tensor(dataset.pos_user_list[sample_idx]).unsqueeze(-1).to(args.device)
@@ -147,10 +151,11 @@ for epoch in range(1, args.epochs+1):
 		batch_scores = batch_scores.reshape([mini_batch, args.contrast_size])
 		user_loss = -torch.log(batch_scores[:,0].exp() / batch_scores.exp().sum(-1)).mean()
 
+		user_loss.backward()
+		optimizer_user.step()
+		optimizer_user.zero_grad()
+
 		total_loss = user_loss + item_loss
-		total_loss.backward()
-		optimizer.step()
-		optimizer.zero_grad()
 
 		epoch_user_loss += user_loss
 		epoch_item_loss += item_loss

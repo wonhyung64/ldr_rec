@@ -6,12 +6,9 @@ import numpy as np
 import torch.nn as nn
 from torch import optim
 from datetime import datetime
-from torch.utils.data import DataLoader
-from sklearn.metrics import roc_auc_score
 
 from modules.utils import parse_args, set_seed, set_device
 from modules.dataset import UserItemTime
-from modules.procedure import evaluate, computeTopNAccuracy
 
 """EXPERIMENT FOR THE SIMPLEST p(v|t,H_t) WITH HAWKES PROCESS"""
 
@@ -26,7 +23,7 @@ class JointRec(nn.Module):
 		self.mini_batch = mini_batch
 		self.base_fn = nn.Embedding(num_items, 1)
 		self.amplitude_fn = nn.Embedding(num_items, 1)
-		self.intensity_decay = torch.autograd.Variable(torch.randn(1), requires_grad=True).to(device)
+		self.intensity_decay = nn.Parameter(torch.randn(1))
 		self.soft = nn.Softplus()
 
 
@@ -45,7 +42,7 @@ args = parse_args()
 expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
 set_seed(args.seed)
 args.device = set_device()
-args.expt_name = f"cond_item_{expt_num}"
+args.expt_name = f"item_{expt_num}"
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True) 
 
@@ -101,15 +98,6 @@ for epoch in range(1, args.epochs+1):
 		batch_time_all = torch.concat([pos_time_all.unsqueeze(1), neg_time_all], 1)
 
 		"""MODEL"""
-		# batch_time_mask = batch_time_all < pos_time
-		# batch_time_delta = pos_time - batch_time_all
-
-		# base = soft(base_fn(batch_items)).reshape(mini_batch, -1)
-		# amplitude = soft(amplitude_fn(batch_items)).reshape(mini_batch, -1)
-		# intensity_decay = soft(intensity_decay)
-		# time_intensity = (torch.exp(-intensity_decay * batch_time_delta * batch_time_mask) * batch_time_mask).reshape([args.batch_size, 1, -1])
-		# logits = base + (time_intensity.sum(-1).reshape(mini_batch, -1) * amplitude)
-
 		logits = model(batch_items, pos_time, batch_time_all)
 		total_loss = -torch.log(logits[:,0]/logits.sum(-1)).mean()
 

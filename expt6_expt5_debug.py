@@ -30,7 +30,6 @@ class JointRec(nn.Module):
 		amplitude_fn = [nn.Linear(embedding_k, 1)]
 		self.amplitude_fn = nn.Sequential(*amplitude_fn)
 
-		# self.intensity_decay = torch.autograd.Variable(torch.randn(1), requires_grad=True).to(device)
 		self.intensity_decay = nn.Parameter(torch.randn(1))
 		self.soft = nn.Softplus()
 		self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
@@ -122,7 +121,7 @@ for epoch in range(1, args.epochs+1):
 	epoch_user_loss = 0.
 
 	
-	for idx in range(batch_num):break
+	for idx in range(batch_num):
 		sample_idx = all_idxs[mini_batch*idx : (idx+1)*mini_batch]
 
 		""""ITEM"""

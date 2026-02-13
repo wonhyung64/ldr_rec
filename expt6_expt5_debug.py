@@ -7,12 +7,10 @@ import numpy as np
 import torch.nn as nn
 from torch import optim
 from datetime import datetime
-from torch.utils.data import DataLoader
-from sklearn.metrics import roc_auc_score
 
 from modules.utils import parse_args, set_seed, set_device
 from modules.dataset import UserItemTime
-from modules.procedure import evaluate, computeTopNAccuracy
+from modules.procedure import computeTopNAccuracy
 
 """EXPERIMENT FOR THE SIMPLEST p(u,v|t,H_t) WITH HAWKES PROCESS"""
 
@@ -44,9 +42,9 @@ class JointRec(nn.Module):
 		base = self.soft(self.base_fn(item_embed)).reshape(self.mini_batch, -1)
 		amplitude = self.soft(self.amplitude_fn(item_embed)).reshape(self.mini_batch, -1)
 		batch_time_mask = batch_time_all < pos_time
-		batch_time_delta = pos_time - batch_time_all
+		batch_time_delta = (pos_time - batch_time_all).clamp(min=0.0)
 		intensity_decay = self.soft(self.intensity_decay)
-		time_intensity = torch.exp(-intensity_decay * batch_time_delta * batch_time_mask) * batch_time_mask
+		time_intensity = torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask
 		return base + (time_intensity.sum(-1) * amplitude)
 
 	def mf(self, x):
@@ -104,8 +102,6 @@ all_user_idxs = np.arange(dataset.n_user)
 model = JointRec(dataset.n_user, dataset.m_item, args.recdim, mini_batch, args.device)
 model = model.to(args.device)
 optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=args.decay)
-model.parameters
-model.intensity_decay
 
 
 #%%
@@ -126,7 +122,7 @@ for epoch in range(1, args.epochs+1):
 	epoch_user_loss = 0.
 
 	
-	for idx in range(batch_num):
+	for idx in range(batch_num):break
 		sample_idx = all_idxs[mini_batch*idx : (idx+1)*mini_batch]
 
 		""""ITEM"""
@@ -198,11 +194,11 @@ for epoch in range(1, args.epochs+1):
 				item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
 				batch_time_all = torch.Tensor(dataset.item_time_array[item_idx]).to(args.device)
 				batch_time_mask = batch_time_all < pos_time
-				batch_time_delta = pos_time - batch_time_all
+				batch_time_delta = (pos_time - batch_time_all).clamp(min=0.0)
 				item_idx = torch.Tensor(item_idx).int().to(args.device)
 				with torch.no_grad():
 					intensity_decay = model.soft(model.intensity_decay)
-					time_intensity = (torch.exp(-intensity_decay * batch_time_delta * batch_time_mask) * batch_time_mask).sum(-1, keepdim=True)
+					time_intensity = (torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
 					logits = (base_all[idx] + amplitude_all[idx] * time_intensity).flatten().cpu()
 				logits_all.append(logits)
 			logits_all = torch.concat(logits_all)
@@ -250,3 +246,5 @@ for epoch in range(1, args.epochs+1):
 			wandb_var.log({"valid_user_nll_all": np.mean(nll_user_all_list)})
 
 wandb_var.finish()
+
+# %%

@@ -384,16 +384,18 @@ class UserItemTime(Dataset):
 				except:
 					item_time_dict[item_idx] = []
 				item_time_dict[item_idx].append(times)
+		max_time = 0.
 		for i in range(max(item_time_dict.keys())+1):
 			try:
 				times = np.array(item_time_dict[i]) /60/60/24
+				max_time = max(np.max(times), max_time)
 			except:
 				times = np.array([])
 			max_pos = max(max_pos, len(times))
 			times.sort()
 			item_time_array.append(times)
 		for i in range(max(item_time_dict.keys())+1):
-			item_time_array[i] = np.pad(item_time_array[i], (0, max_pos - len(item_time_array[i])), "constant", constant_values=9999999999)
+			item_time_array[i] = np.pad(item_time_array[i], (0, max_pos - len(item_time_array[i])), "constant", constant_values=max_time+1)
 		item_time_array = np.stack(item_time_array, 0)
 		return item_time_array
 

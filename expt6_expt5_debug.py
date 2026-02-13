@@ -73,7 +73,7 @@ args = parse_args()
 expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
 set_seed(args.seed)
 args.device = set_device()
-args.expt_name = f"item_user_earlynll2_{expt_num}"
+args.expt_name = f"item_user_share_{expt_num}"
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True) 
 
@@ -139,7 +139,8 @@ for epoch in range(1, args.epochs+1):
 		batch_time_all = torch.concat([pos_time_all.unsqueeze(1), neg_time_all], 1)
 
 		logits = model.hawkes(batch_items, pos_time, batch_time_all)
-		item_loss = -torch.log(logits[:,0]/logits.sum(-1)).mean()
+		log_logits = torch.log(logits + 1e-9)
+		item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean()
 
 		"""USER"""
 		anchor_item = torch.tensor(dataset.item_list[sample_idx])
@@ -151,7 +152,10 @@ for epoch in range(1, args.epochs+1):
 
 		batch_scores, _, __ = model.mf(batch_x)
 		batch_scores = batch_scores.reshape([mini_batch, args.contrast_size])
-		user_loss = -torch.log(batch_scores[:,0].exp() / batch_scores.exp().sum(-1)).mean()
+		user_loss = -torch.nn.functional.log_softmax(batch_scores, dim=-1)[:, 0].mean()
+
+		assert torch.isfinite(batch_scores).all()
+		assert torch.isfinite(logits).all()
 
 		epoch_item_loss += item_loss
 		epoch_user_loss += user_loss
@@ -165,10 +169,10 @@ for epoch in range(1, args.epochs+1):
 		model.eval()
 
 		with torch.no_grad():
-			user_score = torch.matmul(model.user_embedding.weight, model.item_embedding.weight.T)
-		user_score = user_score.exp()
+			user_logits = torch.matmul(model.user_embedding.weight, model.item_embedding.weight.T)
 
-		sampled_idx = np.random.choice(len(user_score), args.contrast_size-1)
+
+		sampled_idx = np.random.choice(len(user_logits), args.contrast_size-1)
 
 		base_all = []
 		amplitude_all = []
@@ -202,17 +206,25 @@ for epoch in range(1, args.epochs+1):
 					logits = (base_all[idx] + amplitude_all[idx] * time_intensity).flatten().cpu()
 				logits_all.append(logits)
 			logits_all = torch.concat(logits_all)
-			logits_partial = logits_all[np.random.choice(len(logits_all), args.contrast_size-1)]
-			nll_all_list.append(-torch.log(logits_all[item] / logits_all.sum()))
-			nll_partial_list.append(-torch.log(logits_all[item] / (logits_partial.sum()+logits_all[item])))
+			log_lambda_all = torch.log(logits_all + 1e-9)
+			nll_all_list.append(-(log_lambda_all[item] - torch.logsumexp(log_lambda_all, dim=0)))
 
-			pos_score = user_score[user,item]
-			full_nll = -torch.log(pos_score/user_score[:,item].sum()).item()
-			partial_nll = -torch.log(pos_score/(user_score[sampled_idx, item].sum()+pos_score)).item()
+			log_lambda_pos = log_lambda_all[item]
+			log_lambda_neg = log_lambda_all[sampled_idx]
+			den = torch.logsumexp(torch.cat([log_lambda_pos.view(1), log_lambda_neg]), dim=0)
+			nll_partial_list.append(-(log_lambda_pos - den))
+
+			pos_logit = user_logits[user, item]
+			full_nll = -(pos_logit - torch.logsumexp(user_logits[:, item], dim=0)).item()
 			nll_user_all_list.append(full_nll)
+
+			neg_logits = user_logits[sampled_idx, item]
+			den = torch.logsumexp(torch.cat([pos_logit.view(1), neg_logits]), dim=0)
+			partial_nll = -(pos_logit - den).item()
 			nll_user_partial_list.append(partial_nll)
 
-			pred = user_score[user,:].log().cpu() - torch.log(user_score.sum(0)).cpu() + logits_all.log()
+			log_p_u_given_v = user_logits[user, :] - torch.logsumexp(user_logits, dim=0)
+			pred = log_p_u_given_v.cpu() + log_lambda_all.cpu()
 			exclude_items = list(dataset._allPos[user])
 			pred[exclude_items] = -(9999)
 			_, pred_k = torch.topk(pred.squeeze(-1), k=max(args.topks))

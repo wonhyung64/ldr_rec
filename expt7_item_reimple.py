@@ -111,7 +111,7 @@ for epoch in range(1, args.epochs+1):
 		epoch_total_loss += total_loss
 		epoch_time_intensity += batch_intensity
 
-	print(f"[Epoch {epoch:>4d} Train Loss] total: {epoch_total_loss.item()/batch_num:.4f} / decay: {model.intensity_decay.item()} / intensity: {batch_intensity.item()}")
+	print(f"[Epoch {epoch:>4d} Train Loss] total: {epoch_total_loss.item()/batch_num:.4f} / decay: {model.soft(model.intensity_decay).item()} / intensity: {batch_intensity.item()}")
 
 
 	if epoch % args.evaluate_interval == 0:
@@ -154,7 +154,7 @@ for epoch in range(1, args.epochs+1):
 		wandb_var.log({"valid_nll_all": torch.stack(nll_all_list).mean().item()})
 		wandb_var.log({"train_nll_partial": epoch_total_loss.item() / batch_num})
 		wandb_var.log({"train_time_intensity": epoch_time_intensity.item() / batch_num})
-		wandb_var.log({"intendety_decay": model.intensity_decay.item()})
+		wandb_var.log({"intendety_decay": model.soft(model.intensity_decay).item()})
 		wandb_var.log({"valid_nll_partial": torch.stack(nll_partial_list).mean().item()})
 
 wandb_var.finish()

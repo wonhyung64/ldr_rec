@@ -246,6 +246,42 @@ class DisenData(Dataset):
 			if cnt == user_num:
 				break
 
+	def get_pair_bpr_unif(self):
+		"""
+		"""
+		user_num = self.traindataSize
+		users = np.random.randint(0, self.n_users, user_num)
+
+		self.user = []
+		self.posItem = []
+		self.negItem = []
+		a = 0
+		cnt = 0
+		while True:
+			for user in users:
+				posForUser = self._allPos[user]
+				# the users have no positive items -> unseen items
+				if len(posForUser) == 0:
+					a += 1
+					continue
+				cnt += 1
+				posindex = np.random.randint(0, len(posForUser))
+				positem = posForUser[posindex]
+				while True:
+					negitem = np.random.randint(0, self.m_items)
+					if negitem in posForUser:
+						continue
+					else:
+						break
+				self.user.append(user)
+				self.posItem.append(positem)
+				self.negItem.append(negitem)
+				if cnt == user_num:
+					break
+			if cnt == user_num:
+				break
+
+
 
 	def get_pair_bpr_item(self):
 		sample_num = self.traindataSize
@@ -352,6 +388,8 @@ class UserItemTime(Dataset):
 		self.valid_user_item_time = self.set_to_pair(self.valid_dict, self.time_dict)
 		self.test_user_item_time = self.set_to_pair(self.test_dict, self.time_dict)
 		self.item_time_array = self.time_dict_to_array(self.time_dict)
+		self.train_item_time_array = self.train_time_dict_to_array(self.time_dict, self.train_dict)
+
 
 	def load_set(self, set_dict):
 		UniqueUsers, Item, User = [], [], []
@@ -394,10 +432,75 @@ class UserItemTime(Dataset):
 			max_pos = max(max_pos, len(times))
 			times.sort()
 			item_time_array.append(times)
+		self.max_pos = max_pos
+		self.max_time = max_time+1
 		for i in range(max(item_time_dict.keys())+1):
-			item_time_array[i] = np.pad(item_time_array[i], (0, max_pos - len(item_time_array[i])), "constant", constant_values=max_time+1)
+			item_time_array[i] = np.pad(item_time_array[i], (0, max_pos - len(item_time_array[i])), "constant", constant_values=self.max_time)
 		item_time_array = np.stack(item_time_array, 0)
 		return item_time_array
+
+
+	def train_time_dict_to_array(self, time_dict, train_dict):
+		"""
+		Build item_time_array using ONLY (user,item) pairs appearing in train_dict.
+		time_dict may contain train/valid/test; we filter by train_dict to avoid leakage.
+
+		Args:
+			time_dict: dict[user][item] = timestamp (seconds)
+			train_dict: dict[user] = list of train items
+			m_item: total number of items. If None, inferred from max item id in train_dict/time_dict.
+		Returns:
+			item_time_array: np.ndarray shape (m_item, max_pos), padded with max_time+1 (in days)
+		"""
+
+
+		# 2) collect train times per item
+		item_time_dict = {i: [] for i in range(self.m_item)}
+
+		for u, items in train_dict.items():
+			if len(items) == 0:
+				continue
+			u_time = time_dict.get(u, None)
+			if u_time is None:
+				continue
+
+			for it in items:
+				# time_dict[u][it]가 없으면 skip (데이터 정합성 문제 대비)
+				if it not in u_time:
+					continue
+
+				t = u_time[it]
+				# t가 scalar일 수도, list/array일 수도 있으니 둘 다 처리
+				if isinstance(t, (list, tuple, np.ndarray)):
+					item_time_dict[it].extend(list(t))
+				else:
+					item_time_dict[it].append(t)
+
+		# 3) convert to days and compute max_pos / max_time based on TRAIN only
+		item_time_list = []
+
+		for i in range(self.m_item):
+			times = np.array(item_time_dict[i], dtype=np.float64)
+			if times.size > 0:
+				times = times / 60 / 60 / 24  # seconds -> days
+				times.sort()
+			item_time_list.append(times)
+
+
+		# 모든 아이템이 max_pos 길이를 갖도록 padding
+		for i in range(self.m_item):
+			times = item_time_list[i]
+			if len(times) < self.max_pos:
+				item_time_list[i] = np.pad(
+					times,
+					(0, self.max_pos - len(times)),
+					mode="constant",
+					constant_values=self.max_time
+				)
+
+		item_time_array = np.stack(item_time_list, axis=0) if self.max_pos > 0 else np.full((self.m_item, 0), self.max_time)
+		return item_time_array
+
 
 	def getUserPosItems(self, users, UserItemNet):
 		posItems = []
@@ -450,6 +553,47 @@ class UserItemTime(Dataset):
 		self.pos_time_list = np.array(self.pos_time_list)
 		self.pos_time_all = np.array(self.pos_time_all)
 		self.neg_time_all = np.array(self.neg_time_all)
+
+	def get_pair_item_event_uniform(self, neg_size, sample_num=None):
+		# 0) event index가 없으면 1회 구축
+		if not hasattr(self, "train_event_items"):
+			times = self.train_item_time_array
+			# times = dataset.train_item_time_array
+			mask = (times < self.max_time)
+			# mask = (times < dataset.max_time)
+		
+			self.train_event_items = np.repeat(np.arange(self.m_item), mask.sum(axis=1))
+			# train_event_items = np.repeat(np.arange(dataset.m_item), mask.sum(axis=1))
+			self.train_event_times = times[mask]
+			# train_event_times = times[mask]
+			self.trainEventSize = len(self.train_event_items)
+			# trainEventSize = len(train_event_items)
+
+		if sample_num is None:
+			sample_num = self.trainEventSize
+			# sample_num = trainEventSize
+
+		# 1) positive event sample
+		ev_idx = np.random.randint(0, self.trainEventSize, sample_num)
+		# ev_idx = np.random.randint(0, trainEventSize, sample_num)
+		
+		pos_item = self.train_event_items[ev_idx]
+		# pos_item = train_event_items[ev_idx]
+		pos_time = self.train_event_times[ev_idx]
+		# pos_time = train_event_times[ev_idx]
+
+		# 2) uniform negative excluding pos_item
+		neg_item = np.random.randint(0, self.m_item - 1, size=(sample_num, neg_size))
+		# neg_item = np.random.randint(0, dataset.m_item - 1, size=(sample_num, neg_size))
+		neg_item += (neg_item >= pos_item[:, None])
+
+		# 3) histories
+		self.pos_item_list = pos_item
+		self.neg_item_list = neg_item
+		self.pos_time_list = pos_time
+		self.pos_time_all = self.item_time_array[pos_item]
+		self.neg_time_all = self.item_time_array[neg_item]
+
 
 	def get_pair_item_bpr(self, neg_size):
 		sample_num = self.trainDataSize

@@ -34,7 +34,7 @@ class JointRec(nn.Module):
 		batch_time_delta = (pos_time - batch_time_all).clamp(min=0.0)
 		intensity_decay = self.soft(self.intensity_decay)
 		time_intensity = torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask
-		return base + (time_intensity.sum(-1) * amplitude), time_intensity
+		return base + (time_intensity.sum(-1) * amplitude), time_intensity, base, amplitude
 
 
 #%%
@@ -60,8 +60,8 @@ if wandb_login:
 
 #%%
 dataset = UserItemTime(args)
+dataset.get_pair_item_event_uniform(args.contrast_size-1)
 dataset.get_pair_item_bpr(args.contrast_size-1)
-dataset.get_pair_user_bpr(args.contrast_size-1)
 
 mini_batch = args.batch_size // args.contrast_size
 batch_num = dataset.trainDataSize // mini_batch
@@ -99,7 +99,7 @@ for epoch in range(1, args.epochs+1):
 		batch_time_all = torch.concat([pos_time_all.unsqueeze(1), neg_time_all], 1)
 
 		"""MODEL"""
-		logits, time_intensity = model(batch_items, pos_time, batch_time_all)
+		logits, time_intensity, base, amplitude = model(batch_items, pos_time, batch_time_all)
 		log_logits = torch.log(logits + 1e-9)
 		total_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean()
 		batch_intensity = (time_intensity[:,0,:].sum(-1) / (time_intensity[:,0,:] != 0).sum(-1).clamp(1)).mean()
@@ -110,6 +110,18 @@ for epoch in range(1, args.epochs+1):
 
 		epoch_total_loss += total_loss
 		epoch_time_intensity += batch_intensity
+
+
+		if wandb_var:
+			wandb_var.log({"mean_pos_intensity": logits[:,0].detach().mean().cpu().item()})
+			wandb_var.log({"mean_pos_base": base[:,0].detach().mean().cpu().item()})
+			wandb_var.log({"mean_pos_amplitude": amplitude[:,0].detach().mean().cpu().item()})
+			wandb_var.log({"mean_neg_intensity": logits[:,1:].detach().mean().cpu().item()})
+			wandb_var.log({"mean_neg_base": base[:,1:].detach().mean().cpu().item()})
+			wandb_var.log({"mean_neg_amplitude": amplitude[:,1:].detach().mean().cpu().item()})
+			wandb_var.log({"mean_all_intensity": logits.sum(-1).detach().mean().cpu().item()})
+			wandb_var.log({"mean_all_base": base.sum(-1).detach().mean().cpu().item()})
+			wandb_var.log({"mean_all_amplitude": amplitude.sum(-1).detach().mean().cpu().item()})
 
 	print(f"[Epoch {epoch:>4d} Train Loss] total: {epoch_total_loss.item()/batch_num:.4f} / decay: {model.soft(model.intensity_decay).item()} / intensity: {batch_intensity.item()}")
 
@@ -138,15 +150,16 @@ for epoch in range(1, args.epochs+1):
 				item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
 				batch_time_all = torch.Tensor(dataset.item_time_array[item_idx]).to(args.device)
 				batch_time_mask = batch_time_all < pos_time
-				batch_time_delta = pos_time - batch_time_all
+				batch_time_delta = (pos_time - batch_time_all).clamp(min=0.0)
 				item_idx = torch.Tensor(item_idx).int().to(args.device)
 				with torch.no_grad():
 					intensity_decay = model.soft(model.intensity_decay)
-					time_intensity = (torch.exp(-intensity_decay * batch_time_delta * batch_time_mask) * batch_time_mask).sum(-1, keepdim=True)
+					time_intensity = (torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
 					logits = (base_all[idx] + amplitude_all[idx] * time_intensity).flatten().cpu()
 				logits_all.append(logits)
 			logits_all = torch.concat(logits_all)
-			logits_partial = logits_all[np.random.choice(len(logits_all), args.contrast_size-1)]
+			sample_idx = np.random.choice(len(logits_all), args.contrast_size-1)
+			logits_partial = logits_all[sample_idx]
 			nll_all_list.append(-torch.log(logits_all[item] / logits_all.sum()))
 			nll_partial_list.append(-torch.log(logits_all[item] / (logits_partial.sum()+logits_all[item])))
 			

@@ -89,9 +89,9 @@ for epoch in range(1, args.epochs+1):
 		sample_idx = all_idxs[mini_batch*idx : (idx+1)*mini_batch]
 		pos_item = torch.tensor(dataset.pos_item_list[sample_idx]).unsqueeze(-1).to(args.device)
 		neg_items = torch.tensor(dataset.neg_item_list[sample_idx]).to(args.device)
-		pos_time = torch.tensor(dataset.pos_time_list[sample_idx]).reshape(-1, 1, 1).to(args.device)
-		pos_time_all = torch.tensor(dataset.pos_time_all[sample_idx]).to(args.device)
-		neg_time_all = torch.tensor(dataset.neg_time_all[sample_idx]).to(args.device)
+		pos_time = torch.Tensor(dataset.pos_time_list[sample_idx]).reshape(-1, 1, 1).to(args.device)
+		pos_time_all = torch.Tensor(dataset.pos_time_all[sample_idx]).to(args.device)
+		neg_time_all = torch.Tensor(dataset.neg_time_all[sample_idx]).to(args.device)
 	
 		batch_items = torch.concat([pos_item, neg_items], -1).reshape([args.batch_size])
 		batch_time_all = torch.concat([pos_time_all.unsqueeze(1), neg_time_all], 1)
@@ -169,3 +169,5 @@ for epoch in range(1, args.epochs+1):
 		wandb_var.log({"valid_nll_partial": torch.stack(nll_partial_list).mean().item()})
 
 wandb_var.finish()
+
+# %%

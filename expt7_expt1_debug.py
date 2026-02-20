@@ -77,9 +77,6 @@ optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=args.decay)
 for epoch in range(1, args.epochs+1):
 	torch.cuda.empty_cache()
 	model.train()
-	if epoch % 10 == 0:
-		print("Reset negative pairs")
-		dataset.get_pair_item_event_uniform(args.contrast_size-1)
 
 	np.random.shuffle(all_idxs)
 	epoch_total_loss = 0.
@@ -124,6 +121,9 @@ for epoch in range(1, args.epochs+1):
 
 	print(f"[Epoch {epoch:>4d} Train Loss] total: {epoch_total_loss.item()/batch_num:.4f} / decay: {model.soft(model.intensity_decay).item()} / intensity: {batch_intensity.item()}")
 
+	if epoch % 10 == 0:
+		print("Reset negative pairs")
+		dataset.get_pair_item_event_uniform(args.contrast_size-1)
 
 	if epoch % args.evaluate_interval == 0:
 		model.eval()

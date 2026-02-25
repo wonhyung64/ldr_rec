@@ -116,9 +116,9 @@ for epoch in range(1, args.epochs+1):
 	model.train()
 	model_user.train()
 	np.random.shuffle(all_idxs)
-	epoch_item_loss = 0.
-	epoch_user_loss = 0.
-	epoch_time_intensity = 0.
+	epoch_item_loss = torch.tensor([0.]).to(args.device)
+	epoch_user_loss = torch.tensor([0.]).to(args.device)
+	epoch_time_intensity = torch.tensor([0.]).to(args.device)
 
 	if not((user_train) | (item_train)):
 		break
@@ -176,7 +176,7 @@ for epoch in range(1, args.epochs+1):
 			optimizer_user.zero_grad()
 			epoch_user_loss += user_loss
 
-	print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss.item()/batch_num:.4f} / item: {epoch_item_loss.item()/batch_num:.4f}")
+	print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss.cpu().item()/batch_num:.4f} / item: {epoch_item_loss.cpu().item()/batch_num:.4f}")
 
 	if epoch % 10 == 0:
 		print("Reset negative pairs")

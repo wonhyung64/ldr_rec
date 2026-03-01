@@ -82,8 +82,8 @@ if wandb_login:
 
 #%%
 dataset = UserItemTime(args)
-dataset.get_pair_item_bpr(args.contrast_size-1)
 dataset.get_pair_item_event_uniform(args.contrast_size-1)
+dataset.get_pair_user_event_uniform(args.contrast_size-1)
 
 mini_batch = args.batch_size // args.contrast_size
 batch_num = dataset.trainDataSize // mini_batch
@@ -180,7 +180,7 @@ for epoch in range(1, args.epochs+1):
 
 	if epoch % 10 == 0:
 		print("Reset negative pairs")
-		dataset.get_pair_item_bpr(args.contrast_size-1)
+		dataset.get_pair_user_event_uniform(args.contrast_size-1)
 		dataset.get_pair_item_event_uniform(args.contrast_size-1)
 
 	if (epoch % args.evaluate_interval == 0) & ((user_train) | (item_train)):

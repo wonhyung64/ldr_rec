@@ -4,360 +4,6 @@ from scipy.sparse import csr_matrix
 from torch.utils.data import Dataset
 
 
-
-class DisenData(Dataset):
-	def __init__(self, args):
-		path = f"{args.data_path}/{args.dataset}"
-		# self.split = args.a_split
-		# self.folds = args.a_fold
-		self.period = args.period
-		self.n_pop_group = args.n_pop_group
-		self.Graph = None
-		self.n_user = 0
-		self.m_item = 0
-		self.time_type = args.time_type
-
-		time_file = path + '/interaction_time_dict.npy'
-		train_file = path + '/training_dict.npy'
-		valid_file = path + '/validation_dict.npy'
-		test_file = path + '/testing_dict.npy'
-
-		self.time_dict = np.load(time_file, allow_pickle=True).item()
-		# { user1 : { item1 : timestamp }, { item2 : timestamp } }
-
-		self.train_dict = np.load(train_file, allow_pickle=True).item()
-		# { user1 : [ item1, item2 ] }
-		trainUniqueUsers, trainItem, trainUser = [], [], []
-		self.traindataSize = 0
-		for uid in self.train_dict.keys():
-			if len(self.train_dict[uid]) != 0:
-				trainUniqueUsers.append(uid)
-				trainUser.extend([uid] * len(self.train_dict[uid]))
-				trainItem.extend(self.train_dict[uid])
-				self.m_item = max(self.m_item, max(self.train_dict[uid]))
-				self.n_user = max(self.n_user, uid)
-				self.traindataSize += len(self.train_dict[uid])
-		self.trainUniqueUsers = np.array(trainUniqueUsers)
-		self.trainUser = np.array(trainUser)  # [interact1_user, interact2_user, interact3_user, ...]
-		self.trainItem = np.array(trainItem)  # [interact1_item, interact2_item, interact3_item, ...]
-
-		self.valid_dict = np.load(valid_file, allow_pickle=True).item()
-		validUniqueUsers, validItem, validUser = [], [], []
-		self.validDataSize = 0
-		for uid in self.valid_dict.keys():
-			if len(self.valid_dict[uid]) != 0:
-				validUniqueUsers.append(uid)
-				validUser.extend([uid] * len(self.valid_dict[uid]))
-				validItem.extend(self.valid_dict[uid])
-				self.m_item = max(self.m_item, max(self.valid_dict[uid]))
-				self.n_user = max(self.n_user, uid)
-				self.validDataSize += len(self.valid_dict[uid])
-		self.validUniqueUsers = np.array(validUniqueUsers)
-		self.validUser = np.array(validUser)
-		self.validItem = np.array(validItem)
-
-		self.test_dict = np.load(test_file, allow_pickle=True).item()
-		testUniqueUsers, testItem, testUser = [], [], []
-		self.testDataSize = 0
-		for uid in self.test_dict.keys():
-			if len(self.test_dict[uid]) != 0:
-				testUniqueUsers.append(uid)
-				testUser.extend([uid] * len(self.test_dict[uid]))
-				testItem.extend(self.test_dict[uid])
-				self.m_item = max(self.m_item, max(self.test_dict[uid]))
-				self.n_user = max(self.n_user, uid)
-				self.testDataSize += len(self.test_dict[uid])
-		self.testUniqueUsers = np.array(testUniqueUsers)
-		self.testUser = np.array(testUser)
-		self.testItem = np.array(testItem)
-
-		self.m_item += 1
-		self.n_user += 1
-
-		self.UserItemNet = csr_matrix((np.ones(self.trainDataSize), (self.trainUser, self.trainItem)),
-										shape=(self.n_user, self.m_item))  # all (user, item) matrix of train, if interacted 1.
-		# pre-calculate
-		self._allPos = self.getUserPosItems(list(range(self.n_user)))
-		self._allPosUsers = self.getItemPosUsers(list(range(self.m_items)))
-		if self.time_type == "discrete":
-			self.pair_stage, self.item_inter = self.get_item_inter(
-				self.train_dict, self.valid_dict, self.test_dict, self.time_dict, self.period)
-		elif self.time_type == "continuous":
-			self.pair_stage, self.item_inter = self.get_item_inter(
-				self.train_dict, self.valid_dict, self.test_dict, self.time_dict, 0)
-		# pair_stage: stage of interaction
-		# item_inter: interaction num per user
-
-		pop_item = []
-		for _, item_inter_ in self.item_inter.items():
-			pop_item.extend(item_inter_)
-		sorted_pop_item = list(set(pop_item))
-		sorted_pop_item = sorted(sorted_pop_item)
-		# sorted_pop_item : scales of item popularity for each user-stage
-
-		self.num_item_pop = self.n_pop_group
-		pmax = max(sorted_pop_item)
-		self.pthres = [] # popularity category
-		for i in range(self.num_item_pop):
-			self.pthres.append(pmax** ((1/self.num_item_pop) * (i+1)))
-
-	def get_item_inter(self, train_dict, valid_dict, test_dict, time_dict, period):
-		pair_stage = {}
-		item_inter = {} # number of interactions of per user in 8 train stage, 1 valid stage, 1 test stage
-		# stage_num = period
-		time_stage = self.get_stage(train_dict, valid_dict, test_dict, time_dict, period)
-		stage_all_inter = [0] * (period + 1 * 2) # number of interactions of all users in 8 train stage, 1 valid stage, 1 test stage
-
-		# get the inter_cnt per stage of data
-		# item_inter: {item_0:{stage_0:cnt_0, stage_1:cnt_1, stage_2:cnt_2....}, item_1:{stage_0:cnt_0, stage_1:cnt_1, stage_2:cnt_2....}}
-		for user in train_dict:
-			for item in train_dict[user]:
-				time = time_dict[user][item]
-				if period:
-					pair_stage[(user,item)] = time_stage[time]
-				else:
-					pair_stage[(user,item)] = time
-				stage_all_inter[int(time_stage[time])] += 1
-				if item not in item_inter:
-					item_inter[item] = [0] * (period + 1 * 2)
-				item_inter[item][time_stage[time]] += 1
-
-		for user in valid_dict:
-			for item in valid_dict[user]:
-				time = time_dict[user][item]
-				if period:
-					pair_stage[(user,item)] = time_stage[time]
-				else:
-					pair_stage[(user,item)] = time
-				stage_all_inter[int(time_stage[time])] += 1
-				if item not in item_inter:
-					item_inter[item] = [0] * (period + 1 * 2)
-				item_inter[item][time_stage[time]] += 1
-
-		for user in test_dict:
-			for item in test_dict[user]:
-				time = time_dict[user][item]
-				if period:
-					pair_stage[(user,item)] = time_stage[time]
-				else:
-					pair_stage[(user,item)] = time
-				stage_all_inter[int(time_stage[time])] += 1
-				if item not in item_inter:
-					item_inter[item] = [0] * (period + 1 * 2)
-				item_inter[item][time_stage[time]] += 1
-
-		return pair_stage, item_inter
-
-	def get_stage(self, train_dict, valid_dict, test_dict, time_dict, period):
-		time_list = []
-		stage_num = period # separate continuous time as discreate time stage.
-		time_stage = {}
-
-		# get train data
-		for user in train_dict:
-			for item in train_dict[user]:
-				time_list.append(time_dict[user][item])
-		time_list = sorted(time_list)
-		# assign the stage of train data
-		time_duration = time_list[-1] - time_list[0] # 11days?
-		size = math.ceil(time_duration / stage_num) + 1
-		for time in time_list:
-			time_stage[time] = (time - time_list[0]) // size # time stage 0~7
-
-		# get valid data
-		time_list = []
-		for user in valid_dict:
-			for item in valid_dict[user]:
-				time_list.append(time_dict[user][item])
-		time_list = sorted(time_list)
-		# assign the stage of valid data
-		time_duration = time_list[-1] - time_list[0]
-		size = math.ceil(time_duration / 1) + 1
-		for time in time_list:
-			time_stage[time] = (time - time_list[0]) // size + stage_num
-
-		# get test data
-		time_list = []
-		for user in test_dict:
-			for item in test_dict[user]:
-				time_list.append(time_dict[user][item])
-		time_list = sorted(time_list)
-		# assign the stage of valid data
-		time_duration = time_list[-1] - time_list[0]
-		size = math.ceil(time_duration / 1) + 1
-		for time in time_list:
-			time_stage[time] = (time - time_list[0]) // size + stage_num + 1
-
-		return time_stage
-
-	def getUserPosItems(self, users):
-		posItems = []
-		for user in users:
-			posItems.append(self.UserItemNet[user].nonzero()[1])
-		return posItems
-
-	def getItemPosUsers(self, items):
-		posUsers = []
-		for item in items:
-			posUsers.append(self.UserItemNet[:,item].nonzero()[0])
-		return posUsers
-
-	def getUserValidItems(self, users):
-		validItems = []
-		for user in users:
-			if user in self.valid_dict:
-				validItems.append(self.valid_dict[user])
-		return validItems
-	
-	def get_pair_bpr(self):
-		"""
-		"""
-		user_num = self.traindataSize
-		# print(user_num)
-		users = np.random.randint(0, self.n_users, user_num)
-
-		self.user = []
-		self.posItem = []
-		self.negItem = []
-		a = 0
-		cnt = 0
-		# for i, user in enumerate(users):
-		while True:
-			for user in users:
-				posForUser = self._allPos[user]
-				# the users have no positive items -> unseen items
-				if len(posForUser) == 0:
-					a += 1
-					continue
-				cnt += 1
-				posindex = np.random.randint(0, len(posForUser))
-				positem = posForUser[posindex]
-				while True:
-					negitem = np.random.randint(0, self.m_items)
-					if negitem in posForUser:
-						continue
-					else:
-						break
-				self.user.append(user)
-				self.posItem.append(positem)
-				self.negItem.append(negitem)
-				if cnt == user_num:
-					break
-			if cnt == user_num:
-				break
-
-	def get_pair_bpr_unif(self):
-		"""
-		"""
-		user_num = self.traindataSize
-		users = np.random.randint(0, self.n_users, user_num)
-
-		self.user = []
-		self.posItem = []
-		self.negItem = []
-		a = 0
-		cnt = 0
-		while True:
-			for user in users:
-				posForUser = self._allPos[user]
-				# the users have no positive items -> unseen items
-				if len(posForUser) == 0:
-					a += 1
-					continue
-				cnt += 1
-				posindex = np.random.randint(0, len(posForUser))
-				positem = posForUser[posindex]
-				while True:
-					negitem = np.random.randint(0, self.m_items)
-					if negitem in posForUser:
-						continue
-					else:
-						break
-				self.user.append(user)
-				self.posItem.append(positem)
-				self.negItem.append(negitem)
-				if cnt == user_num:
-					break
-			if cnt == user_num:
-				break
-
-
-
-	def get_pair_bpr_item(self):
-		sample_num = self.traindataSize
-		items = np.random.randint(0, self.m_item, sample_num)
-
-		self.item = []
-		self.posUser = []
-		self.negUser = []
-
-		cnt = 0
-		for item in items:
-			posForItem = self._allPosUsers[item]
-			if len(posForItem) == 0:
-				continue
-			cnt += 1
-			posindex = np.random.randint(0, len(posForItem))
-			posuser = posForItem[posindex]
-
-			while True:
-				neguser = np.random.randint(0, self.n_user)
-				if neguser in posForItem:
-					continue
-				else:
-					break
-
-			self.item.append(item)
-			self.posUser.append(posuser)
-			self.negUser.append(neguser)
-			if cnt == sample_num:
-				break
-
-	@property
-	def n_users(self):
-		return self.n_user
-	
-	@property
-	def m_items(self):
-		return self.m_item
-	
-	@property
-	def trainDataSize(self):
-		return self.traindataSize
-	
-	@property
-	def trainDict(self):
-		return self.train_dict
-
-	@property
-	def validDict(self):
-		return self.valid_dict
-	
-	@property
-	def pairStage(self):
-		return self.pair_stage
-	
-	@property
-	def itemInter(self):
-		return self.item_inter
-
-	@property
-	def testDict(self):
-		return self.test_dict
-
-	@property
-	def allPos(self):
-		return self._allPos
-
-	# def __getitem__(self, idx):
-	# 	return self.user[idx], self.posItem[idx], self.negItem[idx], self.pair_stage[(self.user[idx], self.posItem[idx])], self.item_inter[self.posItem[idx]], self.item_inter[self.negItem[idx]]
-	def __getitem__(self, idx):
-		return self.item[idx], self.posUser[idx], self.negUser[idx], self.pair_stage[(self.posUser[idx], self.item[idx])]#, self.item_inter[self.posItem[idx]], self.item_inter[self.negItem[idx]]
-	
-	def __len__(self):
-		return self.traindataSize
-
-
 class UserItemTime(Dataset):
 	def __init__(self, args):
 		path = f"{args.data_path}/{args.dataset}"
@@ -441,20 +87,7 @@ class UserItemTime(Dataset):
 
 
 	def train_time_dict_to_array(self, time_dict, train_dict):
-		"""
-		Build item_time_array using ONLY (user,item) pairs appearing in train_dict.
-		time_dict may contain train/valid/test; we filter by train_dict to avoid leakage.
 
-		Args:
-			time_dict: dict[user][item] = timestamp (seconds)
-			train_dict: dict[user] = list of train items
-			m_item: total number of items. If None, inferred from max item id in train_dict/time_dict.
-		Returns:
-			item_time_array: np.ndarray shape (m_item, max_pos), padded with max_time+1 (in days)
-		"""
-
-
-		# 2) collect train times per item
 		item_time_dict = {i: [] for i in range(self.m_item)}
 
 		for u, items in train_dict.items():
@@ -521,70 +154,26 @@ class UserItemTime(Dataset):
 				validItems.append(valid_dict[user])
 		return validItems
 
-	def get_pair_user_bpr(self, neg_size):
-		sample_num = self.trainDataSize
-		users = np.random.randint(0, self.n_user, sample_num)
-
-		self.user_list, self.pos_item_list, self.neg_item_list, self.pos_time_list, self.pos_time_all, self.neg_time_all = [], [], [], [], [], []
-		cnt = 0
-		for user in users:
-			pos_items = self._allPos[user]
-			if len(pos_items) == 0:
-				continue
-			cnt += 1
-			idx = np.random.randint(0, len(pos_items))
-			pos_item = pos_items[idx]
-			while True:
-				neg_item = np.random.randint(0, self.m_item, size=neg_size)
-				if np.isin(neg_item, pos_item).any():
-					continue
-				break
-			self.user_list.append(user)
-			self.pos_item_list.append(pos_item)
-			self.neg_item_list.append(neg_item)
-			self.pos_time_list.append(self.train_user_item_time[(user, pos_item)])
-			self.pos_time_all.append(self.item_time_array[pos_item])
-			self.neg_time_all.append(self.item_time_array[neg_item])
-			if cnt == sample_num:
-				break
-		self.user_list = np.array(self.user_list)
-		self.pos_item_list = np.array(self.pos_item_list)
-		self.neg_item_list = np.array(self.neg_item_list)
-		self.pos_time_list = np.array(self.pos_time_list)
-		self.pos_time_all = np.array(self.pos_time_all)
-		self.neg_time_all = np.array(self.neg_time_all)
-
 	def get_pair_item_event_uniform(self, neg_size, sample_num=None):
 		# 0) event index가 없으면 1회 구축
 		if not hasattr(self, "train_event_items"):
 			times = self.train_item_time_array
-			# times = dataset.train_item_time_array
 			mask = (times < self.max_time)
-			# mask = (times < dataset.max_time)
 		
 			self.train_event_items = np.repeat(np.arange(self.m_item), mask.sum(axis=1))
-			# train_event_items = np.repeat(np.arange(dataset.m_item), mask.sum(axis=1))
 			self.train_event_times = times[mask]
-			# train_event_times = times[mask]
 			self.trainEventSize = len(self.train_event_items)
-			# trainEventSize = len(train_event_items)
 
 		if sample_num is None:
 			sample_num = self.trainEventSize
-			# sample_num = trainEventSize
 
 		# 1) positive event sample
 		ev_idx = np.random.randint(0, self.trainEventSize, sample_num)
-		# ev_idx = np.random.randint(0, trainEventSize, sample_num)
-		
 		pos_item = self.train_event_items[ev_idx]
-		# pos_item = train_event_items[ev_idx]
 		pos_time = self.train_event_times[ev_idx]
-		# pos_time = train_event_times[ev_idx]
 
 		# 2) uniform negative excluding pos_item
 		neg_item = np.random.randint(0, self.m_item - 1, size=(sample_num, neg_size))
-		# neg_item = np.random.randint(0, dataset.m_item - 1, size=(sample_num, neg_size))
 		neg_item += (neg_item >= pos_item[:, None])
 
 		# 3) histories
@@ -594,37 +183,54 @@ class UserItemTime(Dataset):
 		self.pos_time_all = self.item_time_array[pos_item]
 		self.neg_time_all = self.item_time_array[neg_item]
 
+	def get_pair_user_event_uniform(self, neg_size: int, sample_num: int = None):
+		if sample_num is None:
+			sample_num = self.trainDataSize  # number of train interactions (events)
+			# sample_num = dataset.trainDataSize  # number of train interactions (events)
 
-	def get_pair_item_bpr(self, neg_size):
-		sample_num = self.trainDataSize
-		items = np.random.randint(0, self.m_item, sample_num)
-		self.item_list, self.pos_user_list, self.neg_user_list, self.pos_user_time_list, self.pos_user_time_all = [], [], [], [], []
-		cnt = 0
-		for item in items:
-			pos_users = self._allPosUsers[item]
-			if len(pos_users) == 0:
-				continue
-			cnt += 1
-			idx = np.random.randint(0, len(pos_users))
-			pos_user = pos_users[idx]
+		# 1) sample positive events uniformly
+		ev_idx = np.random.randint(0, self.trainDataSize, size=sample_num)
+		# ev_idx = np.random.randint(0, dataset.trainDataSize, size=sample_num)
+		items = self.trainItem[ev_idx]
+		# items = dataset.trainItem[ev_idx]
+		pos_users = self.trainUser[ev_idx]
+		# pos_users = dataset.trainUser[ev_idx]
+
+		# 2) negative users: uniform, but must NOT be any of the positive users for that item
+		# neg_size = args.contrast_size-1
+		neg_users = np.empty((sample_num, neg_size), dtype=np.int64)
+		for i in range(sample_num):
+			v = items[i]
+			pos_set = self._allPosUsers[v]
+			# pos_set = dataset._allPosUsers[v]
+
+			# rejection sampling (simple & correct)
 			while True:
-				neg_user = np.random.randint(0, self.n_user, size=neg_size)
-				if np.isin(neg_user, pos_users).any():
+				cand = np.random.randint(0, self.n_user, size=neg_size)
+				# cand = np.random.randint(0, dataset.n_user, size=neg_size)
+				if np.isin(cand, pos_set).any():
 					continue
-				break
-			self.item_list.append(item)
-			self.pos_user_list.append(pos_user)
-			self.neg_user_list.append(neg_user)
-			self.pos_user_time_list.append(self.train_user_item_time[(pos_user, item)])
-			self.pos_user_time_all.append(self.item_time_array[item])
-			if cnt == sample_num:
+				neg_users[i] = cand
 				break
 
-		self.item_list = np.array(self.item_list)
-		self.pos_user_list = np.array(self.pos_user_list)
-		self.neg_user_list = np.array(self.neg_user_list)
-		self.pos_user_time_list.append(self.pos_user_time_list)
-		self.pos_user_time_all.append(self.pos_user_time_all)
+		# 3) times (optional; keeps your existing interface)
+		pos_user_time_list = np.array(
+			[self.train_user_item_time[(u, v)] for u, v in zip(pos_users, items)],
+			# [dataset.train_user_item_time[(u, v)] for u, v in zip(pos_users, items)],
+			dtype=np.float64
+		)
+
+		# 4) item histories WITHOUT leakage
+		#    IMPORTANT: use train_item_time_array (train-only)
+		pos_user_time_all = self.train_item_time_array[items]
+		# pos_user_time_all = dataset.train_item_time_array[items]
+
+		# 5) store to dataset fields (same naming style as your get_pair_item_bpr)
+		self.item_list = items.astype(np.int64)
+		self.pos_user_list = pos_users.astype(np.int64)
+		self.neg_user_list = neg_users
+		self.pos_user_time_list = pos_user_time_list
+		self.pos_user_time_all = pos_user_time_all
 
 
 	def __getitem__(self, idx):

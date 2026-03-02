@@ -186,52 +186,34 @@ class UserItemTime(Dataset):
 	def get_pair_user_event_uniform(self, neg_size: int, sample_num: int = None):
 		if sample_num is None:
 			sample_num = self.trainDataSize  # number of train interactions (events)
-			# sample_num = dataset.trainDataSize  # number of train interactions (events)
 
-		# 1) sample positive events uniformly
+		# 1) Sample positive events uniformly
 		ev_idx = np.random.randint(0, self.trainDataSize, size=sample_num)
-		# ev_idx = np.random.randint(0, dataset.trainDataSize, size=sample_num)
-		items = self.trainItem[ev_idx]
-		# items = dataset.trainItem[ev_idx]
-		pos_users = self.trainUser[ev_idx]
-		# pos_users = dataset.trainUser[ev_idx]
+		items = self.trainItem[ev_idx].astype(np.int64)      # (sample_num,)
+		pos_users = self.trainUser[ev_idx].astype(np.int64)  # (sample_num,)
 
-		# 2) negative users: uniform, but must NOT be any of the positive users for that item
-		# neg_size = args.contrast_size-1
-		neg_users = np.empty((sample_num, neg_size), dtype=np.int64)
-		for i in range(sample_num):
-			v = items[i]
-			pos_set = self._allPosUsers[v]
-			# pos_set = dataset._allPosUsers[v]
+		# 2) Uniform negative users excluding only pos_users
+		# Sample from [0, n_user-2], then "skip" pos_user by shifting
+		neg_users = np.random.randint(0, self.n_user - 1, size=(sample_num, neg_size)).astype(np.int64)
+		neg_users += (neg_users >= pos_users[:, None])  # ensures neg != pos_user
 
-			# rejection sampling (simple & correct)
-			while True:
-				cand = np.random.randint(0, self.n_user, size=neg_size)
-				# cand = np.random.randint(0, dataset.n_user, size=neg_size)
-				if np.isin(cand, pos_set).any():
-					continue
-				neg_users[i] = cand
-				break
-
-		# 3) times (optional; keeps your existing interface)
+		# 3) Optional: times (train-only)
+		# train_user_item_time uses only train_dict, good (no leakage)
 		pos_user_time_list = np.array(
 			[self.train_user_item_time[(u, v)] for u, v in zip(pos_users, items)],
-			# [dataset.train_user_item_time[(u, v)] for u, v in zip(pos_users, items)],
 			dtype=np.float64
 		)
 
-		# 4) item histories WITHOUT leakage
-		#    IMPORTANT: use train_item_time_array (train-only)
+		# 4) Item history WITHOUT leakage
+		# Use train_item_time_array, not item_time_array
 		pos_user_time_all = self.train_item_time_array[items]
-		# pos_user_time_all = dataset.train_item_time_array[items]
 
-		# 5) store to dataset fields (same naming style as your get_pair_item_bpr)
-		self.item_list = items.astype(np.int64)
-		self.pos_user_list = pos_users.astype(np.int64)
+		# 5) Store fields (compatible with your training loop)
+		self.item_list = items
+		self.pos_user_list = pos_users
 		self.neg_user_list = neg_users
 		self.pos_user_time_list = pos_user_time_list
 		self.pos_user_time_all = pos_user_time_all
-
 
 	def __getitem__(self, idx):
 		return self.item_list[idx], self.pos_user_list[idx], self.neg_user_list[idx], self.item_time_list[idx], self.item_time_all[idx]

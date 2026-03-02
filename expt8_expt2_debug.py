@@ -58,7 +58,10 @@ if wandb_login:
 
 #%%
 dataset = UserItemTime(args)
-dataset.get_pair_user_event_uniform(args.contrast_size-1)
+if args.neg_sampling == "uniform":
+	dataset.get_pair_user_event_uniform(args.contrast_size-1)
+elif args.neg_sampling == "hardmix":
+	dataset.get_pair_user_event_hardmix(args.contrast_size-1, hard_ratio=0.5)
 
 mini_batch = args.batch_size // args.contrast_size
 batch_num = dataset.trainDataSize // mini_batch
@@ -98,13 +101,17 @@ for epoch in range(1, args.epochs+1):
 		optimizer_user.step()
 		optimizer_user.zero_grad()
 
-		epoch_total_loss += total_loss
+		epoch_total_loss += total_loss.item()
 
-	print(f"[Epoch {epoch:>4d} Train Loss] total: {epoch_total_loss.item()/batch_num:.4f}")
+	print(f"[Epoch {epoch:>4d} Train Loss] total: {epoch_total_loss/batch_num:.4f}")
+
 
 	if epoch % 10 == 0:
 		print("Reset negative pairs")
-		dataset.get_pair_user_event_uniform(args.contrast_size-1)
+		if args.neg_sampling == "uniform":
+			dataset.get_pair_user_event_uniform(args.contrast_size-1)
+		elif args.neg_sampling == "hardmix":
+			dataset.get_pair_user_event_hardmix(args.contrast_size-1, hard_ratio=0.5)
 
 	if epoch % args.evaluate_interval == 0:
 		model_user.eval()
@@ -119,7 +126,7 @@ for epoch in range(1, args.epochs+1):
 			full_nll = -(pos_score - torch.logsumexp(user_score[:, item], dim=0)).item()
 			nll_user_all_list.append(full_nll)
 
-			pred = (user_score.log()[user,:] - torch.log(user_score.sum(0)))
+			pred = (user_score[user,:] - torch.logsumexp(user_score, dim=0))
 			exclude_items = list(dataset._allPos[user])
 			pred[exclude_items] = -(9999)
 			_, pred_k = torch.topk(pred, k=max(args.topks))
@@ -137,7 +144,7 @@ for epoch in range(1, args.epochs+1):
 			wandb_var.log(dict(zip([f"valid_ndcg_{k}" for k in args.topks], valid_results[2])))
 			wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
 
-			wandb_var.log({"train_user_nll_partial": epoch_total_loss.item() / batch_num})
+			wandb_var.log({"train_user_nll_partial": epoch_total_loss / batch_num})
 			wandb_var.log({"valid_user_nll_all": np.mean(nll_user_all_list)})
 
 wandb_var.finish()

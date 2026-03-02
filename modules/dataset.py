@@ -215,6 +215,89 @@ class UserItemTime(Dataset):
 		self.pos_user_time_list = pos_user_time_list
 		self.pos_user_time_all = pos_user_time_all
 
+	def get_pair_user_event_hardmix(
+		self,
+		neg_size: int,
+		hard_ratio: float = 0.5,
+		sample_num: int = None,
+		max_resample: int = 5,
+	):
+		"""
+		neg_size = number of negatives per positive
+		hard_ratio = fraction of negatives drawn from users who interacted with the same item (hard)
+		"""
+		if sample_num is None:
+			sample_num = self.trainDataSize
+
+		# 1) sample positive events uniformly
+		ev_idx = np.random.randint(0, self.trainDataSize, size=sample_num)
+		items = self.trainItem[ev_idx].astype(np.int64)      # (sample_num,)
+		pos_users = self.trainUser[ev_idx].astype(np.int64)  # (sample_num,)
+
+		K = neg_size
+		K_hard = int(round(K * hard_ratio))
+		K_rand = K - K_hard
+
+		neg_users = np.empty((sample_num, K), dtype=np.int64)
+
+		for i in range(sample_num):
+			it = items[i]
+			pu = pos_users[i]
+
+			# --- hard negatives: users who consumed same item (exclude pu) ---
+			cand = self._allPosUsers[it]
+			if cand.size > 0:
+				cand = cand[cand != pu]
+			k_h = min(K_hard, cand.size)
+
+			if k_h > 0:
+				hard = np.random.choice(cand, size=k_h, replace=False).astype(np.int64)
+			else:
+				hard = np.empty((0,), dtype=np.int64)
+
+			# --- random negatives excluding pu (and try to avoid hard duplicates) ---
+			if K_rand > 0:
+				# sample with "skip pu" trick
+				rand = np.random.randint(0, self.n_user - 1, size=K_rand).astype(np.int64)
+				rand += (rand >= pu)
+
+				# avoid overlap with hard (optional but good)
+				if hard.size > 0:
+					for _ in range(max_resample):
+						mask = np.isin(rand, hard)
+						if not mask.any():
+							break
+						rr = np.random.randint(0, self.n_user - 1, size=mask.sum()).astype(np.int64)
+						rr += (rr >= pu)
+						rand[mask] = rr
+
+			else:
+				rand = np.empty((0,), dtype=np.int64)
+
+			# concat
+			neg = np.concatenate([hard, rand], axis=0)
+
+			# (optional) shuffle within row so hard/rand positions not fixed
+			if neg.size > 1:
+				np.random.shuffle(neg)
+
+			neg_users[i] = neg
+
+		# 2) times / histories (keep your current behavior)
+		pos_user_time_list = np.array(
+			[self.train_user_item_time[(u, v)] for u, v in zip(pos_users, items)],
+			dtype=np.float64
+		)
+		pos_user_time_all = self.train_item_time_array[items]
+
+		# 3) store
+		self.item_list = items
+		self.pos_user_list = pos_users
+		self.neg_user_list = neg_users
+		self.pos_user_time_list = pos_user_time_list
+		self.pos_user_time_all = pos_user_time_all
+
+
 	def __getitem__(self, idx):
 		return self.item_list[idx], self.pos_user_list[idx], self.neg_user_list[idx], self.item_time_list[idx], self.item_time_all[idx]
 	

@@ -28,6 +28,7 @@ def parse_args():
     parser.add_argument('--time-type', type=str, default='continuous') # [pv, puv, ptv, ptv_pv, puv_pv]
     parser.add_argument('--contrast-size', type=int, default=16)
     parser.add_argument('--evaluate-interval', type=int, default=20)
+    parser.add_argument('--neg-sampling', type=str, default='hardmix')
 
     try:
         return parser.parse_args()

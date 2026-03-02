@@ -234,7 +234,7 @@ class UserItemTime(Dataset):
 		ev_idx = np.random.randint(0, self.trainDataSize, size=sample_num)
 		# ev_idx = np.random.randint(0, dataset.trainDataSize, size=sample_num)
 		items = self.trainItem[ev_idx].astype(np.int64)      # (sample_num,)
-		items = dataset.trainItem[ev_idx].astype(np.int64)      # (sample_num,)
+		# items = dataset.trainItem[ev_idx].astype(np.int64)      # (sample_num,)
 		pos_users = self.trainUser[ev_idx].astype(np.int64)  # (sample_num,)
 		# pos_users = dataset.trainUser[ev_idx].astype(np.int64)  # (sample_num,)
 

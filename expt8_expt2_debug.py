@@ -114,22 +114,6 @@ for epoch in range(1, args.epochs+1):
 			dataset.get_pair_user_event_hardmix(args.contrast_size-1, hard_ratio=0.5)
 
 	if epoch % args.evaluate_interval == 0:
-
-
-for (u, v), _ in dataset.valid_user_item_time.items():
-    s = user_score[u, v].item()
-    lse = torch.logsumexp(user_score[:, v], dim=0).item()
-    pos_scores.append(s)
-    lse_scores.append(lse)
-
-wandb.log({
-  "valid_pos_score_mean": float(np.mean(pos_scores)),
-  "valid_logsumexp_mean": float(np.mean(lse_scores)),
-  "valid_nll_mean": float(np.mean(lse_scores) - np.mean(pos_scores)),
-  "user_emb_norm_mean": float(np.mean(u_norms)),
-  "item_emb_norm_mean": float(np.mean(v_norms)),
-})
-
 		pos_scores = []
 		lse_scores = []
 		u_norms = []
@@ -147,8 +131,6 @@ wandb.log({
 		pred_list = []
 		gt_list = []
 		nll_user_all_list = []
-
-
 
 		for i, ((user, item), pos_time) in enumerate((dataset.valid_user_item_time).items()):
 			pos_score = user_score[user,item]

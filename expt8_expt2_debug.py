@@ -134,7 +134,7 @@ for epoch in range(1, args.epochs+1):
 
 		for i, ((user, item), pos_time) in enumerate((dataset.valid_user_item_time).items()):
 			pos_score = user_score[user,item]
-			lse_score = torch.logsumexp(user_score[:, v], dim=0)
+			lse_score = torch.logsumexp(user_score[:, item], dim=0)
 			full_nll = -(pos_score - lse).item()
 
 			pos_scores.append(pos_score.item())

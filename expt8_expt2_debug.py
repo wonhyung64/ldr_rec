@@ -110,15 +110,13 @@ for epoch in range(1, args.epochs+1):
 		model_user.eval()
 		with torch.no_grad():
 			user_score = torch.matmul(model_user.user_embedding.weight, model_user.item_embedding.weight.T)
-		user_score = user_score.exp()
-
 
 		pred_list = []
 		gt_list = []
 		nll_user_all_list = []
 		for i, ((user, item), pos_time) in enumerate((dataset.valid_user_item_time).items()):
 			pos_score = user_score[user,item]
-			full_nll = -torch.log(pos_score/user_score[:,item].sum()).item()
+			full_nll = -(pos_logit - logsumexp(user_logits[:, item])).item()
 			nll_user_all_list.append(full_nll)
 
 			pred = (user_score.log()[user,:] - torch.log(user_score.sum(0)))

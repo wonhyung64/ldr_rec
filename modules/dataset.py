@@ -228,15 +228,18 @@ class UserItemTime(Dataset):
 		"""
 		if sample_num is None:
 			sample_num = self.trainDataSize
+			# sample_num = dataset.trainDataSize
 
 		# 1) sample positive events uniformly
 		ev_idx = np.random.randint(0, self.trainDataSize, size=sample_num)
+		# ev_idx = np.random.randint(0, dataset.trainDataSize, size=sample_num)
 		items = self.trainItem[ev_idx].astype(np.int64)      # (sample_num,)
+		items = dataset.trainItem[ev_idx].astype(np.int64)      # (sample_num,)
 		pos_users = self.trainUser[ev_idx].astype(np.int64)  # (sample_num,)
+		# pos_users = dataset.trainUser[ev_idx].astype(np.int64)  # (sample_num,)
 
 		K = neg_size
 		K_hard = int(round(K * hard_ratio))
-		K_rand = K - K_hard
 
 		neg_users = np.empty((sample_num, K), dtype=np.int64)
 
@@ -246,6 +249,7 @@ class UserItemTime(Dataset):
 
 			# --- hard negatives: users who consumed same item (exclude pu) ---
 			cand = self._allPosUsers[it]
+			# cand = dataset._allPosUsers[it]
 			if cand.size > 0:
 				cand = cand[cand != pu]
 			k_h = min(K_hard, cand.size)
@@ -256,9 +260,11 @@ class UserItemTime(Dataset):
 				hard = np.empty((0,), dtype=np.int64)
 
 			# --- random negatives excluding pu (and try to avoid hard duplicates) ---
+			K_rand = K - k_h
 			if K_rand > 0:
 				# sample with "skip pu" trick
 				rand = np.random.randint(0, self.n_user - 1, size=K_rand).astype(np.int64)
+				# rand = np.random.randint(0, dataset.n_user - 1, size=K_rand).astype(np.int64)
 				rand += (rand >= pu)
 
 				# avoid overlap with hard (optional but good)

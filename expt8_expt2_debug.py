@@ -114,16 +114,49 @@ for epoch in range(1, args.epochs+1):
 			dataset.get_pair_user_event_hardmix(args.contrast_size-1, hard_ratio=0.5)
 
 	if epoch % args.evaluate_interval == 0:
+
+
+for (u, v), _ in dataset.valid_user_item_time.items():
+    s = user_score[u, v].item()
+    lse = torch.logsumexp(user_score[:, v], dim=0).item()
+    pos_scores.append(s)
+    lse_scores.append(lse)
+
+wandb.log({
+  "valid_pos_score_mean": float(np.mean(pos_scores)),
+  "valid_logsumexp_mean": float(np.mean(lse_scores)),
+  "valid_nll_mean": float(np.mean(lse_scores) - np.mean(pos_scores)),
+  "user_emb_norm_mean": float(np.mean(u_norms)),
+  "item_emb_norm_mean": float(np.mean(v_norms)),
+})
+
+		pos_scores = []
+		lse_scores = []
+		u_norms = []
+		v_norms = []
+
 		model_user.eval()
 		with torch.no_grad():
+			U = model_user.user_embedding.weight
+			V = model_user.item_embedding.weight
 			user_score = torch.matmul(model_user.user_embedding.weight, model_user.item_embedding.weight.T)
+
+		u_norms.append(U.norm(dim=1).mean().item())
+		v_norms.append(V.norm(dim=1).mean().item())
 
 		pred_list = []
 		gt_list = []
 		nll_user_all_list = []
+
+
+
 		for i, ((user, item), pos_time) in enumerate((dataset.valid_user_item_time).items()):
 			pos_score = user_score[user,item]
-			full_nll = -(pos_score - torch.logsumexp(user_score[:, item], dim=0)).item()
+			lse_score = torch.logsumexp(user_score[:, v], dim=0)
+			full_nll = -(pos_score - lse).item()
+
+			pos_scores.append(pos_score.item())
+			lse_scores.append(lse_score.item())
 			nll_user_all_list.append(full_nll)
 
 			pred = (user_score[user,:] - torch.logsumexp(user_score, dim=0))
@@ -146,5 +179,13 @@ for epoch in range(1, args.epochs+1):
 
 			wandb_var.log({"train_user_nll_partial": epoch_total_loss / batch_num})
 			wandb_var.log({"valid_user_nll_all": np.mean(nll_user_all_list)})
+
+			wandb.log({
+				"valid_pos_score_mean": float(np.mean(pos_scores)),
+				"valid_logsumexp_mean": float(np.mean(lse_scores)),
+				"valid_nll_mean": float(np.mean(lse_scores) - np.mean(pos_scores)),
+				"user_emb_norm_mean": float(np.mean(u_norms)),
+				"item_emb_norm_mean": float(np.mean(v_norms)),
+			})
 
 wandb_var.finish()

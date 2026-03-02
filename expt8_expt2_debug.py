@@ -116,7 +116,7 @@ for epoch in range(1, args.epochs+1):
 		nll_user_all_list = []
 		for i, ((user, item), pos_time) in enumerate((dataset.valid_user_item_time).items()):
 			pos_score = user_score[user,item]
-			full_nll = -(pos_score - torch.logsumexp(user_logits[:, item], dim=0)).item()
+			full_nll = -(pos_score - torch.logsumexp(user_score[:, item], dim=0)).item()
 			nll_user_all_list.append(full_nll)
 
 			pred = (user_score.log()[user,:] - torch.log(user_score.sum(0)))

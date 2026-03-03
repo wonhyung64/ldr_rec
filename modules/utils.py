@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument('--contrast-size', type=int, default=16)
     parser.add_argument('--evaluate-interval', type=int, default=20)
     parser.add_argument('--neg-sampling', type=str, default='hardmix')
+    parser.add_argument('--tau', type=float, default=0.5)
 
     try:
         return parser.parse_args()

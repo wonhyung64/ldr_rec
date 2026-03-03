@@ -18,7 +18,7 @@ from modules.procedure import evaluate, computeTopNAccuracy
 """EXPERIMENT FOR THE SIMPLEST p(u,v|t,H_t) WITH HAWKES PROCESS"""
 
 class MF(nn.Module):
-	def __init__(self, num_users, num_items, embedding_k):
+	def __init__(self, num_users, num_items, embedding_k, tau=0.5):
 		super(MF, self).__init__()
 		self.num_users = num_users
 		self.num_items = num_items
@@ -26,15 +26,17 @@ class MF(nn.Module):
 		self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
 		self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
 		self.user_bias = nn.Embedding(num_users, 1)
+		self.tau = tau
 
 	def forward(self, x):
 		user_idx = x[:,0]
 		item_idx = x[:,1]
-		user_embed = self.user_embedding(user_idx)
-		item_embed = self.item_embedding(item_idx)
+		user_embed = F.normalize(self.user_embedding(user_idx), dim=-1)
+		item_embed = F.normalize(self.item_embedding(item_idx), dim=-1)
 		b = self.user_bias(user_idx)
-		out = torch.sum(user_embed.mul(item_embed), 1).unsqueeze(-1) + b
+		out = torch.sum(user_embed.mul(item_embed), -1, keepdim=True)/self.tau + b
 		return out, user_embed, item_embed
+
 
 
 #%%
@@ -70,7 +72,7 @@ batch_num = dataset.trainDataSize // mini_batch
 all_idxs = np.arange(dataset.trainDataSize)
 
 #%%
-model_user = MF(dataset.n_user, dataset.m_item, 4)
+model_user = MF(dataset.n_user, dataset.m_item, 4, args.tau)
 model_user = model_user.to(args.device)
 optimizer_user = optim.Adam(model_user.parameters(), lr=1e-3, weight_decay=args.decay)
 

@@ -56,14 +56,6 @@ experiments=(
     "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.5 --contrast-size=16"
     "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.5 --contrast-size=32"
     "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.5 --contrast-size=64"
-
-    "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.3 --contrast-size=16"
-    "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.3 --contrast-size=32"
-    "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.3 --contrast-size=64"
-
-    "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.2 --contrast-size=16"
-    "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.2 --contrast-size=32"
-    "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.2 --contrast-size=64"
 )
 
 

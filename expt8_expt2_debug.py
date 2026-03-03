@@ -25,7 +25,7 @@ class MF(nn.Module):
 		self.embedding_k = embedding_k
 		self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
 		self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
-		self.user_bias = nn.Embedding(num_users, 1)
+		# self.user_bias = nn.Embedding(num_users, 1)
 		self.tau = tau
 
 	def forward(self, x):
@@ -33,8 +33,9 @@ class MF(nn.Module):
 		item_idx = x[:,1]
 		user_embed = F.normalize(self.user_embedding(user_idx), dim=-1)
 		item_embed = F.normalize(self.item_embedding(item_idx), dim=-1)
-		b = self.user_bias(user_idx)
-		out = torch.sum(user_embed.mul(item_embed), -1, keepdim=True)/self.tau + b
+		# b = self.user_bias(user_idx)
+		# out = torch.sum(user_embed.mul(item_embed), -1, keepdim=True)/self.tau + b
+		out = torch.sum(user_embed.mul(item_embed), -1, keepdim=True)/self.tau
 		return out, user_embed, item_embed
 
 

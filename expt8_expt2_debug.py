@@ -18,21 +18,23 @@ from modules.procedure import evaluate, computeTopNAccuracy
 """EXPERIMENT FOR THE SIMPLEST p(u,v|t,H_t) WITH HAWKES PROCESS"""
 
 class MF(nn.Module):
-    def __init__(self, num_users, num_items, embedding_k):
-        super(MF, self).__init__()
-        self.num_users = num_users
-        self.num_items = num_items
-        self.embedding_k = embedding_k
-        self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
-        self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
+	def __init__(self, num_users, num_items, embedding_k):
+		super(MF, self).__init__()
+		self.num_users = num_users
+		self.num_items = num_items
+		self.embedding_k = embedding_k
+		self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
+		self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
+		self.user_bias = nn.Embedding(num_users, 1)
 
-    def forward(self, x):
-        user_idx = x[:,0]
-        item_idx = x[:,1]
-        user_embed = self.user_embedding(user_idx)
-        item_embed = self.item_embedding(item_idx)
-        out = torch.sum(user_embed.mul(item_embed), 1).unsqueeze(-1)
-        return out, user_embed, item_embed
+	def forward(self, x):
+		user_idx = x[:,0]
+		item_idx = x[:,1]
+		user_embed = self.user_embedding(user_idx)
+		item_embed = self.item_embedding(item_idx)
+		b = self.user_bias(user_idx)
+		out = torch.sum(user_embed.mul(item_embed), 1).unsqueeze(-1) + b
+		return out, user_embed, item_embed
 
 
 #%%

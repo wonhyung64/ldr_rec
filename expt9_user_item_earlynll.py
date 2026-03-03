@@ -5,6 +5,7 @@ import wandb
 import torch
 import numpy as np
 import torch.nn as nn
+import torch.nn.functional as F
 from torch import optim
 from datetime import datetime
 from torch.utils.data import DataLoader

@@ -42,21 +42,22 @@ class JointRec(nn.Module):
 
 
 class MF(nn.Module):
-    def __init__(self, num_users, num_items, embedding_k):
-        super(MF, self).__init__()
-        self.num_users = num_users
-        self.num_items = num_items
-        self.embedding_k = embedding_k
-        self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
-        self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
+	def __init__(self, num_users, num_items, embedding_k):
+		super(MF, self).__init__()
+		self.num_users = num_users
+		self.num_items = num_items
+		self.embedding_k = embedding_k
+		self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
+		self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
+		self.tau = tau
 
-    def forward(self, x):
-        user_idx = x[:,0]
-        item_idx = x[:,1]
-        user_embed = self.user_embedding(user_idx)
-        item_embed = self.item_embedding(item_idx)
-        out = torch.sum(user_embed.mul(item_embed), 1).unsqueeze(-1)
-        return out, user_embed, item_embed
+	def forward(self, x):
+		user_idx = x[:,0]
+		item_idx = x[:,1]
+		user_embed = F.normalize(self.user_embedding(user_idx), dim=-1)
+		item_embed = F.normalize(self.item_embedding(item_idx), dim=-1)
+		out = torch.sum(user_embed.mul(item_embed), -1, keepdim=True)/self.tau
+		return out, user_embed, item_embed
 
 
 #%%
@@ -96,7 +97,7 @@ model = JointRec(dataset.n_user, dataset.m_item, args.recdim, mini_batch, args.d
 model = model.to(args.device)
 optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=args.decay)
 
-model_user = MF(dataset.n_user, dataset.m_item, 4)
+model_user = MF(dataset.n_user, dataset.m_item, 4, args.tau)
 model_user = model_user.to(args.device)
 optimizer_user = optim.Adam(model_user.parameters(), lr=1e-3, weight_decay=args.decay)
 

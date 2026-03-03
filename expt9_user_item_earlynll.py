@@ -42,7 +42,7 @@ class JointRec(nn.Module):
 
 
 class MF(nn.Module):
-	def __init__(self, num_users, num_items, embedding_k):
+	def __init__(self, num_users, num_items, embedding_k, tau):
 		super(MF, self).__init__()
 		self.num_users = num_users
 		self.num_items = num_items

@@ -77,6 +77,7 @@ if wandb_login:
 
 #%%
 dataset = UserItemTime(args)
+dataset.get_pair_item_event_uniform(args.contrast_size-1)
 if args.neg_sampling == "uniform":
 	dataset.get_pair_user_event_uniform(args.contrast_size-1)
 elif args.neg_sampling == "hardmix":
@@ -160,6 +161,7 @@ for epoch in range(1, args.epochs+1):
 
 	if epoch % 10 == 0:
 		print("Reset negative pairs")
+		dataset.get_pair_item_event_uniform(args.contrast_size-1)
 		if args.neg_sampling == "uniform":
 			dataset.get_pair_user_event_uniform(args.contrast_size-1)
 		elif args.neg_sampling == "hardmix":

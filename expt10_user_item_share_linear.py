@@ -97,6 +97,7 @@ optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
 #%%
 best_joint_nll = 999.
 best_model = copy.copy(model)
+best_epoch = 0
 cnt = 1
 
 for epoch in range(1, args.epochs+1):
@@ -259,6 +260,7 @@ for epoch in range(1, args.epochs+1):
 		else:
 			best_model = copy.copy(model)
 			best_joint_nll = np.mean(joint_nll_list)
+			best_epoch = epoch
 			cnt = 1
 
 		if cnt == 5:
@@ -340,11 +342,12 @@ if wandb_login:
 		"test_joint_nll": np.mean(joint_nll_list),
 		})
 
-	wandb_var.log(dict(zip([f"test_precision_{k}" for k in args.topks], valid_results[0])))
-	wandb_var.log(dict(zip([f"test_recall_{k}" for k in args.topks], valid_results[1])))
-	wandb_var.log(dict(zip([f"test_ndcg_{k}" for k in args.topks], valid_results[2])))
-	wandb_var.log(dict(zip([f"test_mrr_{k}" for k in args.topks], valid_results[3])))
+	wandb_var.log(dict(zip([f"test_precision_{k}" for k in args.topks], test_results[0])))
+	wandb_var.log(dict(zip([f"test_recall_{k}" for k in args.topks], test_results[1])))
+	wandb_var.log(dict(zip([f"test_ndcg_{k}" for k in args.topks], test_results[2])))
+	wandb_var.log(dict(zip([f"test_mrr_{k}" for k in args.topks], test_results[3])))
 
 	wandb_var.log({"best_joint_nll": best_joint_nll})
+	wandb_var.log({"best_epoch": best_epoch})
 
 	wandb_var.finish()

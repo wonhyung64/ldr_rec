@@ -219,7 +219,7 @@ for epoch in range(1, args.epochs+1):
 
 			user_item_score = user_score[user,:]
 			user_lse_score = torch.logsumexp(user_score[user,:], dim=0)
-			user_log_prob = user_item_score - lse_score
+			user_log_prob = user_item_score - user_lse_score
 
 			item_nll = -item_log_prob[item].item()
 			user_nll = -user_log_prob[item].item()

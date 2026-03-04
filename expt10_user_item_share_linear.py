@@ -255,7 +255,7 @@ for epoch in range(1, args.epochs+1):
 			wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
 
 		if np.mean(joint_nll_list) - best_joint_nll > 0.:
-			item_cnt += 1
+			cnt += 1
 		else:
 			best_model = copy.copy(model)
 			best_joint_nll = np.mean(joint_nll_list)

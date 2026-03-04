@@ -212,7 +212,7 @@ for epoch in range(1, args.epochs+1):
 				item_idx = torch.Tensor(item_idx).int().to(args.device)
 				with torch.no_grad():
 					time_intensity = (torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
-					logits = (base_all[idx] + amplitude_all[idx] * time_intensity).flatten()
+					logits = (item_base_all[idx] + item_amplitude_all[idx] * time_intensity).flatten()
 				item_logits_list.append(logits)
 			item_logits = torch.concat(item_logits_list)
 			item_log_prob = torch.log(item_logits / item_logits.sum())
@@ -270,4 +270,85 @@ for epoch in range(1, args.epochs+1):
 		if cnt == 5:
 			break
 
-wandb_var.finish()
+
+#%%
+pred_list = []
+gt_list = []
+user_nll_list = []
+item_nll_list = []
+joint_nll_list = []
+
+best_model.eval()
+intensity_decay = best_model.soft(best_model.intensity_decay)
+
+with torch.no_grad():
+	user_embed = F.normalize(best_model.user_embedding.weight, dim=-1)
+	item_embed = F.normalize(best_model.item_embedding.weight, dim=-1)
+	user_score = torch.matmul(user_embed, item_embed.T)
+
+item_base_all = []
+item_amplitude_all = []
+for idx in range(dataset.m_item//args.batch_size + 1):
+	item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
+	sub_item_embed = item_embed[item_idx]
+	with torch.no_grad():
+		base = best_model.soft(best_model.base_fn(sub_item_embed))
+		amplitude = best_model.soft(best_model.amplitude_fn(sub_item_embed))
+	item_base_all.append(base)
+	item_amplitude_all.append(amplitude)
+
+
+for i, ((user, item), pos_time) in enumerate((dataset.test_user_item_time).items()):
+
+	item_logits_list = []
+	pos_time = torch.Tensor([pos_time]).to(args.device)
+	for idx in range(dataset.m_item//args.batch_size + 1):
+		item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
+		batch_time_all = torch.Tensor(dataset.item_time_array[item_idx]).to(args.device)
+		batch_time_mask = batch_time_all < pos_time
+		batch_time_delta = (pos_time - batch_time_all).clamp(min=0.0)
+		item_idx = torch.Tensor(item_idx).int().to(args.device)
+		with torch.no_grad():
+			time_intensity = (torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
+			logits = (item_base_all[idx] + item_amplitude_all[idx] * time_intensity).flatten()
+		item_logits_list.append(logits)
+	item_logits = torch.concat(item_logits_list)
+	item_log_prob = torch.log(item_logits / item_logits.sum())
+
+	user_item_score = user_score[user,:]
+	user_lse_score = torch.logsumexp(user_score[user,:], dim=0)
+	user_log_prob = user_item_score - user_lse_score
+
+	item_nll = -item_log_prob[item].item()
+	user_nll = -user_log_prob[item].item()
+	joint_nll = item_nll + user_nll
+
+	item_nll_list.append(item_nll)
+	user_nll_list.append(user_nll)
+	joint_nll_list.append(joint_nll)
+
+	pred = (user_log_prob + item_log_prob).cpu()
+	exclude_items = list(dataset._allPos[user])
+	valid_items = dataset.getUserValidItems(torch.tensor([user]), dataset.valid_dict)
+	exclude_items.extend(valid_items)
+	pred[exclude_items] = -(9999)
+
+	_, pred_k = torch.topk(pred, k=max(args.topks))
+	pred_list.append(pred_k.cpu())
+	gt_list.append([item])
+
+test_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
+
+if wandb_login:
+	wandb_var.log({
+		"test_item_nll": np.mean(item_nll_list),
+		"test_user_nll": np.mean(user_nll_list),
+		"test_joint_nll": np.mean(joint_nll_list),
+		})
+
+	wandb_var.log(dict(zip([f"test_precision_{k}" for k in args.topks], valid_results[0])))
+	wandb_var.log(dict(zip([f"test_recall_{k}" for k in args.topks], valid_results[1])))
+	wandb_var.log(dict(zip([f"test_ndcg_{k}" for k in args.topks], valid_results[2])))
+	wandb_var.log(dict(zip([f"test_mrr_{k}" for k in args.topks], valid_results[3])))
+
+	wandb_var.finish()

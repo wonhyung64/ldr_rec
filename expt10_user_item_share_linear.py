@@ -192,7 +192,6 @@ for epoch in range(1, args.epochs+1):
 
 		for idx in range(dataset.m_item//args.batch_size + 1):
 			item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
-			item_idx = torch.Tensor(item_idx).long().to(args.device)
 			sub_item_embed = item_embed[item_idx]
 			with torch.no_grad():
 				base = model.soft(model.base_fn(sub_item_embed))

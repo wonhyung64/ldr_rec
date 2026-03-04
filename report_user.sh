@@ -4,7 +4,7 @@ read -r -d '' SLURM_SCRIPT<<'EOF'
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=gpu6,gpu2,gpu3,gpu4,gpu5,gpu1
+#SBATCH --partition=gpu5,gpu3,gpu4,gpu2,gpu6,gpu1
 ##
 #SBATCH --job-name=experiment
 #SBATCH -o logs/s_%j.out

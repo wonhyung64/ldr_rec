@@ -170,15 +170,11 @@ for epoch in range(1, args.epochs+1):
 	if epoch % args.evaluate_interval == 0:
 		user_pos_score_list = []
 		user_lse_score_list = []
-		user_norm_list = []
-		item_norm_list = []
-		item_base_all = []
-		item_amplitude_all = []
-		pred_list = []
-		gt_list = []
 		user_nll_list = []
 		item_nll_list = []
 		joint_nll_list = []
+		pred_list = []
+		gt_list = []
 
 		model.eval()
 		intensity_decay = model.soft(model.intensity_decay)
@@ -187,9 +183,8 @@ for epoch in range(1, args.epochs+1):
 			user_embed = F.normalize(model.user_embedding.weight, dim=-1)
 			item_embed = F.normalize(model.item_embedding.weight, dim=-1)
 			user_score = torch.matmul(user_embed, item_embed.T)
-		user_norm_list.append(user_embed.mean().item())
-		item_norm_list.append(item_embed.mean().item())
 
+		item_base_all, item_amplitude_all = [], []
 		for idx in range(dataset.m_item//args.batch_size + 1):
 			item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
 			sub_item_embed = item_embed[item_idx]
@@ -198,7 +193,6 @@ for epoch in range(1, args.epochs+1):
 				amplitude = model.soft(model.amplitude_fn(sub_item_embed))
 			item_base_all.append(base)
 			item_amplitude_all.append(amplitude)
-
 
 		for i, ((user, item), pos_time) in enumerate((dataset.valid_user_item_time).items()):
 
@@ -245,14 +239,14 @@ for epoch in range(1, args.epochs+1):
 				"valid_item_nll": np.mean(item_nll_list),
 				"valid_user_nll": np.mean(user_nll_list),
 				"valid_joint_nll": np.mean(joint_nll_list),
-				"valid_pos_score_mean": float(np.mean(pos_scores)),
-				"valid_logsumexp_mean": float(np.mean(lse_scores)),
-				"train_item_nll": epoch_item_loss.item()/batch_num,
-				"train_user_nll": epoch_user_loss.item()/batch_num,
-				"train_time_intensity": epoch_time_intensity.item() / batch_num,
+				"valid_pos_score_mean": float(np.mean(user_pos_score_list)),
+				"valid_logsumexp_mean": float(np.mean(user_lse_score_list)),
+				"train_item_nll": epoch_item_loss/batch_num,
+				"train_user_nll": epoch_user_loss/batch_num,
+				"train_time_intensity": epoch_time_intensity/batch_num,
 				"intendety_decay": model.soft(model.intensity_decay).item(),
-				"user_emb_norm_mean": float(np.mean(u_norms)),
-				"item_emb_norm_mean": float(np.mean(v_norms)),
+				"user_emb_norm_mean": user_embed.mean().item(),
+				"item_emb_norm_mean": item_embed.mean().item(),
 				})
 
 			wandb_var.log(dict(zip([f"valid_precision_{k}" for k in args.topks], valid_results[0])))

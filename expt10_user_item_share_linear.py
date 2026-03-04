@@ -155,7 +155,7 @@ for epoch in range(1, args.epochs+1):
 
 		epoch_item_loss += item_loss.item()
 		epoch_user_loss += user_loss.item()
-		epoch_time_intensity += batch_intensity.item
+		epoch_time_intensity += batch_intensity.item()
 
 	print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss/batch_num:.4f} / item: {epoch_item_loss/batch_num:.4f}")
 

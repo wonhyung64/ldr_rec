@@ -345,4 +345,6 @@ if wandb_login:
 	wandb_var.log(dict(zip([f"test_ndcg_{k}" for k in args.topks], valid_results[2])))
 	wandb_var.log(dict(zip([f"test_mrr_{k}" for k in args.topks], valid_results[3])))
 
+	wandb_var.log({"best_joint_nll": best_joint_nll})
+
 	wandb_var.finish()

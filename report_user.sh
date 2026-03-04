@@ -53,13 +53,42 @@ ENV=/home1/wonhyung64/anaconda3/envs/openmmlab/bin/python3
 RANDOM_SEED=0
 
 experiments=(
-    # "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.5 --contrast-size=16"
-    # "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.5 --contrast-size=32"
-    # "expt8_expt2_debug.py --neg-sampling=uniform --tau=0.5 --contrast-size=64"
 
-    "expt9_user_item_earlynll.py --neg-sampling=uniform --tau=0.5 --contrast-size=16"
-    "expt9_user_item_earlynll.py --neg-sampling=uniform --tau=0.5 --contrast-size=32"
-    "expt9_user_item_earlynll.py --neg-sampling=uniform --tau=0.5 --contrast-size=64"
+    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.5 --recdim=4"
+    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.5 --recdim=16"
+    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.5 --recdim=64"
+
+    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.25 --recdim=4"
+    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.25 --recdim=16"
+    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.25 --recdim=64"
+
+    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.75 --recdim=4"
+    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.75 --recdim=16"
+    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.75 --recdim=64"
+
+    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.5 --recdim=4"
+    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.5 --recdim=16"
+    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.5 --recdim=64"
+
+    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.25 --recdim=4"
+    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.25 --recdim=16"
+    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.25 --recdim=64"
+
+    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.75 --recdim=4"
+    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.75 --recdim=16"
+    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.75 --recdim=64"
+
+    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.5 --recdim=4"
+    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.5 --recdim=16"
+    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.5 --recdim=64"
+
+    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.25 --recdim=4"
+    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.25 --recdim=16"
+    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.25 --recdim=64"
+
+    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.75 --recdim=4"
+    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.75 --recdim=16"
+    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.75 --recdim=64"
 )
 
 

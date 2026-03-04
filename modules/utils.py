@@ -10,7 +10,7 @@ def parse_args():
     parser.add_argument('--recdim', type=int,default=4,)
     parser.add_argument('--lr', type=float,default=0.001,)
     parser.add_argument('--decay', type=float,default=0.,)
-    parser.add_argument('--lambda1', type=float,default=1.,)
+    parser.add_argument('--lambda1', type=float,default=0.5,)
     parser.add_argument('--data_path', type=str, default='./data',
                         help='the path to dataset')
     parser.add_argument('--cred_path', type=str, default='./assets',
@@ -28,8 +28,9 @@ def parse_args():
     parser.add_argument('--time-type', type=str, default='continuous') # [pv, puv, ptv, ptv_pv, puv_pv]
     parser.add_argument('--contrast-size', type=int, default=16)
     parser.add_argument('--evaluate-interval', type=int, default=20)
-    parser.add_argument('--neg-sampling', type=str, default='hardmix')
+    parser.add_argument('--neg-sampling', type=str, default='uniform')
     parser.add_argument('--tau', type=float, default=0.5)
+    parser.add_argument('--depth', type=int, default=0)
 
     try:
         return parser.parse_args()

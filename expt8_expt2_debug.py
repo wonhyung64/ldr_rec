@@ -126,12 +126,12 @@ for epoch in range(1, args.epochs+1):
 
 		model_user.eval()
 		with torch.no_grad():
-			U = model_user.user_embedding.weight
-			V = model_user.item_embedding.weight
-			user_score = torch.matmul(model_user.user_embedding.weight, model_user.item_embedding.weight.T)
+			U = F.normalize(model_user.user_embedding.weight, dim=-1)
+			V = F.normalize(model_user.item_embedding.weight, dim=-1)
+			user_score = torch.matmul(U, V.T)
 
-		u_norms.append(U.norm(dim=1).mean().item())
-		v_norms.append(V.norm(dim=1).mean().item())
+		u_norms.append(U.mean().item())
+		v_norms.append(V.mean().item())
 
 		pred_list = []
 		gt_list = []

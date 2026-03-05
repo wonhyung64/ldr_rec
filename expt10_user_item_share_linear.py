@@ -149,7 +149,7 @@ for epoch in range(1, args.epochs+1):
 		batch_scores = batch_scores.reshape([mini_batch, args.contrast_size])
 		user_loss = -F.log_softmax(batch_scores, dim=-1)[:, 0].mean()
 
-		total_loss = args.lambda1 * user_loss + (1-args.lambda1) * item_loss
+		total_loss = user_loss + item_loss
 		total_loss.backward()
 		optimizer.step()
 		optimizer.zero_grad()
@@ -183,7 +183,7 @@ for epoch in range(1, args.epochs+1):
 		with torch.no_grad():
 			user_embed = F.normalize(model.user_embedding.weight, dim=-1)
 			item_embed = F.normalize(model.item_embedding.weight, dim=-1)
-			user_score = torch.matmul(user_embed, item_embed.T)
+			user_score = torch.matmul(user_embed, item_embed.T) / model.tau
 
 		item_base_all, item_amplitude_all = [], []
 		for idx in range(dataset.m_item//args.batch_size + 1):
@@ -212,21 +212,20 @@ for epoch in range(1, args.epochs+1):
 			item_logits = torch.concat(item_logits_list)
 			item_log_prob = torch.log(item_logits / item_logits.sum())
 
-			user_item_score = user_score[user,:]
-			user_lse_score = torch.logsumexp(user_score[user,:], dim=0)
-			user_log_prob = user_item_score - user_lse_score
+			user_lse_score = torch.logsumexp(user_score, dim=0)
+			user_log_prob = user_score - user_lse_score.unsqueeze(0)
 
 			item_nll = -item_log_prob[item].item()
-			user_nll = -user_log_prob[item].item()
+			user_nll = -user_log_prob[user,item].item()
 			joint_nll = item_nll + user_nll
 
-			user_pos_score_list.append(user_item_score[item].item())
-			user_lse_score_list.append(user_lse_score.item())
+			user_pos_score_list.append(user_score[user,item].item())
+			user_lse_score_list.append(user_lse_score[item].item())
 			item_nll_list.append(item_nll)
 			user_nll_list.append(user_nll)
 			joint_nll_list.append(joint_nll)
 
-			pred = (user_log_prob + item_log_prob).cpu()
+			pred = (user_log_prob[user] + item_log_prob).cpu()
 			exclude_items = list(dataset._allPos[user])
 			pred[exclude_items] = -(9999)
 			_, pred_k = torch.topk(pred, k=max(args.topks))
@@ -280,7 +279,7 @@ intensity_decay = best_model.soft(best_model.intensity_decay)
 with torch.no_grad():
 	user_embed = F.normalize(best_model.user_embedding.weight, dim=-1)
 	item_embed = F.normalize(best_model.item_embedding.weight, dim=-1)
-	user_score = torch.matmul(user_embed, item_embed.T)
+	user_score = torch.matmul(user_embed, item_embed.T) / best_model.tau
 
 item_base_all = []
 item_amplitude_all = []
@@ -311,19 +310,18 @@ for i, ((user, item), pos_time) in enumerate((dataset.test_user_item_time).items
 	item_logits = torch.concat(item_logits_list)
 	item_log_prob = torch.log(item_logits / item_logits.sum())
 
-	user_item_score = user_score[user,:]
-	user_lse_score = torch.logsumexp(user_score[user,:], dim=0)
-	user_log_prob = user_item_score - user_lse_score
+	user_lse_score = torch.logsumexp(user_score, dim=0)
+	user_log_prob = user_score - user_lse_score.unsqueeze(0)
 
 	item_nll = -item_log_prob[item].item()
-	user_nll = -user_log_prob[item].item()
+	user_nll = -user_log_prob[user,item].item()
 	joint_nll = item_nll + user_nll
 
 	item_nll_list.append(item_nll)
 	user_nll_list.append(user_nll)
 	joint_nll_list.append(joint_nll)
 
-	pred = (user_log_prob + item_log_prob).cpu()
+	pred = (user_log_prob[user] + item_log_prob).cpu()
 	exclude_items = list(dataset._allPos[user])
 	valid_items = dataset.getUserValidItems(torch.tensor([user]), dataset.valid_dict)
 	exclude_items.extend(valid_items)

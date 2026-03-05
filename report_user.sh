@@ -58,37 +58,13 @@ experiments=(
     "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.5 --recdim=16"
     "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.5 --recdim=64"
 
-    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.25 --recdim=4"
-    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.25 --recdim=16"
-    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.25 --recdim=64"
-
-    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.75 --recdim=4"
-    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.75 --recdim=16"
-    "expt10_user_item_share_linear.py --lr=1e-3 --lambda1=0.75 --recdim=64"
-
     "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.5 --recdim=4"
     "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.5 --recdim=16"
     "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.5 --recdim=64"
 
-    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.25 --recdim=4"
-    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.25 --recdim=16"
-    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.25 --recdim=64"
-
-    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.75 --recdim=4"
-    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.75 --recdim=16"
-    "expt10_user_item_share_linear.py --lr=1e-4 --lambda1=0.75 --recdim=64"
-
     "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.5 --recdim=4"
     "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.5 --recdim=16"
     "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.5 --recdim=64"
-
-    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.25 --recdim=4"
-    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.25 --recdim=16"
-    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.25 --recdim=64"
-
-    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.75 --recdim=4"
-    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.75 --recdim=16"
-    "expt10_user_item_share_linear.py --lr=1e-5 --lambda1=0.75 --recdim=64"
 )
 
 

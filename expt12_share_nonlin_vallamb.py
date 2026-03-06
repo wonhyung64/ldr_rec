@@ -227,7 +227,7 @@ for epoch in range(1, args.epochs+1):
 			user_nll_list.append(user_nll)
 			joint_nll_list.append(joint_nll)
 
-			pred = (user_log_prob[user] + item_log_prob).cpu()
+			pred = (user_log_prob[user] * args.lambda1 + item_log_prob * (1-args.lambda1)).cpu()
 			exclude_items = list(dataset._allPos[user])
 			pred[exclude_items] = -(9999)
 			_, pred_k = torch.topk(pred, k=max(args.topks))

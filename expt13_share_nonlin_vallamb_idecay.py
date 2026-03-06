@@ -47,7 +47,6 @@ class JointRec(nn.Module):
 		self.amplitude_fn = nn.Sequential(*amplitude_fn).to(args.device)
 
 		self.decay_fn = nn.Linear(embedding_k, 1)
-		# self.intensity_decay = nn.Parameter(torch.randn(1))
 
 	def popularity(self, batch_items, pos_time, batch_time_all):
 		item_embed = F.normalize(self.item_embedding(batch_items), dim=-1)
@@ -247,7 +246,6 @@ for epoch in range(1, args.epochs+1):
 				"train_item_nll": epoch_item_loss/batch_num,
 				"train_user_nll": epoch_user_loss/batch_num,
 				"train_time_intensity": epoch_time_intensity/batch_num,
-				"intendety_decay": model.soft(model.intensity_decay).item(),
 				"user_emb_norm_mean": user_embed.mean().item(),
 				"item_emb_norm_mean": item_embed.mean().item(),
 				})
@@ -277,7 +275,6 @@ item_nll_list = []
 joint_nll_list = []
 
 best_model.eval()
-intensity_decay = best_model.soft(best_model.intensity_decay)
 
 with torch.no_grad():
 	user_embed = F.normalize(best_model.user_embedding.weight, dim=-1)

@@ -46,7 +46,12 @@ class JointRec(nn.Module):
 		amplitude_fn.append(nn.Linear(embedding_k//2, 1, bias=False))
 		self.amplitude_fn = nn.Sequential(*amplitude_fn).to(args.device)
 
-		self.intensity_decay = nn.Parameter(torch.randn(1))
+		decay_fn = [nn.Linear(embedding_k, embedding_k//2), nn.Softplus()]
+		for _ in range(depth):
+			decay_fn.append(nn.Linear(embedding_k//2, embedding_k//2))
+			decay_fn.append(nn.Softplus())
+		decay_fn.append(nn.Linear(embedding_k//2, 1, bias=False))
+		self.decay_fn = nn.Sequential(*decay_fn).to(args.device)
 
 	def popularity(self, batch_items, pos_time, batch_time_all):
 		item_embed = F.normalize(self.item_embedding(batch_items), dim=-1)
@@ -54,8 +59,8 @@ class JointRec(nn.Module):
 		amplitude = self.soft(self.amplitude_fn(item_embed)).reshape(self.mini_batch, -1)
 		batch_time_mask = batch_time_all < pos_time
 		batch_time_delta = (pos_time - batch_time_all).clamp(0.0)
-		intensity_decay = self.soft(self.intensity_decay)
-		time_intensity = torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask
+		intensity_decay = self.soft(self.decay_fn(item_embed)).reshape(self.mini_batch, -1)
+		time_intensity = torch.exp(-intensity_decay.unsqueeze(-1) * batch_time_delta) * batch_time_mask
 		return base + (time_intensity.sum(-1) * amplitude), time_intensity, base, amplitude
 
 	def interaction(self, x):
@@ -72,7 +77,7 @@ args = parse_args()
 expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
 set_seed(args.seed)
 args.device = set_device()
-args.expt_name = f"share_nonlin_vallamb_{expt_num}"
+args.expt_name = f"share_nonlin_vallamb_idecaynonlin_{expt_num}"
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True) 
 
@@ -180,20 +185,21 @@ for epoch in range(1, args.epochs+1):
 		gt_list = []
 
 		model.eval()
-		intensity_decay = model.soft(model.intensity_decay)
 
 		with torch.no_grad():
 			user_embed = F.normalize(model.user_embedding.weight, dim=-1)
 			item_embed = F.normalize(model.item_embedding.weight, dim=-1)
 			user_score = torch.matmul(user_embed, item_embed.T) / model.tau
 
-		item_base_all, item_amplitude_all = [], []
+		item_decay_all, item_base_all, item_amplitude_all = [], [], []
 		for idx in range(dataset.m_item//args.batch_size + 1):
 			item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
 			sub_item_embed = item_embed[item_idx]
 			with torch.no_grad():
+				intensity_decay = model.soft(model.decay_fn(sub_item_embed))
 				base = model.soft(model.base_fn(sub_item_embed))
 				amplitude = model.soft(model.amplitude_fn(sub_item_embed))
+			item_decay_all.append(intensity_decay)
 			item_base_all.append(base)
 			item_amplitude_all.append(amplitude)
 
@@ -207,9 +213,8 @@ for epoch in range(1, args.epochs+1):
 				batch_time_mask = batch_time_all < pos_time
 				batch_time_delta = (pos_time - batch_time_all).clamp(min=0.0)
 				item_idx = torch.Tensor(item_idx).int().to(args.device)
-				with torch.no_grad():
-					time_intensity = (torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
-					logits = (item_base_all[idx] + item_amplitude_all[idx] * time_intensity).flatten()
+				time_intensity = (torch.exp(-item_decay_all[idx] * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
+				logits = (item_base_all[idx] + item_amplitude_all[idx] * time_intensity).flatten()
 				item_logits_list.append(logits)
 			item_logits = torch.concat(item_logits_list)
 			item_log_prob = torch.log(item_logits / item_logits.sum())
@@ -227,7 +232,7 @@ for epoch in range(1, args.epochs+1):
 			user_nll_list.append(user_nll)
 			joint_nll_list.append(joint_nll)
 
-			pred = (user_log_prob[user] + item_log_prob).cpu()
+			pred = (user_log_prob[user] * args.lambda1 + item_log_prob * (1-args.lambda1)).cpu()
 			exclude_items = list(dataset._allPos[user])
 			pred[exclude_items] = -(9999)
 			_, pred_k = torch.topk(pred, k=max(args.topks))
@@ -283,14 +288,15 @@ with torch.no_grad():
 	item_embed = F.normalize(best_model.item_embedding.weight, dim=-1)
 	user_score = torch.matmul(user_embed, item_embed.T) / best_model.tau
 
-item_base_all = []
-item_amplitude_all = []
+item_decay_all, item_base_all, item_amplitude_all = [], [], []
 for idx in range(dataset.m_item//args.batch_size + 1):
 	item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
 	sub_item_embed = item_embed[item_idx]
 	with torch.no_grad():
+		intensity_decay = model.soft(model.decay_fn(sub_item_embed))
 		base = best_model.soft(best_model.base_fn(sub_item_embed))
 		amplitude = best_model.soft(best_model.amplitude_fn(sub_item_embed))
+	item_decay_all.append(intensity_decay)
 	item_base_all.append(base)
 	item_amplitude_all.append(amplitude)
 
@@ -305,9 +311,8 @@ for i, ((user, item), pos_time) in enumerate((dataset.test_user_item_time).items
 		batch_time_mask = batch_time_all < pos_time
 		batch_time_delta = (pos_time - batch_time_all).clamp(min=0.0)
 		item_idx = torch.Tensor(item_idx).int().to(args.device)
-		with torch.no_grad():
-			time_intensity = (torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
-			logits = (item_base_all[idx] + item_amplitude_all[idx] * time_intensity).flatten()
+		time_intensity = (torch.exp(-item_decay_all[idx] * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
+		logits = (item_base_all[idx] + item_amplitude_all[idx] * time_intensity).flatten()
 		item_logits_list.append(logits)
 	item_logits = torch.concat(item_logits_list)
 	item_log_prob = torch.log(item_logits / item_logits.sum())

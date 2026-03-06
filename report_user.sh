@@ -54,15 +54,15 @@ RANDOM_SEED=0
 
 experiments=(
 
-    "expt11_user_item_share_nonlinear.py --lr=1e-3 --lambda1=0.5 --recdim=4"
-    "expt11_user_item_share_nonlinear.py --lr=1e-3 --lambda1=0.5 --recdim=16"
-    "expt11_user_item_share_nonlinear.py --lr=1e-3 --lambda1=0.5 --recdim=64"
-    "expt11_user_item_share_nonlinear.py --lr=1e-4 --lambda1=0.5 --recdim=4"
-    "expt11_user_item_share_nonlinear.py --lr=1e-4 --lambda1=0.5 --recdim=16"
-    "expt11_user_item_share_nonlinear.py --lr=1e-4 --lambda1=0.5 --recdim=64"
-    "expt11_user_item_share_nonlinear.py --lr=1e-5 --lambda1=0.5 --recdim=4"
-    "expt11_user_item_share_nonlinear.py --lr=1e-5 --lambda1=0.5 --recdim=16"
-    "expt11_user_item_share_nonlinear.py --lr=1e-5 --lambda1=0.5 --recdim=64"
+    "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.2 --recdim=16"
+    "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.4 --recdim=16"
+    "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.6 --recdim=16"
+    "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.8 --recdim=16"
+
+    "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.2 --recdim=64"
+    "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.4 --recdim=64"
+    "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.6 --recdim=64"
+    "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.8 --recdim=64"
 )
 
 

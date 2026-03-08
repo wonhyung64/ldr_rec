@@ -60,7 +60,7 @@ class JointRec(nn.Module):
 		batch_time_mask = batch_time_all < pos_time
 		batch_time_delta = (pos_time - batch_time_all).clamp(0.0)
 		intensity_decay = self.soft(self.decay_fn(item_embed)).reshape(self.mini_batch, -1)
-		time_intensity = torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask
+		time_intensity = torch.exp(-intensity_decay.unsqueeze(-1) * batch_time_delta) * batch_time_mask
 		return base + (time_intensity.sum(-1) * amplitude), time_intensity, base, amplitude
 
 	def interaction(self, x):

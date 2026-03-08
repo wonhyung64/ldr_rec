@@ -54,8 +54,8 @@ RANDOM_SEED=0
 
 experiments=(
 
-    "expt16_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=hard"
-    "expt16_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=uniform"
+    # "expt16_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=hard"
+    # "expt16_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=uniform"
 
     "expt17_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=hard"
     "expt17_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=uniform"

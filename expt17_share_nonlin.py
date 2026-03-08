@@ -185,7 +185,6 @@ for epoch in range(1, args.epochs+1):
 		gt_list = []
 
 		model.eval()
-		intensity_decay = model.soft(model.intensity_decay)
 
 		with torch.no_grad():
 			user_embed = F.normalize(model.user_embedding.weight, dim=-1)
@@ -283,7 +282,6 @@ joint_nll_list = []
 best_model = JointRec(dataset.n_user, dataset.m_item, args.recdim, mini_batch, args.device, args.depth, args.tau)
 best_model.load_state_dict(best_state)
 best_model.eval()
-intensity_decay = best_model.soft(best_model.intensity_decay)
 
 with torch.no_grad():
 	user_embed = F.normalize(best_model.user_embedding.weight, dim=-1)

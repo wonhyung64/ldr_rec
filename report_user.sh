@@ -54,15 +54,14 @@ RANDOM_SEED=0
 
 experiments=(
 
-    # "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.2 --recdim=16"
-    # "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.4 --recdim=16"
-    # "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.6 --recdim=16"
-    "expt15_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.8 --recdim=16"
+    "expt16_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=hard"
+    "expt16_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=uniform"
 
-    # "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.2 --recdim=64"
-    # "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.4 --recdim=64"
-    # "expt12_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.6 --recdim=64"
-    "expt15_share_nonlin_vallamb.py --lr=1e-3 --lambda1=0.8 --recdim=64"
+    "expt17_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=hard"
+    "expt17_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=uniform"
+
+    "expt18_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=hard"
+    "expt18_share_nonlin.py --lr=1e-3 --recdim=64 --pair_reset_interval=2 --neg-sampling=uniform"
 
 #     "expt13_share_nonlin_vallamb_idecay.py --lr=1e-3 --lambda1=0.2 --recdim=16"
 #     "expt13_share_nonlin_vallamb_idecay.py --lr=1e-3 --lambda1=0.4 --recdim=16"

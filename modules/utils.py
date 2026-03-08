@@ -31,6 +31,7 @@ def parse_args():
     parser.add_argument('--neg-sampling', type=str, default='uniform')
     parser.add_argument('--tau', type=float, default=0.5)
     parser.add_argument('--depth', type=int, default=0)
+    parser.add_argument('--pair-reset-interval', type=int, default=10)
 
     try:
         return parser.parse_args()

@@ -275,6 +275,7 @@ item_nll_list = []
 joint_nll_list = []
 
 best_model = JointRec(dataset.n_user, dataset.m_item, args.recdim, mini_batch, args.device, args.depth, args.tau)
+best_model = best_model.to(args.device)
 best_model.load_state_dict(best_state)
 best_model.eval()
 

@@ -74,6 +74,16 @@ optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=args.decay)
 
 
 #%%
+mask = (dataset.train_item_time_array < dataset.max_time)
+pop = -np.log(mask.sum(-1) / mask.sum())
+
+valid_pop = []
+for (u,i), t in dataset.valid_user_item_time.items():
+	valid_pop.append(pop[i])
+np.mean(valid_pop)
+
+
+#%%
 for epoch in range(1, args.epochs+1):
 	torch.cuda.empty_cache()
 	model.train()

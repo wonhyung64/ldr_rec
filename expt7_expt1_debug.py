@@ -87,21 +87,19 @@ np.mean(valid_pop)
 for epoch in range(1, args.epochs+1):
 	torch.cuda.empty_cache()
 	model.train()
-	if epoch % 10 == 0:
-		print("Reset negative pairs")
-		dataset.get_pair_item_event_uniform(args.contrast_size-1)
 
 	np.random.shuffle(all_idxs)
 	epoch_total_loss = 0.
 	epoch_time_intensity = 0.
+
 	for idx in range(batch_num):
 		""""DATA"""
 		sample_idx = all_idxs[mini_batch*idx : (idx+1)*mini_batch]
 		pos_item = torch.tensor(dataset.pos_item_list[sample_idx]).unsqueeze(-1).to(args.device)
 		neg_items = torch.tensor(dataset.neg_item_list[sample_idx]).to(args.device)
-		pos_time = torch.tensor(dataset.pos_time_list[sample_idx]).reshape(-1, 1, 1).to(args.device)
-		pos_time_all = torch.tensor(dataset.pos_time_all[sample_idx]).to(args.device)
-		neg_time_all = torch.tensor(dataset.neg_time_all[sample_idx]).to(args.device)
+		pos_time = torch.Tensor(dataset.pos_time_list[sample_idx]).reshape(-1, 1, 1).to(args.device)
+		pos_time_all = torch.Tensor(dataset.pos_time_all[sample_idx]).to(args.device)
+		neg_time_all = torch.Tensor(dataset.neg_time_all[sample_idx]).to(args.device)
 	
 		batch_items = torch.concat([pos_item, neg_items], -1).reshape([args.batch_size])
 		batch_time_all = torch.concat([pos_time_all.unsqueeze(1), neg_time_all], 1)
@@ -133,6 +131,9 @@ for epoch in range(1, args.epochs+1):
 
 	print(f"[Epoch {epoch:>4d} Train Loss] total: {epoch_total_loss.item()/batch_num:.4f} / decay: {model.soft(model.intensity_decay).item()} / intensity: {batch_intensity.item()}")
 
+	if epoch % 10 == 0:
+		print("Reset negative pairs")
+		dataset.get_pair_item_event_uniform(args.contrast_size-1)
 
 	if epoch % args.evaluate_interval == 0:
 		model.eval()
@@ -172,10 +173,13 @@ for epoch in range(1, args.epochs+1):
 			nll_partial_list.append(-torch.log(logits_all[item] / (logits_partial.sum()+logits_all[item])))
 			
 		print(f"[Epoch {epoch:>4d} Valid NLL] total: {torch.stack(nll_all_list).mean().item():.4f}")
-		wandb_var.log({"valid_nll_all": torch.stack(nll_all_list).mean().item()})
-		wandb_var.log({"train_nll_partial": epoch_total_loss.item() / batch_num})
-		wandb_var.log({"train_time_intensity": epoch_time_intensity.item() / batch_num})
-		wandb_var.log({"intendety_decay": model.soft(model.intensity_decay).item()})
-		wandb_var.log({"valid_nll_partial": torch.stack(nll_partial_list).mean().item()})
+		if wandb_login:
+			wandb_var.log({"valid_nll_all": torch.stack(nll_all_list).mean().item()})
+			wandb_var.log({"train_nll_partial": epoch_total_loss.item() / batch_num})
+			wandb_var.log({"train_time_intensity": epoch_time_intensity.item() / batch_num})
+			wandb_var.log({"intendety_decay": model.soft(model.intensity_decay).item()})
+			wandb_var.log({"valid_nll_partial": torch.stack(nll_partial_list).mean().item()})
 
 wandb_var.finish()
+
+# %%

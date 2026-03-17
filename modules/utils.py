@@ -10,7 +10,7 @@ def parse_args():
     parser.add_argument('--recdim', type=int,default=4,)
     parser.add_argument('--lr', type=float,default=0.001,)
     parser.add_argument('--decay', type=float,default=0.,)
-    parser.add_argument('--lambda1', type=float,default=1.,)
+    parser.add_argument('--lambda1', type=float,default=0.5,)
     parser.add_argument('--data_path', type=str, default='./data',
                         help='the path to dataset')
     parser.add_argument('--cred_path', type=str, default='./assets',
@@ -22,12 +22,18 @@ def parse_args():
     parser.add_argument('--topks', type=list, default=[10, 20, 50, 100])
     parser.add_argument('--epochs', type=int,default=600)
     parser.add_argument('--seed', type=int, default=0, help='random seed')
-    parser.add_argument('--period', type=int, default=8, help='number of stage')
-    parser.add_argument('--n_pop_group', type=int, default=20, help='number of popularity groups')
-    parser.add_argument('--ablation-model', type=str, default='pv') # [pv, puv, ptv, ptv_pv, puv_pv]
-    parser.add_argument('--time-type', type=str, default='continuous') # [pv, puv, ptv, ptv_pv, puv_pv]
     parser.add_argument('--contrast-size', type=int, default=16)
     parser.add_argument('--evaluate-interval', type=int, default=20)
+    parser.add_argument('--neg-sampling', type=str, default='uniform')
+    parser.add_argument('--tau', type=float, default=0.5)
+    parser.add_argument('--depth', type=int, default=0)
+    parser.add_argument('--pair-reset-interval', type=int, default=2)
+    parser.add_argument('--max-seq-len', type=int, default=50)
+    parser.add_argument('--user-bucket-size', type=float, default=86400)
+    parser.add_argument('--dropout', type=float, default=0.1)
+    parser.add_argument('--n-heads', type=int, default=4)
+    parser.add_argument('--n-layers', type=int, default=2)
+
 
     try:
         return parser.parse_args()

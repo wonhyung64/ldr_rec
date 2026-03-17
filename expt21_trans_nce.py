@@ -11,31 +11,12 @@ import torch.nn.functional as F
 from torch import optim
 from datetime import datetime
 from scipy.sparse import csr_matrix
-from torch.utils.data import DataLoader
-from sklearn.metrics import roc_auc_score
 from torch.utils.data import Dataset
 
 from modules.utils import parse_args, set_seed, set_device
-from modules.procedure import evaluate, computeTopNAccuracy
+from modules.procedure import computeTopNAccuracy
 
 """EXPERIMENT FOR THE SIMPLEST p(u,v|t,H_t) WITH HAWKES PROCESS"""
-#%%
-import math
-import os
-import copy
-import wandb
-import torch
-import numpy as np
-import torch.nn as nn
-import torch.nn.functional as F
-from torch import optim
-from datetime import datetime
-from sklearn.metrics import roc_auc_score
-
-from modules.utils import parse_args, set_seed, set_device
-from modules.dataset import UserItemTime
-from modules.procedure import evaluate, computeTopNAccuracy
-
 
 class TimeEmbedding(nn.Module):
     def __init__(self, d_model: int, max_bucket: int = 128):
@@ -712,12 +693,12 @@ for epoch in range(1, args.epochs+1):
 
 		# precompute item tower
 		with torch.no_grad():
-			all_item_keys = model.item_proj(model.item_embedding.weight)  # [I, D]
+			all_item_keys = model.item_proj(model.item_embedding.weight)
 			all_item_emb = F.normalize(model.item_embedding.weight, dim=-1)
 
 		item_base_all, item_amplitude_all = [], []
 		for idx2 in range(dataset.m_item // args.batch_size + 1):
-			item_idx = all_item_idxs[idx2 * args.batch_size: (idx2 + 1) * args.batch_size]
+			item_idx = all_item_idxs[idx2*args.batch_size : (idx2+1)*args.batch_size]
 			if len(item_idx) == 0:
 				continue
 			sub_item_embed = all_item_emb[item_idx]
@@ -756,11 +737,11 @@ for epoch in range(1, args.epochs+1):
 
 			with torch.no_grad():
 				q_u = model.encode_user_history(user_idx, hist_items, hist_times, query_time)   # [1, D]
-				residual_scores = torch.matmul(q_u, all_item_keys.T).squeeze(0) / model.tau     # [I]
+				residual_scores = torch.matmul(q_u, all_item_keys[:-1,:].T).squeeze(0) / model.tau     # [I]
 				residual_log_prob = residual_scores - torch.logsumexp(residual_scores, dim=0)
 
 			# final score = prior + residual
-			pred = (item_log_prob + residual_scores.cpu()).cpu()
+			pred = (item_log_prob.cpu() + residual_scores.cpu()).cpu()
 
 			item_nll = -item_log_prob[item].item()
 			user_nll = -residual_log_prob[item].item()
@@ -783,8 +764,6 @@ for epoch in range(1, args.epochs+1):
 				"valid_item_nll": np.mean(item_nll_list),
 				"valid_user_nll": np.mean(user_nll_list),
 				"valid_joint_nll": np.mean(joint_nll_list),
-				"valid_pos_score_mean": float(np.mean(user_pos_score_list)),
-				"valid_logsumexp_mean": float(np.mean(user_lse_score_list)),
 				"train_item_nll": epoch_item_loss/batch_num,
 				"train_user_nll": epoch_user_loss/batch_num,
 				"train_time_intensity": epoch_time_intensity/batch_num,
@@ -815,63 +794,87 @@ user_nll_list = []
 item_nll_list = []
 joint_nll_list = []
 
-best_model = JointRec(dataset.n_user, dataset.m_item, args.recdim, mini_batch, args.device, args.depth, args.tau)
-best_model = best_model.to(args.device)
+best_model = JointRecTransformer(
+    dataset.n_user,
+    dataset.m_item,
+    args.recdim,
+    mini_batch,
+    args.device,
+    args.depth,
+    args.tau,
+    max_seq_len=args.max_seq_len,
+    n_heads=args.n_heads,
+    n_layers=args.n_layers,
+    dropout=args.dropout,
+).to(args.device)
 best_model.load_state_dict(best_state)
+
 best_model.eval()
 intensity_decay = best_model.soft(best_model.intensity_decay)
 
-with torch.no_grad():
-	user_embed = F.normalize(best_model.user_embedding.weight, dim=-1)
-	item_embed = F.normalize(best_model.item_embedding.weight, dim=-1)
-	bias = best_model.user_bias(user_embed) + best_model.item_bias(item_embed).T
-	user_score = torch.matmul(user_embed, item_embed.T) / best_model.tau + bias
-	user_lse_score = torch.logsumexp(user_score, dim=0)
-	user_log_prob = user_score - user_lse_score.unsqueeze(0)
 
-item_base_all = []
-item_amplitude_all = []
-for idx in range(dataset.m_item//args.batch_size + 1):
-	item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
-	sub_item_embed = item_embed[item_idx]
+# precompute item tower
+with torch.no_grad():
+	all_item_keys = best_model.item_proj(best_model.item_embedding.weight)
+	all_item_emb = F.normalize(best_model.item_embedding.weight, dim=-1)
+
+item_base_all, item_amplitude_all = [], []
+for idx2 in range(dataset.m_item // args.batch_size + 1):
+	item_idx = all_item_idxs[idx2*args.batch_size : (idx2+1)*args.batch_size]
+	if len(item_idx) == 0:
+		continue
+	sub_item_embed = all_item_emb[item_idx]
 	with torch.no_grad():
 		base = best_model.soft(best_model.base_fn(sub_item_embed))
 		amplitude = best_model.soft(best_model.amplitude_fn(sub_item_embed))
 	item_base_all.append(base)
 	item_amplitude_all.append(amplitude)
 
+for i, ((user, item), pos_time_val) in enumerate(dataset.valid_user_item_time.items()):
+	pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
 
-for i, ((user, item), pos_time) in enumerate((dataset.test_user_item_time).items()):
-
+	# ----- prior log prob over items -----
 	item_logits_list = []
-	pos_time = torch.Tensor([pos_time]).to(args.device)
-	for idx in range(dataset.m_item//args.batch_size + 1):
-		item_idx = all_item_idxs[idx*args.batch_size: (idx+1)*args.batch_size]
-		batch_time_all = torch.Tensor(dataset.item_time_array[item_idx]).to(args.device)
-		batch_time_mask = batch_time_all < pos_time
-		batch_time_delta = (pos_time - batch_time_all).clamp(min=0.0)
-		item_idx = torch.Tensor(item_idx).int().to(args.device)
+	for idx2 in range(dataset.m_item // args.batch_size + 1):
+		item_idx = all_item_idxs[idx2 * args.batch_size: (idx2 + 1) * args.batch_size]
+		if len(item_idx) == 0:
+			continue
+		batch_time_all = torch.tensor(dataset.item_time_array[item_idx], dtype=torch.float32).to(args.device)
+		batch_time_mask = batch_time_all < pos_time_t
+		batch_time_delta = (pos_time_t - batch_time_all).clamp(min=0.0)
+
 		with torch.no_grad():
 			time_intensity = (torch.exp(-intensity_decay * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
-			logits = (item_base_all[idx] + item_amplitude_all[idx] * time_intensity).flatten()
+			logits = (item_base_all[idx2] + item_amplitude_all[idx2] * time_intensity).flatten()
 		item_logits_list.append(logits)
+
 	item_logits = torch.concat(item_logits_list)
-	item_log_prob = torch.log(item_logits / item_logits.sum())
+	item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
+
+	# ----- residual scores over items -----
+	hist_items = torch.tensor([dataset.valid_hist_item_list[i]], dtype=torch.long).to(args.device)
+	hist_times = torch.tensor([dataset.valid_hist_time_list[i]], dtype=torch.float32).to(args.device)
+	user_idx = torch.tensor([user], dtype=torch.long).to(args.device)
+	query_time = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
+
+	with torch.no_grad():
+		q_u = best_model.encode_user_history(user_idx, hist_items, hist_times, query_time)
+		residual_scores = torch.matmul(q_u, all_item_keys[:-1,:].T).squeeze(0) / best_model.tau
+		residual_log_prob = residual_scores - torch.logsumexp(residual_scores, dim=0)
+
+	# final score = prior + residual
+	pred = (item_log_prob.cpu() + residual_scores.cpu()).cpu()
 
 	item_nll = -item_log_prob[item].item()
-	user_nll = -user_log_prob[user,item].item()
-	joint_nll = item_nll + user_nll
+	user_nll = -residual_log_prob[item].item()
+	joint_nll = -(item_log_prob[item].item() + residual_scores[item].item())
 
 	item_nll_list.append(item_nll)
 	user_nll_list.append(user_nll)
 	joint_nll_list.append(joint_nll)
 
-	pred = (user_log_prob[user] + item_log_prob).cpu()
 	exclude_items = list(dataset._allPos[user])
-	valid_items = dataset.getUserValidItems(torch.tensor([user]), dataset.valid_dict)
-	exclude_items.extend(valid_items)
-	pred[exclude_items] = -(9999)
-
+	pred[exclude_items] = -9999
 	_, pred_k = torch.topk(pred, k=max(args.topks))
 	pred_list.append(pred_k.cpu())
 	gt_list.append([item])

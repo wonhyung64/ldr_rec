@@ -590,6 +590,12 @@ dataset.prepare_user_timebucket_sampler(bucket_size=args.user_bucket_size)
 dataset.get_pair_user_event_timebucket_fast(k=1)
 dataset.get_pair_item_event_uniform(args.contrast_size-1)
 
+valid_hist_items_t = torch.from_numpy(dataset.valid_hist_item_list).long().to(args.device)
+valid_hist_times_t = torch.from_numpy(dataset.valid_hist_time_list).float().to(args.device)
+
+test_hist_items_t = torch.from_numpy(dataset.test_hist_item_list).long().to(args.device)
+test_hist_times_t = torch.from_numpy(dataset.test_hist_time_list).float().to(args.device)
+
 mini_batch = args.batch_size // args.contrast_size
 batch_num = dataset.trainDataSize // mini_batch
 all_idxs = np.arange(dataset.trainDataSize)
@@ -730,8 +736,8 @@ for epoch in range(1, args.epochs+1):
 			item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
 
 			# ----- residual scores over items -----
-			hist_items = torch.tensor([dataset.valid_hist_item_list[i]], dtype=torch.long).to(args.device)
-			hist_times = torch.tensor([dataset.valid_hist_time_list[i]], dtype=torch.float32).to(args.device)
+			hist_items = valid_hist_items_t[i:i+1]
+			hist_times = valid_hist_times_t[i:i+1]
 			user_idx = torch.tensor([user], dtype=torch.long).to(args.device)
 			query_time = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
 
@@ -852,8 +858,8 @@ for i, ((user, item), pos_time_val) in enumerate(dataset.valid_user_item_time.it
 	item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
 
 	# ----- residual scores over items -----
-	hist_items = torch.tensor([dataset.valid_hist_item_list[i]], dtype=torch.long).to(args.device)
-	hist_times = torch.tensor([dataset.valid_hist_time_list[i]], dtype=torch.float32).to(args.device)
+	hist_items = test_hist_items_t[i:i+1]
+	hist_times = test_hist_times_t[i:i+1]
 	user_idx = torch.tensor([user], dtype=torch.long).to(args.device)
 	query_time = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
 

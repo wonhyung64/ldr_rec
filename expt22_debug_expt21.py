@@ -644,7 +644,7 @@ optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
 
 
 #%%
-best_joint_nll = 999.
+best_valid_score = 0.
 best_state = copy.deepcopy(model.state_dict())
 best_epoch = 0
 cnt = 1
@@ -800,10 +800,12 @@ for epoch in range(1, args.epochs+1):
 			wandb_var.log(dict(zip([f"valid_ndcg_{k}" for k in args.topks], valid_results[2])))
 			wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
 
-		if np.mean(joint_nll_list) - best_joint_nll > 0.:
+		current_valid_score = valid_results[1][0]
+
+		if current_valid_score - best_valid_score <= 0.:
 			cnt += 1
 		else:
-			best_joint_nll = np.mean(joint_nll_list)
+			best_valid_score = current_valid_score
 			best_state = copy.deepcopy(model.state_dict())
 			best_epoch = epoch
 			cnt = 1
@@ -815,9 +817,7 @@ for epoch in range(1, args.epochs+1):
 #%%
 pred_list = []
 gt_list = []
-user_nll_list = []
 item_nll_list = []
-joint_nll_list = []
 
 best_model = JointRecTransformer(
     dataset.n_user,
@@ -885,18 +885,12 @@ for i, ((user, item), pos_time_val) in enumerate(dataset.valid_user_item_time.it
 	with torch.no_grad():
 		q_u = best_model.encode_user_history(user_idx, hist_items, hist_times, query_time)
 		residual_scores = torch.matmul(q_u, all_item_keys[:-1,:].T).squeeze(0)
-		residual_log_prob = residual_scores - torch.logsumexp(residual_scores, dim=0)
 
 	# final score = prior + residual
 	pred = (item_log_prob.cpu() + residual_scores.cpu()).cpu()
 
 	item_nll = -item_log_prob[item].item()
-	user_nll = -residual_log_prob[item].item()
-	joint_nll = -(item_log_prob[item].item() + residual_scores[item].item())
-
 	item_nll_list.append(item_nll)
-	user_nll_list.append(user_nll)
-	joint_nll_list.append(joint_nll)
 
 	exclude_items = list(dataset._allPos[user])
 	pred[exclude_items] = -9999
@@ -909,8 +903,6 @@ test_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
 if wandb_login:
 	wandb_var.log({
 		"test_item_nll": np.mean(item_nll_list),
-		"test_user_nll": np.mean(user_nll_list),
-		"test_joint_nll": np.mean(joint_nll_list),
 		})
 
 	wandb_var.log(dict(zip([f"test_precision_{k}" for k in args.topks], test_results[0])))
@@ -918,7 +910,7 @@ if wandb_login:
 	wandb_var.log(dict(zip([f"test_ndcg_{k}" for k in args.topks], test_results[2])))
 	wandb_var.log(dict(zip([f"test_mrr_{k}" for k in args.topks], test_results[3])))
 
-	wandb_var.log({"best_joint_nll": best_joint_nll})
+	wandb_var.log({"best_valid_score": best_valid_score})
 	wandb_var.log({"best_epoch": best_epoch})
 
 	wandb_var.finish()

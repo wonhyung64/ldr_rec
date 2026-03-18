@@ -54,65 +54,16 @@ RANDOM_SEED=0
 
 experiments=(
 
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.125 --tau=0.1"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.25 --tau=0.1"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.5 --tau=0.1"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.75 --tau=0.1"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.875 --tau=0.1"
-
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.125 --tau=0.25"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.25 --tau=0.25"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.5 --tau=0.25"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.75 --tau=0.25"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.875 --tau=0.25"
-
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.125 --tau=0.5"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.25 --tau=0.5"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.5 --tau=0.5"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.75 --tau=0.5"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.875 --tau=0.5"
-
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.125 --tau=0.75"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.25 --tau=0.75"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.5 --tau=0.75"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.75 --tau=0.75"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.875 --tau=0.75"
-
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.125 --tau=0.9"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.25 --tau=0.9"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.5 --tau=0.9"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.75 --tau=0.9"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=64 --lambda1=0.875 --tau=0.9"
-
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.1"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.25 --tau=0.1"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.5 --tau=0.1"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.75 --tau=0.1"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.1"
-
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.25"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.25 --tau=0.25"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.5 --tau=0.25"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.75 --tau=0.25"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.25"
-
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.5"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.25 --tau=0.5"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.5 --tau=0.5"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.75 --tau=0.5"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.5"
-
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.75"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.25 --tau=0.75"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.5 --tau=0.75"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.75 --tau=0.75"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.75"
-
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.9"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.25 --tau=0.9"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.5 --tau=0.9"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.75 --tau=0.9"
-    "expt21_trans_nce.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.9"
+    "expt22_debug_expt21.py --lr=1e-3 --recdim=64 --lambda1=0.125"
+    "expt22_debug_expt21.py --lr=1e-3 --recdim=64 --lambda1=0.25"
+    "expt22_debug_expt21.py --lr=1e-3 --recdim=64 --lambda1=0.5"
+    "expt22_debug_expt21.py --lr=1e-3 --recdim=64 --lambda1=0.75"
+    "expt22_debug_expt21.py --lr=1e-3 --recdim=64 --lambda1=0.875"
+    "expt22_debug_expt21.py --lr=1e-3 --recdim=128 --lambda1=0.125"
+    "expt22_debug_expt21.py --lr=1e-3 --recdim=128 --lambda1=0.25"
+    "expt22_debug_expt21.py --lr=1e-3 --recdim=128 --lambda1=0.5"
+    "expt22_debug_expt21.py --lr=1e-3 --recdim=128 --lambda1=0.75"
+    "expt22_debug_expt21.py --lr=1e-3 --recdim=128 --lambda1=0.875"
 
 )
 

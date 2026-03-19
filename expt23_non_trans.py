@@ -16,28 +16,19 @@ from torch.utils.data import Dataset
 from modules.utils import parse_args, set_seed, set_device
 from modules.procedure import computeTopNAccuracy
 
+
 """EXPERIMENT FOR THE SIMPLEST p(u,v|t,H_t) WITH HAWKES PROCESS"""
-
-class TimeEmbedding(nn.Module):
-    def __init__(self, d_model: int, max_bucket: int = 128):
-        super().__init__()
-        self.max_bucket = max_bucket
-        self.emb = nn.Embedding(max_bucket + 1, d_model)
-
-    def bucketize(self, delta_t: torch.Tensor):
-        # delta_t >= 0
-        # log bucketization
-        bucket = torch.floor(torch.log1p(delta_t)).long()
-        bucket = torch.clamp(bucket, min=0, max=self.max_bucket)
-        return bucket
-
-    def forward(self, delta_t: torch.Tensor):
-        bucket = self.bucketize(delta_t)
-        return self.emb(bucket)
-
-
-class JointRecTransformer(nn.Module):
-	def __init__(self, num_users: int, num_items: int, embedding_k: int, mini_batch: int, device, depth: int = 0, tau: float = 0.5, max_seq_len: int = 50, n_heads: int = 4, n_layers: int = 2, dropout: float = 0.1,):
+class JointRecStatic(nn.Module):
+	def __init__(
+		self,
+		num_users: int,
+		num_items: int,
+		embedding_k: int,
+		mini_batch: int,
+		device,
+		depth: int = 0,
+		tau: float = 0.5,
+	):
 		super().__init__()
 		self.num_users = num_users
 		self.num_items = num_items
@@ -46,46 +37,29 @@ class JointRecTransformer(nn.Module):
 		self.mini_batch = mini_batch
 		self.soft = nn.Softplus()
 		self.tau = tau
-		self.max_seq_len = max_seq_len
 		self.device = device
-		self.padding_item_id = self.num_items
-		self.item_embedding = nn.Embedding(self.num_items + 1, self.embedding_k, padding_idx=self.padding_item_id)
+
+		# prior side
+		self.item_embedding = nn.Embedding(self.num_items, self.embedding_k)
 
 		base_fn = [nn.Linear(embedding_k, embedding_k // 2), nn.Softplus()]
 		for _ in range(depth):
 			base_fn += [nn.Linear(embedding_k // 2, embedding_k // 2), nn.Softplus()]
 		base_fn += [nn.Linear(embedding_k // 2, 1, bias=False)]
 		self.base_fn = nn.Sequential(*base_fn)
-		
+
 		amplitude_fn = [nn.Linear(embedding_k, embedding_k // 2), nn.Softplus()]
 		for _ in range(depth):
-			amplitude_fn += [nn.Linear(embedding_k//2, embedding_k//2), nn.Softplus()]
+			amplitude_fn += [nn.Linear(embedding_k // 2, embedding_k // 2), nn.Softplus()]
 		amplitude_fn += [nn.Linear(embedding_k // 2, 1, bias=False)]
 		self.amplitude_fn = nn.Sequential(*amplitude_fn)
+
 		self.intensity_decay = nn.Parameter(torch.randn(1))
 
-        # -------- residual / Transformer side --------
-		self.user_embedding = nn.Embedding(self.num_users, self.embedding_k)
-		self.pos_embedding = nn.Embedding(self.max_seq_len, self.embedding_k)
-		self.time_embedding = TimeEmbedding(self.embedding_k, max_bucket=128)
+		# residual side
+		self.user_resid_embedding = nn.Embedding(self.num_users, self.embedding_k)
+		self.item_resid_embedding = nn.Embedding(self.num_items, self.embedding_k)
 
-		enc_layer = nn.TransformerEncoderLayer(
-			d_model=self.embedding_k,
-			nhead=n_heads,
-			dim_feedforward=self.embedding_k * 4,
-			dropout=dropout,
-			batch_first=True,
-			activation="gelu",
-        )
-		self.transformer = nn.TransformerEncoder(enc_layer, num_layers=n_layers)
-
-		self.user_proj = nn.Linear(self.embedding_k, self.embedding_k, bias=False)
-		self.item_proj = nn.Linear(self.embedding_k, self.embedding_k, bias=False)
-
-		self.layernorm = nn.LayerNorm(self.embedding_k)
-		self.dropout = nn.Dropout(dropout)
-
-    # ---------- prior ----------
 	def popularity(self, batch_items, pos_time, batch_time_all):
 		item_embed = F.normalize(self.item_embedding(batch_items), dim=-1)
 		base = self.soft(self.base_fn(item_embed)).reshape(self.mini_batch, -1)
@@ -98,58 +72,16 @@ class JointRecTransformer(nn.Module):
 
 		return base + (time_intensity.sum(-1) * amplitude), time_intensity, base, amplitude
 
-	def encode_user_history(self, user_idx, hist_items, hist_times, query_time):
-		"""
-		user_idx:    [B]
-		hist_items:  [B, L]   padded item ids
-		hist_times:  [B, L]   padded timestamps
-		query_time:  [B]
-		"""
-		B, L = hist_items.shape
-		device = hist_items.device
+	def residual_score(self, user_idx, item_idx):
+		u = F.normalize(self.user_resid_embedding(user_idx), dim=-1)
+		v = F.normalize(self.item_resid_embedding(item_idx), dim=-1)
+		score = torch.sum(u * v, dim=-1, keepdim=True)
+		return score, u, v
 
-		# padding mask for history tokens
-		hist_pad_mask = (hist_times <= 0)  # [B, L]
-
-		# history token embeddings
-		item_emb = self.item_embedding(hist_items)  # [B, L, D]
-
-		pos_ids = torch.arange(L, device=device).unsqueeze(0).expand(B, L)
-		pos_emb = self.pos_embedding(torch.clamp(pos_ids, max=self.max_seq_len - 1))
-
-		delta_t = (query_time.unsqueeze(1) - hist_times).clamp(min=0.0)
-		time_emb = self.time_embedding(delta_t)
-
-		hist_x = item_emb + pos_emb + time_emb  # [B, L, D]
-
-		# prepend a user token so that every sequence has at least one valid token
-		user_tok = self.user_embedding(user_idx).unsqueeze(1)  # [B, 1, D]
-
-		x = torch.cat([user_tok, hist_x], dim=1)  # [B, 1+L, D]
-		x = self.layernorm(x)
-		x = self.dropout(x)
-
-		# prepend False for user token: it is never masked
-		user_mask = torch.zeros((B, 1), dtype=torch.bool, device=device)
-		pad_mask = torch.cat([user_mask, hist_pad_mask], dim=1)  # [B, 1+L]
-
-		h = self.transformer(x, src_key_padding_mask=pad_mask)  # [B, 1+L, D]
-
-		# use the user token output as the final user state
-		h_user = h[:, 0, :]  # [B, D]
-		q_u = self.user_proj(h_user)  # [B, D]
-
-		return q_u
-
-	def residual_score(self, user_idx, item_idx, hist_items, hist_times, query_time):
-		q_u = self.encode_user_history(user_idx, hist_items, hist_times, query_time)
-		k_v = self.item_proj(self.item_embedding(item_idx))
-		return torch.sum(q_u * k_v, dim=-1, keepdim=True), q_u, k_v
-
-	def score_all_items(self, user_idx, hist_items, hist_times, query_time):
-		q_u = self.encode_user_history(user_idx, hist_items, hist_times, query_time)   # [B, D]
-		k_all = self.item_proj(self.item_embedding.weight)                              # [I, D]
-		return torch.matmul(q_u, k_all.T)
+	def score_all_items(self, user_idx):
+		u = F.normalize(self.user_resid_embedding(user_idx), dim=-1)      # [B, D]
+		v_all = F.normalize(self.item_resid_embedding.weight, dim=-1)     # [I, D]
+		return torch.matmul(u, v_all.T)                        # [B, I]
 
 
 class UserItemTime(Dataset):
@@ -608,16 +540,9 @@ if wandb_login:
 
 #%%
 dataset = UserItemTime(args)
-dataset.build_user_histories(max_seq_len=args.max_seq_len)
 dataset.prepare_user_timebucket_sampler(bucket_size=args.user_bucket_size)
 dataset.get_pair_user_event_timebucket_fast(k=1)
 dataset.get_pair_item_event_uniform(args.contrast_size-1)
-
-valid_hist_items_t = torch.from_numpy(dataset.valid_hist_item_list).long().to(args.device)
-valid_hist_times_t = torch.from_numpy(dataset.valid_hist_time_list).float().to(args.device)
-
-test_hist_items_t = torch.from_numpy(dataset.test_hist_item_list).long().to(args.device)
-test_hist_times_t = torch.from_numpy(dataset.test_hist_time_list).float().to(args.device)
 
 mini_batch = args.batch_size // args.contrast_size
 batch_num = dataset.trainDataSize // mini_batch
@@ -626,7 +551,7 @@ all_item_idxs = np.arange(dataset.m_item)
 all_user_idxs = np.arange(dataset.n_user)
 
 #%%
-model = JointRecTransformer(
+model = JointRecStatic(
     dataset.n_user,
     dataset.m_item,
     args.recdim,
@@ -634,10 +559,6 @@ model = JointRecTransformer(
     args.device,
     args.depth,
     args.tau,
-    max_seq_len=args.max_seq_len,
-    n_heads=args.n_heads,
-    n_layers=args.n_layers,
-    dropout=args.dropout,
 ).to(args.device)
 
 optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
@@ -676,28 +597,12 @@ for epoch in range(1, args.epochs+1):
 		batch_intensity = (time_intensity[:,0,:].sum(-1) / (time_intensity[:,0,:] != 0).sum(-1).clamp(1)).mean()
 
 		"""USER"""
-		pos_user = torch.tensor(dataset.pos_user_list[sample_idx], dtype=torch.long).to(args.device)   # [B]
-		neg_user = torch.tensor(np.array(dataset.neg_user_list, dtype=np.int64)[sample_idx, 0], dtype=torch.long).to(args.device)  # [B]
-		anchor_item = torch.tensor(dataset.item_list[sample_idx], dtype=torch.long).to(args.device)    # [B]
-		query_time = torch.tensor(dataset.event_time_list[sample_idx], dtype=torch.float32).to(args.device)  # [B]
+		pos_user = torch.tensor(dataset.pos_user_list[sample_idx], dtype=torch.long).to(args.device)
+		neg_user = torch.tensor(dataset.neg_user_list[sample_idx, 0], dtype=torch.long).to(args.device)
+		anchor_item = torch.tensor(dataset.item_list[sample_idx], dtype=torch.long).to(args.device)
 
-		hist_items = torch.tensor(np.array(dataset.hist_item_list)[sample_idx], dtype=torch.long).to(args.device)       # [B, L]
-		hist_times = torch.tensor(np.array(dataset.hist_time_list)[sample_idx], dtype=torch.float32).to(args.device)    # [B, L]
-
-		pos_score, _, _ = model.residual_score(
-			pos_user, anchor_item, hist_items, hist_times, query_time
-		)
-
-		neg_hist_items_np, neg_hist_times_np = dataset.get_histories_for_users_at_times(
-    		neg_user.cpu().numpy(), query_time.cpu().numpy(), args.max_seq_len
-		)
-		neg_hist_items = torch.from_numpy(neg_hist_items_np).long().to(args.device)
-		neg_hist_times = torch.from_numpy(neg_hist_times_np).float().to(args.device)
-
-		neg_score, _, _ = model.residual_score(
-    		neg_user, anchor_item, neg_hist_items, neg_hist_times, query_time
-		)
-
+		pos_score, _, _ = model.residual_score(pos_user, anchor_item)
+		neg_score, _, _ = model.residual_score(neg_user, anchor_item)
 		user_loss = -(F.logsigmoid(pos_score).mean() + F.logsigmoid(-neg_score).mean())
 
 		total_loss = user_loss * args.lambda1 + item_loss * (1-args.lambda1)
@@ -726,7 +631,6 @@ for epoch in range(1, args.epochs+1):
 
 		# precompute item tower
 		with torch.no_grad():
-			all_item_keys = model.item_proj(model.item_embedding.weight)
 			all_item_emb = F.normalize(model.item_embedding.weight, dim=-1)
 
 		item_base_all, item_amplitude_all = [], []
@@ -763,14 +667,10 @@ for epoch in range(1, args.epochs+1):
 			item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
 
 			# ----- residual scores over items -----
-			hist_items = valid_hist_items_t[i:i+1]
-			hist_times = valid_hist_times_t[i:i+1]
 			user_idx = torch.tensor([user], dtype=torch.long).to(args.device)
-			query_time = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
 
 			with torch.no_grad():
-				q_u = model.encode_user_history(user_idx, hist_items, hist_times, query_time)   # [1, D]
-				residual_scores = torch.matmul(q_u, all_item_keys[:-1,:].T).squeeze(0)     # [I]
+				residual_scores = model.score_all_items(user_idx).squeeze(0)   # [I]
 
 			# final score = prior + residual
 			pred = (item_log_prob.cpu() + residual_scores.cpu()).cpu()
@@ -819,7 +719,7 @@ pred_list = []
 gt_list = []
 item_nll_list = []
 
-best_model = JointRecTransformer(
+best_model = JointRecStatic(
     dataset.n_user,
     dataset.m_item,
     args.recdim,
@@ -827,11 +727,8 @@ best_model = JointRecTransformer(
     args.device,
     args.depth,
     args.tau,
-    max_seq_len=args.max_seq_len,
-    n_heads=args.n_heads,
-    n_layers=args.n_layers,
-    dropout=args.dropout,
 ).to(args.device)
+
 best_model.load_state_dict(best_state)
 
 best_model.eval()
@@ -840,7 +737,6 @@ intensity_decay = best_model.soft(best_model.intensity_decay)
 
 # precompute item tower
 with torch.no_grad():
-	all_item_keys = best_model.item_proj(best_model.item_embedding.weight)
 	all_item_emb = F.normalize(best_model.item_embedding.weight, dim=-1)
 
 item_base_all, item_amplitude_all = [], []
@@ -877,14 +773,9 @@ for i, ((user, item), pos_time_val) in enumerate(dataset.test_user_item_time.ite
 	item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
 
 	# ----- residual scores over items -----
-	hist_items = test_hist_items_t[i:i+1]
-	hist_times = test_hist_times_t[i:i+1]
 	user_idx = torch.tensor([user], dtype=torch.long).to(args.device)
-	query_time = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
-
 	with torch.no_grad():
-		q_u = best_model.encode_user_history(user_idx, hist_items, hist_times, query_time)
-		residual_scores = torch.matmul(q_u, all_item_keys[:-1,:].T).squeeze(0)
+		residual_scores = best_model.score_all_items(user_idx).squeeze(0)
 
 	# final score = prior + residual
 	pred = (item_log_prob.cpu() + residual_scores.cpu()).cpu()

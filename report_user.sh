@@ -65,6 +65,18 @@ experiments=(
     "expt22_debug_expt21.py --lr=1e-3 --recdim=128 --lambda1=0.75"
     "expt22_debug_expt21.py --lr=1e-3 --recdim=128 --lambda1=0.875"
 
+    "expt23_non_trans.py --lr=1e-3 --recdim=64 --lambda1=0.125"
+    "expt23_non_trans.py --lr=1e-3 --recdim=64 --lambda1=0.25"
+    "expt23_non_trans.py --lr=1e-3 --recdim=64 --lambda1=0.5"
+    "expt23_non_trans.py --lr=1e-3 --recdim=64 --lambda1=0.75"
+    "expt23_non_trans.py --lr=1e-3 --recdim=64 --lambda1=0.875"
+    "expt23_non_trans.py --lr=1e-3 --recdim=128 --lambda1=0.125"
+    "expt23_non_trans.py --lr=1e-3 --recdim=128 --lambda1=0.25"
+    "expt23_non_trans.py --lr=1e-3 --recdim=128 --lambda1=0.5"
+    "expt23_non_trans.py --lr=1e-3 --recdim=128 --lambda1=0.75"
+    "expt23_non_trans.py --lr=1e-3 --recdim=128 --lambda1=0.875"
+
+
 )
 
 

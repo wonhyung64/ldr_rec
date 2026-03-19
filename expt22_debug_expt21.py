@@ -373,7 +373,7 @@ class UserItemTime(Dataset):
 				h_times = [tt for (tt, vv) in hist]
 
 				pad_len = max_seq_len - len(h_items)
-				h_items = [0] * pad_len + h_items
+				h_items = [self.m_item] * pad_len + h_items
 				h_times = [0.0] * pad_len + h_times
 
 				hist_item_list.append(h_items)
@@ -679,7 +679,7 @@ for epoch in range(1, args.epochs+1):
 		pos_user = torch.tensor(dataset.pos_user_list[sample_idx], dtype=torch.long).to(args.device)   # [B]
 		neg_user = torch.tensor(np.array(dataset.neg_user_list, dtype=np.int64)[sample_idx, 0], dtype=torch.long).to(args.device)  # [B]
 		anchor_item = torch.tensor(dataset.item_list[sample_idx], dtype=torch.long).to(args.device)    # [B]
-		query_time = torch.tensor(dataset.pos_time_list[sample_idx], dtype=torch.float32).to(args.device)  # [B]
+		query_time = torch.tensor(dataset.event_time_list[sample_idx], dtype=torch.float32).to(args.device)  # [B]
 
 		hist_items = torch.tensor(np.array(dataset.hist_item_list)[sample_idx], dtype=torch.long).to(args.device)       # [B, L]
 		hist_times = torch.tensor(np.array(dataset.hist_time_list)[sample_idx], dtype=torch.float32).to(args.device)    # [B, L]

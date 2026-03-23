@@ -85,17 +85,16 @@ experiments=(
     # "expt24_simple_time.py --lr=1e-3 --recdim=128 --lambda1=0.125 --seed=3"
     # "expt24_simple_time.py --lr=1e-3 --recdim=128 --lambda1=0.125 --seed=4"
 
-
-    "expt25_user_time_interact.py --lr=1e-3 --recdim=64 --lambda1=0.125"
-    "expt25_user_time_interact.py --lr=1e-3 --recdim=64 --lambda1=0.25"
-    "expt25_user_time_interact.py --lr=1e-3 --recdim=64 --lambda1=0.5"
-    "expt25_user_time_interact.py --lr=1e-3 --recdim=64 --lambda1=0.75"
-    "expt25_user_time_interact.py --lr=1e-3 --recdim=64 --lambda1=0.875"
-    "expt25_user_time_interact.py --lr=1e-3 --recdim=128 --lambda1=0.125"
-    "expt25_user_time_interact.py --lr=1e-3 --recdim=128 --lambda1=0.25"
-    "expt25_user_time_interact.py --lr=1e-3 --recdim=128 --lambda1=0.5"
-    "expt25_user_time_interact.py --lr=1e-3 --recdim=128 --lambda1=0.75"
-    "expt25_user_time_interact.py --lr=1e-3 --recdim=128 --lambda1=0.875"
+    "expt26_debug_expt25.py --lr=1e-3 --recdim=64 --lambda1=0.125"
+    "expt26_debug_expt25.py --lr=1e-3 --recdim=64 --lambda1=0.25"
+    "expt26_debug_expt25.py --lr=1e-3 --recdim=64 --lambda1=0.5"
+    "expt26_debug_expt25.py --lr=1e-3 --recdim=64 --lambda1=0.75"
+    "expt26_debug_expt25.py --lr=1e-3 --recdim=64 --lambda1=0.875"
+    "expt26_debug_expt25.py --lr=1e-3 --recdim=128 --lambda1=0.125"
+    "expt26_debug_expt25.py --lr=1e-3 --recdim=128 --lambda1=0.25"
+    "expt26_debug_expt25.py --lr=1e-3 --recdim=128 --lambda1=0.5"
+    "expt26_debug_expt25.py --lr=1e-3 --recdim=128 --lambda1=0.75"
+    "expt26_debug_expt25.py --lr=1e-3 --recdim=128 --lambda1=0.875"
 
 )
 

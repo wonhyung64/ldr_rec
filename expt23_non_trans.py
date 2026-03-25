@@ -75,13 +75,13 @@ class JointRecStatic(nn.Module):
 	def residual_score(self, user_idx, item_idx):
 		u = F.normalize(self.user_resid_embedding(user_idx), dim=-1)
 		v = F.normalize(self.item_resid_embedding(item_idx), dim=-1)
-		score = torch.sum(u * v, dim=-1, keepdim=True)
+		score = torch.sum(u * v, dim=-1, keepdim=True) / self.tau
 		return score, u, v
 
 	def score_all_items(self, user_idx):
 		u = F.normalize(self.user_resid_embedding(user_idx), dim=-1)      # [B, D]
 		v_all = F.normalize(self.item_resid_embedding.weight, dim=-1)     # [I, D]
-		return torch.matmul(u, v_all.T)                        # [B, I]
+		return torch.matmul(u, v_all.T) / self.tau                        # [B, I]
 
 
 class UserItemTime(Dataset):

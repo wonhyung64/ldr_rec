@@ -654,6 +654,8 @@ for epoch in range(1, args.epochs+1):
 		batch_intensity = (time_intensity[:,0,:].sum(-1) / (time_intensity[:,0,:] != 0).sum(-1).clamp(1)).mean()
 
 		"""USER"""
+		anchor_item = torch.tensor(dataset.item_list[sample_idx], dtype=torch.long).to(args.device)
+
 		pos_hist_items = torch.tensor(
 			dataset.hist_item_list[sample_idx],
 			dtype=torch.long

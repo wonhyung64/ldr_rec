@@ -160,23 +160,23 @@ experiments=(
 
     # "expt34_time_gap_gamma.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --epochs=600"
 
-    "expt34_time_gap_gamma.py --lr=1e-2 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=599 --epochs=600 --gamma=0.05"
-    "expt34_time_gap_gamma.py --lr=5e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=599 --epochs=600 --gamma=0.05"
+    # "expt34_time_gap_gamma.py --lr=1e-2 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=599 --epochs=600 --gamma=0.05"
+    # "expt34_time_gap_gamma.py --lr=5e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=599 --epochs=600 --gamma=0.05"
 
-    "expt34_time_gap_gamma.py --lr=1e-2 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=599 --epochs=600 --gamma=0.1"
-    "expt34_time_gap_gamma.py --lr=5e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=599 --epochs=600 --gamma=0.1"
+    # "expt34_time_gap_gamma.py --lr=1e-2 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=599 --epochs=600 --gamma=0.1"
+    # "expt34_time_gap_gamma.py --lr=5e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=599 --epochs=600 --gamma=0.1"
 
-    "expt34_time_gap_gamma.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=20 --epochs=600 --gamma=0.05"
-    "expt34_time_gap_gamma.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=20 --epochs=600 --gamma=0.1"
+    # "expt34_time_gap_gamma.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=20 --epochs=600 --gamma=0.05"
+    # "expt34_time_gap_gamma.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=20 --epochs=600 --gamma=0.1"
 
 
     # "expt23_non_trans.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate-interval=500 --epochs=1000"
     # "expt23_non_trans.py --lr=2e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate-interval=500 --epochs=1000"
     # "expt23_non_trans.py --lr=5e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate-interval=500 --epochs=1000"
 
-    # "expt32_obs_softmax_gru.py --lr=1e-3 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
-    # "expt32_obs_softmax_gru.py --lr=1e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
-    # "expt32_obs_softmax_gru.py --lr=5e-3 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    "expt32_obs_softmax_gru.py --lr=1e-3 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    "expt32_obs_softmax_gru.py --lr=1e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    "expt32_obs_softmax_gru.py --lr=5e-3 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
 
     # "expt33_obs_softmax_static.py --lr=1e-3 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
     # "expt33_obs_softmax_static.py --lr=1e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"

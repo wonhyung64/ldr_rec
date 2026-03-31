@@ -26,6 +26,7 @@ def parse_args():
     parser.add_argument('--evaluate-interval', type=int, default=20)
     parser.add_argument('--neg-sampling', type=str, default='uniform')
     parser.add_argument('--tau', type=float, default=0.5)
+    parser.add_argument('--gamma', type=float, default=0.05)
     parser.add_argument('--depth', type=int, default=0)
     parser.add_argument('--pair-reset-interval', type=int, default=2)
     parser.add_argument('--max-seq-len', type=int, default=50)

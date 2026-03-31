@@ -628,6 +628,14 @@ for epoch in range(1, args.epochs+1):
 	epoch_user_loss = 0.
 	epoch_time_intensity = 0.
 
+	# debug logs
+	epoch_hist_emb_norm = 0.
+	epoch_time_gap_emb_norm = 0.
+	epoch_pos_score_mean = 0.
+	epoch_neg_score_mean = 0.
+	epoch_pos_score_std = 0.
+	epoch_neg_score_std = 0.
+
 	for idx in range(batch_num):
 		sample_idx = all_idxs[mini_batch*idx : (idx+1)*mini_batch]
 
@@ -677,6 +685,30 @@ for epoch in range(1, args.epochs+1):
 			anchor_item, neg_hist_items, neg_hist_times, query_time
 		)
 
+		with torch.no_grad():
+			# positive batch 기준으로 embedding scale 확인
+			pos_hist_mask = (pos_hist_items != model.padding_item_id).float()   # [B, L]
+
+			pos_hist_emb = model.item_resid_embedding(pos_hist_items)           # [B, L, D]
+
+			pos_time_gap = (query_time.unsqueeze(-1) - pos_hist_times).clamp(min=0.0)  # [B, L]
+			pos_time_gap = torch.log1p(pos_time_gap) * pos_hist_mask
+			pos_time_gap_emb = model.time_gap_proj(pos_time_gap.unsqueeze(-1))  # [B, L, D]
+
+			denom = pos_hist_mask.sum().clamp(min=1.0)
+
+			batch_hist_emb_norm = (
+				(pos_hist_emb.norm(dim=-1) * pos_hist_mask).sum() / denom
+			)
+			batch_time_gap_emb_norm = (
+				(pos_time_gap_emb.norm(dim=-1) * pos_hist_mask).sum() / denom
+			)
+
+			batch_pos_score_mean = pos_score.mean()
+			batch_neg_score_mean = neg_score.mean()
+			batch_pos_score_std = pos_score.std(unbiased=False)
+			batch_neg_score_std = neg_score.std(unbiased=False)
+
 		user_loss = -(F.logsigmoid(pos_score).mean() + F.logsigmoid(-neg_score).mean())
 
 		total_loss = user_loss * args.lambda1 + item_loss * (1-args.lambda1)
@@ -687,6 +719,13 @@ for epoch in range(1, args.epochs+1):
 		epoch_item_loss += item_loss.item()
 		epoch_user_loss += user_loss.item()
 		epoch_time_intensity += batch_intensity.item()
+
+		epoch_hist_emb_norm += batch_hist_emb_norm.item()
+		epoch_time_gap_emb_norm += batch_time_gap_emb_norm.item()
+		epoch_pos_score_mean += batch_pos_score_mean.item()
+		epoch_neg_score_mean += batch_neg_score_mean.item()
+		epoch_pos_score_std += batch_pos_score_std.item()
+		epoch_neg_score_std += batch_neg_score_std.item()
 
 	print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss/batch_num:.4f} / item: {epoch_item_loss/batch_num:.4f}")
 
@@ -776,6 +815,14 @@ for epoch in range(1, args.epochs+1):
 				"train_ldr": epoch_user_loss/batch_num,
 				"train_time_intensity": epoch_time_intensity/batch_num,
 				"intendety_decay": model.soft(model.intensity_decay).item(),
+
+				# debug
+				"debug_hist_emb_norm": epoch_hist_emb_norm / batch_num,
+				"debug_time_gap_emb_norm": epoch_time_gap_emb_norm / batch_num,
+				"debug_pos_score_mean": epoch_pos_score_mean / batch_num,
+				"debug_neg_score_mean": epoch_neg_score_mean / batch_num,
+				"debug_pos_score_std": epoch_pos_score_std / batch_num,
+				"debug_neg_score_std": epoch_neg_score_std / batch_num,
 				})
 
 			wandb_var.log(dict(zip([f"valid_precision_{k}" for k in args.topks], valid_results[0])))

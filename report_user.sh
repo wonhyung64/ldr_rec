@@ -159,12 +159,13 @@ experiments=(
     # "expt26_debug_expt25.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.5"
 
     "expt31_debug_expt28.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --epochs=600"
-    # "expt28_gru.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate_interval=500 --epochs=1000"
-    # "expt28_gru.py --lr=1e-2 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate_interval=500 --epochs=1000"
-    # "expt28_gru.py --lr=5e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate_interval=500 --epochs=1000"
-    # "expt23_non_trans.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate_interval=500 --epochs=1000"
-    # "expt23_non_trans.py --lr=2e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate_interval=500 --epochs=1000"
-    # "expt23_non_trans.py --lr=5e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate_interval=500 --epochs=1000"
+
+    "expt28_gru.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    "expt28_gru.py --lr=1e-2 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    "expt28_gru.py --lr=5e-3 --recdim=128 --lambda1=0.125 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    "expt23_non_trans.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    "expt23_non_trans.py --lr=2e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    "expt23_non_trans.py --lr=5e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate-interval=500 --epochs=1000"
 
     # "expt30_debug_expt29.py --lr=1e-3 --recdim=64 --lambda1=0.125 --tau=0.1"
     # "expt30_debug_expt29.py --lr=1e-3 --recdim=64 --lambda1=0.25 --tau=0.1"
@@ -174,8 +175,8 @@ experiments=(
     # "expt30_debug_expt29.py --lr=1e-3 --recdim=128 --lambda1=0.125 --tau=0.1"
     # "expt30_debug_expt29.py --lr=1e-3 --recdim=128 --lambda1=0.25 --tau=0.1"
     # "expt30_debug_expt29.py --lr=1e-3 --recdim=128 --lambda1=0.5 --tau=0.1"
-    # "expt30_debug_expt29.py --lr=1e-3 --recdim=128 --lambda1=0.75 --tau=0.1"
-    # "expt30_debug_expt29.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.1"
+    "expt30_debug_expt29.py --lr=1e-3 --recdim=128 --lambda1=0.75 --tau=0.1"
+    "expt30_debug_expt29.py --lr=1e-3 --recdim=128 --lambda1=0.875 --tau=0.1"
 
     # "expt30_debug_expt29.py --lr=1e-3 --recdim=64 --lambda1=0.125 --tau=0.25"
     # "expt30_debug_expt29.py --lr=1e-3 --recdim=64 --lambda1=0.25 --tau=0.25"

@@ -174,9 +174,28 @@ experiments=(
     # "expt23_non_trans.py --lr=2e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate-interval=500 --epochs=1000"
     # "expt23_non_trans.py --lr=5e-3 --recdim=128 --lambda1=0.875 --tau=0.1 --evaluate-interval=500 --epochs=1000"
 
-    "expt32_obs_softmax_gru.py --lr=1e-3 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
-    "expt32_obs_softmax_gru.py --lr=1e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
-    "expt32_obs_softmax_gru.py --lr=5e-3 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    # "expt32_obs_softmax_gru.py --lr=1e-3 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    # "expt32_obs_softmax_gru.py --lr=1e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    # "expt32_obs_softmax_gru.py --lr=5e-3 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
+    "expt28_gru.py --lr=1e-1 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=0"
+    "expt28_gru.py --lr=5e-1 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=0"
+    "expt28_gru.py --lr=5e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=0"
+
+    "expt28_gru.py --lr=1e-1 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=1"
+    "expt28_gru.py --lr=5e-1 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=1"
+    "expt28_gru.py --lr=5e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=1"
+
+    "expt28_gru.py --lr=1e-1 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=2"
+    "expt28_gru.py --lr=5e-1 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=2"
+    "expt28_gru.py --lr=5e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=2"
+
+    "expt28_gru.py --lr=1e-1 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=3"
+    "expt28_gru.py --lr=5e-1 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=3"
+    "expt28_gru.py --lr=5e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=3"
+
+    "expt28_gru.py --lr=1e-1 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=4"
+    "expt28_gru.py --lr=5e-1 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=4"
+    "expt28_gru.py --lr=5e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000 --seed=4"
 
     # "expt33_obs_softmax_static.py --lr=1e-3 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"
     # "expt33_obs_softmax_static.py --lr=1e-2 --recdim=128 --tau=0.1 --evaluate-interval=500 --epochs=1000"

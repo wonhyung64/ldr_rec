@@ -1,9 +1,9 @@
 #%%
 import os
-import math
 import copy
 import wandb
 import torch
+import inspect
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
@@ -613,25 +613,25 @@ class UserItemTime(Dataset):
 
 #%%
 args = parse_args()
-expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
 set_seed(args.seed)
-args.device = set_device()
-args.expt_name = f"expt35_magin_put_gru_{expt_num}"
+args.device = set_device(args.device)
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True) 
 
-wandb_login = False
-try:
-    wandb_login = wandb.login(key = open(f"{args.cred_path}/wandb_key.txt", 'r').readline())
-except:
-    pass
+file_dir = inspect.getfile(inspect.currentframe())
+file_name = file_dir.split("/")[-1]
+if file_name.split(".")[-1] == "py":
+    try:
+        wandb_login = wandb.login(key=open(f"{args.cred_path}/wandb_key.txt", 'r').readline())
+    except:
+        pass
+
 if wandb_login:
-    configs = vars(args)
-    wandb_var = wandb.init(project="ldr_rec2", config=configs)
+    expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
+    args.expt_name = f"{file_name.split('.')[-2]}_{expt_num}"
+    wandb_var = wandb.init(project="ldr_rec2", config=vars(args))
     wandb.run.name = args.expt_name
 
-
-#%%
 #%%
 dataset = UserItemTime(args)
 

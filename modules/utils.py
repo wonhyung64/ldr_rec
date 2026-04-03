@@ -7,7 +7,7 @@ import numpy as np
 def parse_args():
     parser = argparse.ArgumentParser(description="")
     parser.add_argument('--batch_size', type=int,default=32384)
-    parser.add_argument('--recdim', type=int,default=4,)
+    parser.add_argument('--recdim', type=int,default=128,)
     parser.add_argument('--lr', type=float,default=0.001,)
     parser.add_argument('--decay', type=float,default=0.,)
     parser.add_argument('--lambda1', type=float,default=0.5,)
@@ -20,11 +20,12 @@ def parse_args():
     parser.add_argument('--dataset', type=str,default='micro_video',
                         help="available datasets: ['micro_video', 'kuai', 'amazon_book']")
     parser.add_argument('--topks', type=list, default=[10, 20, 50, 100])
-    parser.add_argument('--epochs', type=int,default=600)
+    parser.add_argument('--epochs', type=int,default=1000)
     parser.add_argument('--seed', type=int, default=0, help='random seed')
     parser.add_argument('--contrast-size', type=int, default=16)
-    parser.add_argument('--evaluate-interval', type=int, default=20)
+    parser.add_argument('--evaluate-interval', type=int, default=5000)
     parser.add_argument('--neg-sampling', type=str, default='uniform')
+    parser.add_argument('--device', type=str, default='none')
     parser.add_argument('--tau', type=float, default=0.5)
     parser.add_argument('--gamma', type=float, default=0.05)
     parser.add_argument('--depth', type=int, default=0)
@@ -34,6 +35,8 @@ def parse_args():
     parser.add_argument('--dropout', type=float, default=0.1)
     parser.add_argument('--n-heads', type=int, default=4)
     parser.add_argument('--n-layers', type=int, default=2)
+    parser.add_argument('--model-name', type=str, default="mf")
+
 
 
     try:

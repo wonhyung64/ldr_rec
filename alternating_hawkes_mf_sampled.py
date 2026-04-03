@@ -48,7 +48,10 @@ class FenwickTree:
         return s
 
     def sample(self, mass: float) -> int:
-        if mass < 0.0 or mass >= self.total() + 1e-9:
+        total = self.total()
+        if total <= 0.0:
+            raise ValueError("cannot sample from an empty Fenwick tree")
+        if mass < 0.0 or mass >= total + 1e-9:
             raise ValueError("mass must be in [0, total)")
         idx = 0
         bit_mask = 1 << (self.size.bit_length() - 1)
@@ -149,6 +152,29 @@ class HawkesMFDebias(nn.Module):
         beta = self.current_beta()
         return mu, alpha, beta
 
+    def prior_logits_for_candidates(
+        self,
+        candidate_items: torch.Tensor,
+        query_times: torch.Tensor,
+        candidate_histories: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        candidate_items: [B, C]
+        query_times: [B]
+        candidate_histories: [B, C, L], train-item times padded with a large pad value
+        return: positive intensity logits [B, C]
+        """
+        item_vec = self.item_embedding(candidate_items)  # [B, C, D]
+        mu = self.softplus(self.base_net(item_vec)).squeeze(-1) + 1e-8
+        alpha = self.softplus(self.excitation_net(item_vec)).squeeze(-1) + 1e-8
+        beta = self.current_beta()
+
+        query = query_times.view(-1, 1, 1)
+        mask = candidate_histories < query
+        delta = (query - candidate_histories).clamp(min=0.0)
+        h = (torch.exp(-beta * delta) * mask).sum(dim=-1)
+        return mu + alpha * h
+
     def residual_scores(self, users: torch.Tensor, items: torch.Tensor) -> torch.Tensor:
         user_vec = self.user_embedding(users)
         item_vec = self.item_embedding(items)
@@ -246,43 +272,15 @@ def make_prior_snapshot(model: HawkesMFDebias, device: torch.device) -> PriorSna
     )
 
 
-def exact_prior_loss(model: HawkesMFDebias, train_events: Sequence[Tuple[int, int, float]], device: torch.device) -> torch.Tensor:
-    mu, alpha, beta = model.prior_parameters_from_embeddings()
-    base_mass = mu.sum()
-    if len(train_events) == 0:
-        return base_mass * 0.0
-
-    x_state: Dict[int, torch.Tensor] = {}
-    last_t: Dict[int, float] = {}
-    total_excitation = torch.zeros((), device=device)
-    prev_time = float(train_events[0][2])
-    loss = torch.zeros((), device=device)
-
-    for idx, (_, item, t) in enumerate(train_events):
-        t = float(t)
-        if idx == 0:
-            delta_global = 0.0
-        else:
-            delta_global = t - prev_time
-        if delta_global > 0.0:
-            total_excitation = total_excitation * torch.exp(-beta * delta_global)
-
-        if item in x_state:
-            delta_item = t - last_t[item]
-            h = x_state[item] * torch.exp(-beta * delta_item)
-        else:
-            h = torch.zeros((), device=device)
-
-        lambda_pos = mu[item] + alpha[item] * h
-        lambda_total = base_mass + total_excitation
-        loss = loss - torch.log(lambda_pos + EPS) + torch.log(lambda_total + EPS)
-
-        x_state[item] = h + 1.0
-        last_t[item] = t
-        total_excitation = total_excitation + alpha[item]
-        prev_time = t
-
-    return loss / max(len(train_events), 1)
+def sample_uniform_negatives_excluding(
+    positive_items: np.ndarray,
+    num_items: int,
+    num_negatives: int,
+) -> np.ndarray:
+    positive_items = np.asarray(positive_items, dtype=np.int64)
+    negatives = np.random.randint(0, num_items - 1, size=(len(positive_items), num_negatives), dtype=np.int64)
+    negatives += negatives >= positive_items[:, None]
+    return negatives
 
 
 def sample_epoch_negatives(
@@ -292,12 +290,11 @@ def sample_epoch_negatives(
     num_negatives: int,
 ) -> np.ndarray:
     """
-    Pre-sample negatives once per epoch from the frozen prior snapshot.
-    The sampler uses the exact base/excitation mixture decomposition.
+    Pre-sample residual negatives once per epoch from the frozen prior snapshot.
+    Uses the exact base/excitation mixture decomposition.
     """
     negatives = np.empty((len(train_events), num_negatives), dtype=np.int64)
     tree = FenwickTree(num_items)
-    c_weights = np.zeros(num_items, dtype=np.float64)
     total_c = 0.0
     g = 1.0
     prev_time = float(train_events[0][2]) if train_events else 0.0
@@ -311,7 +308,6 @@ def sample_epoch_negatives(
                 candidate = tree.sample(mass)
             if candidate != pos_item:
                 return int(candidate)
-        # Fallback: uniform rejection if the prior mass is too concentrated.
         candidate = np.random.randint(0, num_items - 1)
         candidate += candidate >= pos_item
         return int(candidate)
@@ -328,12 +324,63 @@ def sample_epoch_negatives(
             negatives[idx, j] = sample_one_excluding(item, rho)
 
         delta_c = snapshot.alpha[item] / max(g, EPS)
-        c_weights[item] += delta_c
         total_c += delta_c
         tree.add(item, delta_c)
         prev_time = t
 
     return negatives
+
+
+def prior_epoch_sampled_softmax(
+    model: HawkesMFDebias,
+    train_events: Sequence[Tuple[int, int, float]],
+    item_time_padded: np.ndarray,
+    optimizer_prior: torch.optim.Optimizer,
+    optimizer_shared: torch.optim.Optimizer,
+    batch_size: int,
+    num_items: int,
+    num_negatives: int,
+    device: torch.device,
+) -> float:
+    """
+    Prior phase with the sampled-softmax surrogate and uniform negatives.
+    """
+    model.train()
+    num_events = len(train_events)
+    indices = np.random.permutation(num_events)
+    total_loss = 0.0
+    num_batches = 0
+
+    for start in range(0, num_events, batch_size):
+        batch_idx = indices[start : start + batch_size]
+        pos_items = np.asarray([train_events[i][1] for i in batch_idx], dtype=np.int64)
+        query_times = np.asarray([train_events[i][2] for i in batch_idx], dtype=np.float32)
+        neg_items = sample_uniform_negatives_excluding(pos_items, num_items, num_negatives)
+        candidates = np.concatenate([pos_items[:, None], neg_items], axis=1)
+        histories = item_time_padded[candidates]
+
+        pos_items_t = torch.tensor(pos_items, dtype=torch.long, device=device)
+        candidates_t = torch.tensor(candidates, dtype=torch.long, device=device)
+        query_times_t = torch.tensor(query_times, dtype=torch.float32, device=device)
+        histories_t = torch.tensor(histories, dtype=torch.float32, device=device)
+
+        optimizer_prior.zero_grad()
+        optimizer_shared.zero_grad()
+
+        logits = model.prior_logits_for_candidates(candidates_t, query_times_t, histories_t)
+        log_logits = torch.log(logits + EPS)
+        loss = -F.log_softmax(log_logits, dim=1)[:, 0].mean()
+
+        # small regularizer to keep the positive-item index touched explicitly in the graph
+        loss = loss + 0.0 * pos_items_t.float().mean()
+        loss.backward()
+        optimizer_prior.step()
+        optimizer_shared.step()
+
+        total_loss += float(loss.item())
+        num_batches += 1
+
+    return total_loss / max(num_batches, 1)
 
 
 def residual_epoch(
@@ -505,10 +552,7 @@ def train(args: argparse.Namespace) -> None:
     set_seed(args.seed)
     device = torch.device(args.device if torch.cuda.is_available() or args.device == "cpu" else "cpu")
 
-    print("data")
     data = InteractionData(args.data_path, args.dataset)
-
-    print("model")
     model = HawkesMFDebias(
         num_users=data.num_users,
         num_items=data.num_items,
@@ -536,11 +580,10 @@ def train(args: argparse.Namespace) -> None:
     best_state = copy.deepcopy(model.state_dict())
     best_valid = -float("inf")
     patience = 0
-
     print("train")
     for epoch in range(1, args.epochs + 1):
-        # Step 0-2: freeze snapshot -> compute frozen prior -> build epoch negatives.
-        print("snapshot")
+        # Step 0-2: freeze snapshot -> compute frozen prior -> build residual negatives.
+        print("snap")
         snapshot = make_prior_snapshot(model, device)
         print("sampling")
         epoch_negatives = sample_epoch_negatives(
@@ -550,17 +593,22 @@ def train(args: argparse.Namespace) -> None:
             num_negatives=args.num_negatives,
         )
 
-        print("hawks update")
-        # Step 3: prior update with exact full likelihood scan.
-        optimizer_prior.zero_grad()
-        optimizer_shared.zero_grad()
-        prior_loss = exact_prior_loss(model, data.train_events, device)
-        prior_loss.backward()
-        optimizer_prior.step()
-        optimizer_shared.step()
+        print("prior")
+        # Step 3: prior update with sampled-softmax surrogate and uniform negatives.
+        prior_loss = prior_epoch_sampled_softmax(
+            model=model,
+            train_events=data.train_events,
+            item_time_padded=data.train_item_time_padded,
+            optimizer_prior=optimizer_prior,
+            optimizer_shared=optimizer_shared,
+            batch_size=args.prior_batch_size,
+            num_items=data.num_items,
+            num_negatives=args.prior_num_negatives,
+            device=device,
+        )
 
-        print("residual")
-        # Step 4: residual update using the pre-built negatives.
+        print("resid")
+        # Step 4: residual update using the pre-built frozen prior negatives.
         residual_loss = residual_epoch(
             model=model,
             train_events=data.train_events,
@@ -572,13 +620,13 @@ def train(args: argparse.Namespace) -> None:
         )
 
         print(
-            f"[Epoch {epoch:03d}] prior_loss={prior_loss.item():.6f} "
+            f"[Epoch {epoch:03d}] prior_loss={prior_loss:.6f} "
             f"residual_loss={residual_loss:.6f} beta={model.current_beta().item():.6f}"
         )
 
         if epoch % args.eval_every != 0:
             continue
-
+        print("eval")
         valid_metrics = evaluate_split(
             model=model,
             events=data.valid_events,
@@ -629,11 +677,11 @@ def train(args: argparse.Namespace) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Alternating Hawkes-prior + MF-residual recommender"
+        description="Alternating Hawkes-prior + MF-residual recommender (sampled-softmax prior)"
     )
     parser.add_argument("--data_path", type=str, default="./data")
-    parser.add_argument("--dataset", type=str, default="micro_video")
-    parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument("--dataset", type=str, default="./micro_video")
+    parser.add_argument("--device", type=str, default="cuda:1")
     parser.add_argument("--seed", type=int, default=42)
 
     parser.add_argument("--embedding_dim", type=int, default=64)
@@ -642,7 +690,9 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch_size", type=int, default=512)
+    parser.add_argument("--prior_batch_size", type=int, default=512)
     parser.add_argument("--num_negatives", type=int, default=5)
+    parser.add_argument("--prior_num_negatives", type=int, default=20)
     parser.add_argument("--prior_lr", type=float, default=1e-3)
     parser.add_argument("--residual_lr", type=float, default=1e-3)
     parser.add_argument("--shared_lr", type=float, default=1e-3)
@@ -654,7 +704,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--topks", type=int, nargs="+", default=[10, 20])
     parser.add_argument("--eval_item_chunk_size", type=int, default=4096)
     parser.add_argument("--save_path", type=str, default="")
-    return parser.parse_args([])
+    return parser.parse_args()
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ def parse_args():
                         help="the batch size of users for testing")
     parser.add_argument('--data_path', type=str, default='./data',
                         help='the path to dataset')
-    parser.add_argument('--cred_path', type=str, default='./assets',
+    parser.add_argument('--cred_path', type=str, default='../assets',
                         help='the path to credential')
     parser.add_argument('--weights_path', type=str, default='./weights',
                         help='the path to credential')
@@ -75,7 +75,7 @@ def minibatch(tensors, batch_size):
 def set_device(device="none"):
     if device == "none":
         if torch.cuda.is_available():
-            device = "cuda"
+            device = "cuda:1"
         elif torch.backends.mps.is_available():
             device = "mps"
         else: 

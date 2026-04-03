@@ -1,3 +1,4 @@
+
 import argparse
 import copy
 import math
@@ -48,7 +49,10 @@ class FenwickTree:
         return s
 
     def sample(self, mass: float) -> int:
-        if mass < 0.0 or mass >= self.total() + 1e-9:
+        total = self.total()
+        if total <= 0.0:
+            raise ValueError("cannot sample from an empty Fenwick tree")
+        if mass < 0.0 or mass >= total + 1e-9:
             raise ValueError("mass must be in [0, total)")
         idx = 0
         bit_mask = 1 << (self.size.bit_length() - 1)
@@ -116,6 +120,7 @@ class HawkesMFDebias(nn.Module):
         self.base_net = self._build_mlp(embedding_dim, prior_hidden_dim, prior_depth)
         self.excitation_net = self._build_mlp(embedding_dim, prior_hidden_dim, prior_depth)
         self.log_beta = nn.Parameter(torch.zeros(()))
+        self.log_beta = nn.Parameter(torch.zeros(()))
 
         self.reset_parameters()
 
@@ -148,6 +153,29 @@ class HawkesMFDebias(nn.Module):
         alpha = self.softplus(self.excitation_net(z)).squeeze(-1) + 1e-8
         beta = self.current_beta()
         return mu, alpha, beta
+
+    def prior_logits_for_candidates(
+        self,
+        candidate_items: torch.Tensor,
+        query_times: torch.Tensor,
+        candidate_histories: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        candidate_items: [B, C]
+        query_times: [B]
+        candidate_histories: [B, C, L], train-item times padded with a large pad value
+        return: intensity logits [B, C]
+        """
+        item_vec = self.item_embedding(candidate_items)
+        mu = self.softplus(self.base_net(item_vec)).squeeze(-1) + 1e-8
+        alpha = self.softplus(self.excitation_net(item_vec)).squeeze(-1) + 1e-8
+        beta = self.current_beta()
+
+        query = query_times.view(-1, 1, 1)
+        mask = candidate_histories < query
+        delta = (query - candidate_histories).clamp(min=0.0)
+        h = (torch.exp(-beta * delta) * mask).sum(dim=-1)
+        return mu + alpha * h
 
     def residual_scores(self, users: torch.Tensor, items: torch.Tensor) -> torch.Tensor:
         user_vec = self.user_embedding(users)
@@ -185,7 +213,6 @@ class InteractionData:
         self.valid_events = self._build_events(self.valid_dict)
         self.test_events = self._build_events(self.test_dict)
 
-        # Train-only item histories are used for prior fitting and for evaluation without leakage.
         self.train_item_time_padded, self.train_time_pad_value = self._build_train_item_time_array()
 
     def _flatten_dict(self, split_dict: Dict[int, Sequence[int]]) -> Tuple[np.ndarray, np.ndarray]:
@@ -246,43 +273,15 @@ def make_prior_snapshot(model: HawkesMFDebias, device: torch.device) -> PriorSna
     )
 
 
-def exact_prior_loss(model: HawkesMFDebias, train_events: Sequence[Tuple[int, int, float]], device: torch.device) -> torch.Tensor:
-    mu, alpha, beta = model.prior_parameters_from_embeddings()
-    base_mass = mu.sum()
-    if len(train_events) == 0:
-        return base_mass * 0.0
-
-    x_state: Dict[int, torch.Tensor] = {}
-    last_t: Dict[int, float] = {}
-    total_excitation = torch.zeros((), device=device)
-    prev_time = float(train_events[0][2])
-    loss = torch.zeros((), device=device)
-
-    for idx, (_, item, t) in enumerate(train_events):
-        t = float(t)
-        if idx == 0:
-            delta_global = 0.0
-        else:
-            delta_global = t - prev_time
-        if delta_global > 0.0:
-            total_excitation = total_excitation * torch.exp(-beta * delta_global)
-
-        if item in x_state:
-            delta_item = t - last_t[item]
-            h = x_state[item] * torch.exp(-beta * delta_item)
-        else:
-            h = torch.zeros((), device=device)
-
-        lambda_pos = mu[item] + alpha[item] * h
-        lambda_total = base_mass + total_excitation
-        loss = loss - torch.log(lambda_pos + EPS) + torch.log(lambda_total + EPS)
-
-        x_state[item] = h + 1.0
-        last_t[item] = t
-        total_excitation = total_excitation + alpha[item]
-        prev_time = t
-
-    return loss / max(len(train_events), 1)
+def sample_uniform_negatives_excluding(
+    positive_items: np.ndarray,
+    num_items: int,
+    num_negatives: int,
+) -> np.ndarray:
+    positive_items = np.asarray(positive_items, dtype=np.int64)
+    negatives = np.random.randint(0, num_items - 1, size=(len(positive_items), num_negatives), dtype=np.int64)
+    negatives += negatives >= positive_items[:, None]
+    return negatives
 
 
 def sample_epoch_negatives(
@@ -292,12 +291,11 @@ def sample_epoch_negatives(
     num_negatives: int,
 ) -> np.ndarray:
     """
-    Pre-sample negatives once per epoch from the frozen prior snapshot.
-    The sampler uses the exact base/excitation mixture decomposition.
+    Pre-sample residual negatives once per epoch from the frozen prior snapshot.
+    Uses the exact base/excitation mixture decomposition.
     """
     negatives = np.empty((len(train_events), num_negatives), dtype=np.int64)
     tree = FenwickTree(num_items)
-    c_weights = np.zeros(num_items, dtype=np.float64)
     total_c = 0.0
     g = 1.0
     prev_time = float(train_events[0][2]) if train_events else 0.0
@@ -311,7 +309,6 @@ def sample_epoch_negatives(
                 candidate = tree.sample(mass)
             if candidate != pos_item:
                 return int(candidate)
-        # Fallback: uniform rejection if the prior mass is too concentrated.
         candidate = np.random.randint(0, num_items - 1)
         candidate += candidate >= pos_item
         return int(candidate)
@@ -328,7 +325,6 @@ def sample_epoch_negatives(
             negatives[idx, j] = sample_one_excluding(item, rho)
 
         delta_c = snapshot.alpha[item] / max(g, EPS)
-        c_weights[item] += delta_c
         total_c += delta_c
         tree.add(item, delta_c)
         prev_time = t
@@ -336,44 +332,53 @@ def sample_epoch_negatives(
     return negatives
 
 
-def residual_epoch(
+def compute_joint_batch_loss(
     model: HawkesMFDebias,
     train_events: Sequence[Tuple[int, int, float]],
-    negatives: np.ndarray,
-    optimizer_residual: torch.optim.Optimizer,
-    optimizer_shared: torch.optim.Optimizer,
-    batch_size: int,
+    batch_idx: np.ndarray,
+    residual_negatives: np.ndarray,
+    item_time_padded: np.ndarray,
+    num_items: int,
+    prior_num_negatives: int,
+    prior_weight: float,
+    residual_weight: float,
     device: torch.device,
-) -> float:
-    model.train()
-    num_events = len(train_events)
-    indices = np.random.permutation(num_events)
-    total_loss = 0.0
-    num_batches = 0
+) -> Tuple[torch.Tensor, Dict[str, float]]:
+    pos_items_np = np.asarray([train_events[i][1] for i in batch_idx], dtype=np.int64)
+    users_np = np.asarray([train_events[i][0] for i in batch_idx], dtype=np.int64)
+    query_times_np = np.asarray([train_events[i][2] for i in batch_idx], dtype=np.float32)
 
-    for start in range(0, num_events, batch_size):
-        batch_idx = indices[start : start + batch_size]
-        users = torch.tensor([train_events[i][0] for i in batch_idx], dtype=torch.long, device=device)
-        pos_items = torch.tensor([train_events[i][1] for i in batch_idx], dtype=torch.long, device=device)
-        neg_items = torch.tensor(negatives[batch_idx], dtype=torch.long, device=device)
+    # Prior loss: sampled-softmax surrogate with uniform negatives.
+    prior_neg_items_np = sample_uniform_negatives_excluding(pos_items_np, num_items, prior_num_negatives)
+    prior_candidates_np = np.concatenate([pos_items_np[:, None], prior_neg_items_np], axis=1)
+    prior_histories_np = item_time_padded[prior_candidates_np]
 
-        optimizer_residual.zero_grad()
-        optimizer_shared.zero_grad()
+    prior_candidates_t = torch.tensor(prior_candidates_np, dtype=torch.long, device=device)
+    query_times_t = torch.tensor(query_times_np, dtype=torch.float32, device=device)
+    prior_histories_t = torch.tensor(prior_histories_np, dtype=torch.float32, device=device)
 
-        pos_scores = model.residual_scores(users, pos_items)
-        user_vec = model.user_embedding(users)
-        neg_item_vec = model.item_embedding(neg_items)
-        neg_scores = (user_vec.unsqueeze(1) * neg_item_vec).sum(dim=-1)
+    prior_logits = model.prior_logits_for_candidates(prior_candidates_t, query_times_t, prior_histories_t)
+    log_prior_logits = torch.log(prior_logits + EPS)
+    prior_loss = -F.log_softmax(log_prior_logits, dim=1)[:, 0].mean()
 
-        loss = -F.logsigmoid(pos_scores).mean() - F.logsigmoid(-neg_scores).mean()
-        loss.backward()
-        optimizer_residual.step()
-        optimizer_shared.step()
+    # Residual loss: logistic NCE with frozen-prior negatives pre-built for the epoch.
+    users_t = torch.tensor(users_np, dtype=torch.long, device=device)
+    pos_items_t = torch.tensor(pos_items_np, dtype=torch.long, device=device)
+    residual_neg_items_t = torch.tensor(residual_negatives[batch_idx], dtype=torch.long, device=device)
 
-        total_loss += float(loss.item())
-        num_batches += 1
+    pos_scores = model.residual_scores(users_t, pos_items_t)
+    user_vec = model.user_embedding(users_t)
+    neg_item_vec = model.item_embedding(residual_neg_items_t)
+    neg_scores = (user_vec.unsqueeze(1) * neg_item_vec).sum(dim=-1)
+    residual_loss = -F.logsigmoid(pos_scores).mean() - F.logsigmoid(-neg_scores).mean()
 
-    return total_loss / max(num_batches, 1)
+    total_loss = prior_weight * prior_loss + residual_weight * residual_loss
+    stats = {
+        "prior_loss": float(prior_loss.detach().item()),
+        "residual_loss": float(residual_loss.detach().item()),
+        "total_loss": float(total_loss.detach().item()),
+    }
+    return total_loss, stats
 
 
 @torch.no_grad()
@@ -505,10 +510,7 @@ def train(args: argparse.Namespace) -> None:
     set_seed(args.seed)
     device = torch.device(args.device if torch.cuda.is_available() or args.device == "cpu" else "cpu")
 
-    print("data")
     data = InteractionData(args.data_path, args.dataset)
-
-    print("model")
     model = HawkesMFDebias(
         num_users=data.num_users,
         num_items=data.num_items,
@@ -517,32 +519,33 @@ def train(args: argparse.Namespace) -> None:
         prior_depth=args.prior_depth,
     ).to(device)
 
-    optimizer_prior = torch.optim.Adam(
-        list(model.base_net.parameters()) + list(model.excitation_net.parameters()) + [model.log_beta],
-        lr=args.prior_lr,
-        weight_decay=args.weight_decay,
-    )
-    optimizer_residual = torch.optim.Adam(
-        model.user_embedding.parameters(),
-        lr=args.residual_lr,
-        weight_decay=args.weight_decay,
-    )
-    optimizer_shared = torch.optim.Adam(
-        model.item_embedding.parameters(),
-        lr=args.shared_lr,
-        weight_decay=args.weight_decay,
+    optimizer = torch.optim.Adam(
+        [
+            {
+                "params": list(model.base_net.parameters()) + list(model.excitation_net.parameters()) + [model.log_beta],
+                "lr": args.prior_lr,
+                "weight_decay": args.weight_decay,
+            },
+            {
+                "params": list(model.user_embedding.parameters()),
+                "lr": args.residual_lr,
+                "weight_decay": args.weight_decay,
+            },
+            {
+                "params": list(model.item_embedding.parameters()),
+                "lr": args.shared_lr,
+                "weight_decay": args.weight_decay,
+            },
+        ]
     )
 
     best_state = copy.deepcopy(model.state_dict())
     best_valid = -float("inf")
     patience = 0
 
-    print("train")
     for epoch in range(1, args.epochs + 1):
-        # Step 0-2: freeze snapshot -> compute frozen prior -> build epoch negatives.
-        print("snapshot")
+        # Freeze current prior snapshot once per epoch and build residual negatives from it.
         snapshot = make_prior_snapshot(model, device)
-        print("sampling")
         epoch_negatives = sample_epoch_negatives(
             snapshot=snapshot,
             train_events=data.train_events,
@@ -550,30 +553,43 @@ def train(args: argparse.Namespace) -> None:
             num_negatives=args.num_negatives,
         )
 
-        print("hawks update")
-        # Step 3: prior update with exact full likelihood scan.
-        optimizer_prior.zero_grad()
-        optimizer_shared.zero_grad()
-        prior_loss = exact_prior_loss(model, data.train_events, device)
-        prior_loss.backward()
-        optimizer_prior.step()
-        optimizer_shared.step()
+        model.train()
+        indices = np.random.permutation(len(data.train_events))
+        sum_prior = 0.0
+        sum_residual = 0.0
+        sum_total = 0.0
+        num_batches = 0
 
-        print("residual")
-        # Step 4: residual update using the pre-built negatives.
-        residual_loss = residual_epoch(
-            model=model,
-            train_events=data.train_events,
-            negatives=epoch_negatives,
-            optimizer_residual=optimizer_residual,
-            optimizer_shared=optimizer_shared,
-            batch_size=args.batch_size,
-            device=device,
-        )
+        for start in range(0, len(indices), args.batch_size):
+            batch_idx = indices[start : start + args.batch_size]
+            optimizer.zero_grad()
+            total_loss, stats = compute_joint_batch_loss(
+                model=model,
+                train_events=data.train_events,
+                batch_idx=batch_idx,
+                residual_negatives=epoch_negatives,
+                item_time_padded=data.train_item_time_padded,
+                num_items=data.num_items,
+                prior_num_negatives=args.prior_num_negatives,
+                prior_weight=args.prior_weight,
+                residual_weight=args.residual_weight,
+                device=device,
+            )
+            total_loss.backward()
+            optimizer.step()
 
+            sum_prior += stats["prior_loss"]
+            sum_residual += stats["residual_loss"]
+            sum_total += stats["total_loss"]
+            num_batches += 1
+
+        prior_loss = sum_prior / max(num_batches, 1)
+        residual_loss = sum_residual / max(num_batches, 1)
+        joint_loss = sum_total / max(num_batches, 1)
         print(
-            f"[Epoch {epoch:03d}] prior_loss={prior_loss.item():.6f} "
-            f"residual_loss={residual_loss:.6f} beta={model.current_beta().item():.6f}"
+            f"[Epoch {epoch:03d}] total_loss={joint_loss:.6f} "
+            f"prior_loss={prior_loss:.6f} residual_loss={residual_loss:.6f} "
+            f"beta={model.current_beta().item():.6f}"
         )
 
         if epoch % args.eval_every != 0:
@@ -629,11 +645,11 @@ def train(args: argparse.Namespace) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Alternating Hawkes-prior + MF-residual recommender"
+        description="Alternating Hawkes-prior + MF-residual recommender (joint total-loss update)"
     )
     parser.add_argument("--data_path", type=str, default="./data")
     parser.add_argument("--dataset", type=str, default="micro_video")
-    parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument("--device", type=str, default="cuda:0")
     parser.add_argument("--seed", type=int, default=42)
 
     parser.add_argument("--embedding_dim", type=int, default=64)
@@ -643,18 +659,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch_size", type=int, default=512)
     parser.add_argument("--num_negatives", type=int, default=5)
+    parser.add_argument("--prior_num_negatives", type=int, default=20)
     parser.add_argument("--prior_lr", type=float, default=1e-3)
     parser.add_argument("--residual_lr", type=float, default=1e-3)
     parser.add_argument("--shared_lr", type=float, default=1e-3)
     parser.add_argument("--weight_decay", type=float, default=0.0)
+    parser.add_argument("--prior_weight", type=float, default=1.0)
+    parser.add_argument("--residual_weight", type=float, default=1.0)
 
-    parser.add_argument("--eval_every", type=int, default=1)
+    parser.add_argument("--eval_every", type=int, default=20)
     parser.add_argument("--patience", type=int, default=5)
     parser.add_argument("--ranking_mode", type=str, choices=["biased", "unbiased"], default="biased")
     parser.add_argument("--topks", type=int, nargs="+", default=[10, 20])
     parser.add_argument("--eval_item_chunk_size", type=int, default=4096)
     parser.add_argument("--save_path", type=str, default="")
-    return parser.parse_args([])
+    return parser.parse_args()
 
 
 if __name__ == "__main__":

@@ -1,72 +1,72 @@
 import os
 import numpy as np
-import pandas as pd
+from scipy.sparse import csr_matrix
+from typing import Dict, List, Sequence, Tuple
 
 
-def load_data(data_dir:str, dataset_name:str):
-    """
-    Load dataset.
-    """
-    dataset_dir = os.path.join(data_dir, dataset_name)
+class InteractionData:
+    def __init__(self, data_path: str, dataset: str) -> None:
+        path = os.path.join(data_path, dataset)
+        self.time_dict = np.load(os.path.join(path, "interaction_time_dict.npy"), allow_pickle=True).item()
+        self.train_dict = np.load(os.path.join(path, "training_dict.npy"), allow_pickle=True).item()
+        self.valid_dict = np.load(os.path.join(path, "validation_dict.npy"), allow_pickle=True).item()
+        self.test_dict = np.load(os.path.join(path, "testing_dict.npy"), allow_pickle=True).item()
 
-    if dataset_name == "yahoo_r3":
-        train_file = os.path.join(dataset_dir, "ydata-ymusic-rating-study-v1_0-train.txt")
-        test_file = os.path.join(dataset_dir, "ydata-ymusic-rating-study-v1_0-test.txt")
-        x_train = []
-        with open(train_file, "r") as f:
-            for line in f:
-                x_train.append(line.strip().split())
-        x_train = np.array(x_train).astype(int)
-        x_test = []
-        with open(test_file, "r") as f:
-            for line in f:
-                x_test.append(line.strip().split())
-        x_test = np.array(x_test).astype(int)
+        self.train_users, self.train_items = self._flatten_dict(self.train_dict)
+        self.valid_users, self.valid_items = self._flatten_dict(self.valid_dict)
+        self.test_users, self.test_items = self._flatten_dict(self.test_dict)
 
-    elif dataset_name == "coat":
-        train_file = os.path.join(dataset_dir, "train.csv")
-        test_file = os.path.join(dataset_dir, "test.csv")
-        x_train = pd.read_csv(train_file).to_numpy()
-        x_train = np.stack([x_train[:,0]+1, x_train[:,1]+1, x_train[:,2]], axis=-1)
-        x_test = pd.read_csv(test_file).to_numpy()
-        x_test = np.stack([x_test[:,0]+1, x_test[:,1]+1, x_test[:,2]], axis=-1)
+        self.num_users = int(max(self.train_users.max(initial=0), self.valid_users.max(initial=0), self.test_users.max(initial=0)) + 1)
+        self.num_items = int(max(self.train_items.max(initial=0), self.valid_items.max(initial=0), self.test_items.max(initial=0)) + 1)
 
-    elif dataset_name == "KuaiRec":
-        train_file = os.path.join(dataset_dir, "data/big_matrix.csv")
-        test_file = os.path.join(dataset_dir, "data/small_matrix.csv")
-        x_train = pd.read_csv(train_file)
-        x_train["interaction"] = x_train["watch_ratio"].map(lambda x: 1 if x >= 2. else 0)
-        x_train = x_train[["user_id", "video_id", "interaction"]].to_numpy()
-        x_train = np.stack([x_train[:,0]+1, x_train[:,1]+1, x_train[:,2]], axis=-1)
-        x_test = pd.read_csv(test_file)
-        x_test["interaction"] = x_test["watch_ratio"].map(lambda x: 1 if x >= 2. else 0)
-        x_test = x_test[["user_id", "video_id", "interaction"]].to_numpy()
-        x_test = np.stack([x_test[:,0]+1, x_test[:,1]+1, x_test[:,2]], axis=-1)
+        self.user_item_net = csr_matrix(
+            (np.ones(len(self.train_users)), (self.train_users, self.train_items)),
+            shape=(self.num_users, self.num_items),
+        )
+        self.all_train_pos_items = self._get_user_pos_items()
 
-    print(f"Loaded from {dataset_name} dataset")
-    print("[train] num data:", x_train.shape[0])
-    print("[test]  num data:", x_test.shape[0])
-    print("user, item indices start from '1'.")
+        self.train_events = self._build_events(self.train_dict)
+        self.valid_events = self._build_events(self.valid_dict)
+        self.test_events = self._build_events(self.test_dict)
 
-    return x_train, x_test
+        self.train_item_time_padded, self.train_time_pad_value = self._build_train_item_time_array()
 
+    def _flatten_dict(self, split_dict: Dict[int, Sequence[int]]) -> Tuple[np.ndarray, np.ndarray]:
+        users: List[int] = []
+        items: List[int] = []
+        for u, item_list in split_dict.items():
+            for v in item_list:
+                users.append(int(u))
+                items.append(int(v))
+        if not users:
+            return np.array([], dtype=np.int64), np.array([], dtype=np.int64)
+        return np.asarray(users, dtype=np.int64), np.asarray(items, dtype=np.int64)
 
-def binarize(y, thres:int=3):
-    """
-    Binarize relevance score.
-    """
-    y[y< thres] = 0
-    y[y>=thres] = 1
+    def _build_events(self, split_dict: Dict[int, Sequence[int]]) -> List[Tuple[int, int, float]]:
+        events: List[Tuple[int, int, float]] = []
+        for u, item_list in split_dict.items():
+            for v in item_list:
+                t_raw = self.time_dict[u][v]
+                t_day = float(t_raw) / 60.0 / 60.0 / 24.0
+                events.append((int(u), int(v), t_day))
+        events.sort(key=lambda x: x[2])
+        return events
 
-    return y
+    def _get_user_pos_items(self) -> List[np.ndarray]:
+        return [self.user_item_net[u, :].nonzero()[1] for u in range(self.num_users)]
 
-
-def generate_total_sample(num_user:int, num_item:int):
-    """
-    Generate indices of all user-item pairs.
-    """
-    sample = []
-    for i in range(num_user):
-        sample.extend([[i,j] for j in range(num_item)])
-
-    return np.array(sample)
+    def _build_train_item_time_array(self) -> Tuple[np.ndarray, float]:
+        item_times: List[List[float]] = [[] for _ in range(self.num_items)]
+        for _, v, t in self.train_events:
+            item_times[v].append(float(t))
+        max_len = max((len(x) for x in item_times), default=0)
+        max_time = max((max(x) for x in item_times if x), default=0.0) + 1.0
+        padded: List[np.ndarray] = []
+        for times in item_times:
+            arr = np.asarray(sorted(times), dtype=np.float32)
+            if max_len > len(arr):
+                arr = np.pad(arr, (0, max_len - len(arr)), mode="constant", constant_values=max_time)
+            padded.append(arr)
+        if max_len == 0:
+            return np.full((self.num_items, 0), max_time, dtype=np.float32), max_time
+        return np.stack(padded, axis=0), max_time

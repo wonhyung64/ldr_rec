@@ -394,7 +394,32 @@ class UserItemTime(Dataset):
 			bucket_size: time bucket in day units.
 		"""
 		self.prepare_user_timebucket_sampler(bucket_size=bucket_size)
-		self.get_pair_user_event_timebucket_fast(k=k)
+
+		pos_user_list = []
+		neg_user_list = []
+
+		for idx in range(self.trainDataSize):
+			pos_u = int(self.user_list[idx])
+			b = int(self.train_event_bucket[idx])
+			candidate_users = self.bucket_to_users_np.get(b, self.all_users_np)
+			candidate_probs = self.bucket_to_user_probs_np.get(b, self.all_user_probs_np)
+
+			if len(candidate_users) == 1 and candidate_users[0] == pos_u:
+				candidate_users = self.all_users_np
+				candidate_probs = self.all_user_probs_np
+
+			neg_us = self.sample_users_excluding_positive(
+				candidate_users,
+				candidate_probs,
+				pos_u,
+				size=k,
+			)
+
+			pos_user_list.append(pos_u)
+			neg_user_list.append(neg_us.tolist())
+
+		self.pos_user_list = np.array(pos_user_list, dtype=np.int64)
+		self.neg_user_list = np.array(neg_user_list, dtype=np.int64)
 
 	def prepare_user_timebucket_sampler(self, bucket_size=1.0):
 		"""
@@ -404,56 +429,52 @@ class UserItemTime(Dataset):
 			p_hat(u | b) propto count_train(u, b),
 		where count_train(u, b) is the number of observed interactions of user u
 		in bucket b. This is the empirical marginal of p(u, v | t) over v.
-
-		Implementation note:
-			We store per-bucket active users, probabilities, and cumulative
-			distributions (CDFs) so that sampling can be done with vectorized
-			searchsorted instead of repeated np.random.choice calls.
 		"""
 		self.user_bucket_size = float(bucket_size)
 
-		train_event_bucket = np.floor(self.event_time_list / self.user_bucket_size).astype(np.int64)
-		self.train_event_bucket = train_event_bucket
+		bucket_to_user_counts = {}
+		global_user_counts = np.zeros(self.n_user, dtype=np.float64)
 
-		global_user_counts = np.bincount(self.user_list, minlength=self.n_user).astype(np.float64)
-		if global_user_counts.sum() == 0:
-			global_user_counts[:] = 1.0
-
-		self.all_users_np = np.arange(self.n_user, dtype=np.int64)
-		self.all_user_probs_np = (global_user_counts / global_user_counts.sum()).astype(np.float64)
-		self.all_user_cdf_np = np.cumsum(self.all_user_probs_np)
-		self.all_user_cdf_np[-1] = 1.0
+		for (u, v, t) in self.train_events:
+			b = int(t // self.user_bucket_size)
+			if b not in bucket_to_user_counts:
+				bucket_to_user_counts[b] = np.zeros(self.n_user, dtype=np.float64)
+			bucket_to_user_counts[b][u] += 1.0
+			global_user_counts[u] += 1.0
 
 		self.bucket_to_users_np = {}
 		self.bucket_to_user_probs_np = {}
-		self.bucket_to_user_cdf_np = {}
-		self.bucket_to_event_idx = {}
-
-		unique_buckets, inverse = np.unique(train_event_bucket, return_inverse=True)
-		for local_b, b in enumerate(unique_buckets):
-			event_idx = np.flatnonzero(inverse == local_b).astype(np.int64)
-			users_in_bucket = self.user_list[event_idx]
-			counts = np.bincount(users_in_bucket, minlength=self.n_user).astype(np.float64)
-			active = np.flatnonzero(counts > 0).astype(np.int64)
+		for b, counts in bucket_to_user_counts.items():
+			active = np.flatnonzero(counts > 0)
 			probs = counts[active]
-			probs /= probs.sum()
-			cdf = np.cumsum(probs)
-			cdf[-1] = 1.0
+			probs = probs / probs.sum()
+			self.bucket_to_users_np[b] = active.astype(np.int64)
+			self.bucket_to_user_probs_np[b] = probs.astype(np.float64)
 
-			b = int(b)
-			self.bucket_to_users_np[b] = active
-			self.bucket_to_user_probs_np[b] = probs
-			self.bucket_to_user_cdf_np[b] = cdf
-			self.bucket_to_event_idx[b] = event_idx
+		if global_user_counts.sum() == 0:
+			global_user_counts[:] = 1.0
+		self.all_users_np = np.arange(self.n_user, dtype=np.int64)
+		self.all_user_probs_np = (global_user_counts / global_user_counts.sum()).astype(np.float64)
 
-	def sample_users_excluding_positive(self, users_arr, probs_arr, pos_u, size=1, cdf_arr=None):
+		self.train_event_bucket = np.array(
+			[int(t // self.user_bucket_size) for t in self.event_time_list],
+			dtype=np.int64
+		)
+
+		self.bucket_to_event_idx = {}
+		for idx, b in enumerate(self.train_event_bucket):
+			if b not in self.bucket_to_event_idx:
+				self.bucket_to_event_idx[b] = []
+			self.bucket_to_event_idx[b].append(idx)
+		self.bucket_to_event_idx = {
+			b: np.array(idxs, dtype=np.int64)
+			for b, idxs in self.bucket_to_event_idx.items()
+		}
+
+	def sample_users_excluding_positive(self, users_arr, probs_arr, pos_u, size=1):
 		"""
 		Sample users from a categorical distribution while excluding the positive user.
 		The probabilities are renormalized after removing pos_u.
-
-		This path is kept for compatibility/debugging. For training-time fast
-		sampling, use `_sample_one_excluding_vectorized` via
-		`get_pair_user_event_timebucket_fast`.
 		"""
 		mask = (users_arr != pos_u)
 		filtered_users = users_arr[mask]
@@ -473,129 +494,62 @@ class UserItemTime(Dataset):
 		replace = len(filtered_users) < size
 		return np.random.choice(filtered_users, size=size, replace=replace, p=filtered_probs)
 
-	def _sample_one_excluding_vectorized(self, users_arr, cdf_arr, pos_u_arr):
-		"""
-		Vectorized sampler for k=1.
-
-		First sample from the original categorical with searchsorted on the CDF,
-		then only resample the collided positions (sample == pos_u). In practice
-		this is much faster than calling np.random.choice for every event.
-		"""
-		if users_arr.size == 0:
-			raise RuntimeError("users_arr must be non-empty.")
-
-		pos_u_arr = np.asarray(pos_u_arr, dtype=np.int64)
-		out = users_arr[np.searchsorted(cdf_arr, np.random.random(size=pos_u_arr.shape[0]), side='left')]
-		mask = (out == pos_u_arr)
-
-		if users_arr.size == 1:
-			out = self.all_users_np[np.searchsorted(self.all_user_cdf_np, np.random.random(size=pos_u_arr.shape[0]), side='left')]
-			mask = (out == pos_u_arr)
-
-		while mask.any():
-			resampled = users_arr[np.searchsorted(cdf_arr, np.random.random(size=mask.sum()), side='left')]
-			out[mask] = resampled
-			mask = (out == pos_u_arr)
-
-		return out.astype(np.int64)
-
 	def get_pair_user_event_timebucket_fast(self, k=1):
 		"""
 		Fast negative sampler using precomputed empirical p(u|t) per time bucket.
 		Requires prepare_user_timebucket_sampler(...) to be called first.
 		"""
-		if not hasattr(self, "bucket_to_users_np") or not hasattr(self, "bucket_to_user_cdf_np"):
+		if not hasattr(self, "bucket_to_users_np") or not hasattr(self, "bucket_to_user_probs_np"):
 			raise RuntimeError("Call prepare_user_timebucket_sampler(bucket_size=...) first.")
 
-		pos_user = self.user_list.astype(np.int64)
+		pos_user = self.user_list  # [N]
 		N = len(pos_user)
+		neg_user = np.empty((N, k), dtype=np.int64)
 
-		if k == 1:
-			neg_user = np.empty((N, 1), dtype=np.int64)
-			for b, event_idx in self.bucket_to_event_idx.items():
-				users_arr = self.bucket_to_users_np.get(b, self.all_users_np)
-				cdf_arr = self.bucket_to_user_cdf_np.get(b, self.all_user_cdf_np)
-				pos_u_b = pos_user[event_idx]
+		for b, event_idx in self.bucket_to_event_idx.items():
+			users_arr = self.bucket_to_users_np.get(b, self.all_users_np)
+			probs_arr = self.bucket_to_user_probs_np.get(b, self.all_user_probs_np)
+			pos_u_b = pos_user[event_idx]
 
-				if users_arr.size == 1:
-					neg_user[event_idx, 0] = self._sample_one_excluding_vectorized(
-						self.all_users_np,
-						self.all_user_cdf_np,
-						pos_u_b,
-					)
-				else:
-					neg_user[event_idx, 0] = self._sample_one_excluding_vectorized(
-						users_arr,
-						cdf_arr,
-						pos_u_b,
-					)
-		else:
-			neg_user = np.empty((N, k), dtype=np.int64)
-			for j in range(k):
-				for b, event_idx in self.bucket_to_event_idx.items():
-					users_arr = self.bucket_to_users_np.get(b, self.all_users_np)
-					cdf_arr = self.bucket_to_user_cdf_np.get(b, self.all_user_cdf_np)
-					pos_u_b = pos_user[event_idx]
-					if users_arr.size == 1:
-						neg_user[event_idx, j] = self._sample_one_excluding_vectorized(
-							self.all_users_np,
-							self.all_user_cdf_np,
-							pos_u_b,
-						)
-					else:
-						neg_user[event_idx, j] = self._sample_one_excluding_vectorized(
-							users_arr,
-							cdf_arr,
-							pos_u_b,
-						)
+			for local_idx, global_idx in enumerate(event_idx):
+				neg_user[global_idx] = self.sample_users_excluding_positive(
+					users_arr,
+					probs_arr,
+					int(pos_u_b[local_idx]),
+					size=k,
+				)
 
-		self.pos_user_list = pos_user
-		self.neg_user_list = neg_user
-
-	def prepare_item_event_sampler(self):
-		"""
-		Prepare fast prior-side positive event source from TRAIN events.
-
-		Instead of reconstructing (item, time) events from the padded
-		item_time_array and materializing large pos/neg history tensors at every
-		reset, we directly reuse the flattened TRAIN event arrays:
-			(item_list, event_time_list).
-		This makes pair reset much cheaper and avoids storing huge
-		neg_time_all tensors in RAM.
-		"""
-		self.train_event_items = self.item_list.astype(np.int64)
-		self.train_event_times = self.event_time_list.astype(np.float32)
-		self.trainEventSize = len(self.train_event_items)
+		self.pos_user_list = pos_user.astype(np.int64)
+		self.neg_user_list = neg_user.astype(np.int64)
 
 	def get_pair_item_event_uniform(self, neg_size, sample_num=None):
-		"""
-		Fast prior-side sampler.
-
-		Positive events are sampled from observed TRAIN (item, time) events.
-		Negatives are sampled uniformly over items excluding the positive item.
-
-		Only indices/items/times are materialized here; expensive time-history
-		gathers are deferred to the mini-batch step.
-		"""
+		# 0) event index가 없으면 1회 구축
 		if not hasattr(self, "train_event_items"):
-			self.prepare_item_event_sampler()
+			times = self.train_item_time_array
+			mask = (times < self.max_time)
+
+			self.train_event_items = np.repeat(np.arange(self.m_item), mask.sum(axis=1))
+			self.train_event_times = times[mask]
+			self.trainEventSize = len(self.train_event_items)
 
 		if sample_num is None:
 			sample_num = self.trainEventSize
 
-		# 1) positive event sample from observed TRAIN events
-		ev_idx = np.random.randint(0, self.trainEventSize, sample_num, dtype=np.int64)
+		# 1) positive event sample
+		ev_idx = np.random.randint(0, self.trainEventSize, sample_num)
 		pos_item = self.train_event_items[ev_idx]
 		pos_time = self.train_event_times[ev_idx]
 
 		# 2) uniform negative excluding pos_item
-		neg_item = np.random.randint(0, self.m_item - 1, size=(sample_num, neg_size), dtype=np.int64)
+		neg_item = np.random.randint(0, self.m_item - 1, size=(sample_num, neg_size))
 		neg_item += (neg_item >= pos_item[:, None])
 
-		# 3) store only lightweight arrays; gather histories lazily per batch
+		# 3) histories
 		self.pos_item_list = pos_item
 		self.neg_item_list = neg_item
 		self.pos_time_list = pos_time
+		self.pos_time_all = self.item_time_array[pos_item]
+		self.neg_time_all = self.item_time_array[neg_item]
 
 	def __getitem__(self, idx):
 		return (
@@ -616,7 +570,7 @@ args = parse_args()
 expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
 set_seed(args.seed)
 args.device = set_device()
-args.expt_name = f"expt35_magin_put_gru_{expt_num}"
+args.expt_name = f"expt35_margin_put_gru_{expt_num}"
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True) 
 
@@ -638,10 +592,13 @@ dataset = UserItemTime(args)
 if not hasattr(args, "max_seq_len"):
 	args.max_seq_len = 50
 
+print(1)
 dataset.build_user_histories(max_seq_len=args.max_seq_len)
+print(2)
 dataset.prepare_user_timebucket_sampler(bucket_size=args.user_bucket_size)
-dataset.prepare_item_event_sampler()
+print(3)
 dataset.get_pair_user_event_timebucket_fast(k=1)
+print(4)
 dataset.get_pair_item_event_uniform(args.contrast_size-1)
 
 mini_batch = args.batch_size // args.contrast_size
@@ -692,8 +649,8 @@ for epoch in range(1, args.epochs+1):
 		pos_item = torch.tensor(dataset.pos_item_list[sample_idx]).unsqueeze(-1).to(args.device)
 		neg_items = torch.tensor(dataset.neg_item_list[sample_idx]).to(args.device)
 		pos_time = torch.Tensor(dataset.pos_time_list[sample_idx]).reshape(-1, 1, 1).to(args.device)
-		pos_time_all = torch.tensor(dataset.item_time_array[dataset.pos_item_list[sample_idx]], dtype=torch.float32).to(args.device)
-		neg_time_all = torch.tensor(dataset.item_time_array[dataset.neg_item_list[sample_idx]], dtype=torch.float32).to(args.device)
+		pos_time_all = torch.Tensor(dataset.pos_time_all[sample_idx]).to(args.device)
+		neg_time_all = torch.Tensor(dataset.neg_time_all[sample_idx]).to(args.device)
 
 		batch_items = torch.concat([pos_item, neg_items], -1).reshape([args.batch_size])
 		batch_time_all = torch.concat([pos_time_all.unsqueeze(1), neg_time_all], 1)
@@ -760,7 +717,9 @@ for epoch in range(1, args.epochs+1):
 
 	if epoch % args.pair_reset_interval == 0:
 		print("Reset negative pairs")
+		print(4)
 		dataset.get_pair_item_event_uniform(args.contrast_size-1)
+		print(3)
 		dataset.get_pair_user_event_timebucket_fast(k=1)
 
 	if epoch % args.evaluate_interval == 0:

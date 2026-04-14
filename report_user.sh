@@ -266,7 +266,16 @@ experiments=(
     # "expt24_simple_time.py --lr=1e-3 --recdim=128 --lambda1=0.125 --seed=2"
     # "expt24_simple_time.py --lr=1e-3 --recdim=128 --lambda1=0.125 --seed=3"
     # "expt24_simple_time.py --lr=1e-3 --recdim=128 --lambda1=0.125 --seed=4"
-
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=0"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=1"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=2"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=3"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=4"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairec --seed=0"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairec --seed=1"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairec --seed=2"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairec --seed=3"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairec --seed=4"
 )
 
 

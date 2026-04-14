@@ -68,7 +68,6 @@ hot_idxs = np.arange(dataset.hotDataSize)
 cold_mini_batch = mini_batch - hot_mini_batch
 cold_idxs = np.arange(dataset.coldDataSize)
 
-args.model_name = "sasrec"
 model = build_model(args, dataset, mini_batch)
 optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
 

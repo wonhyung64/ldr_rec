@@ -23,7 +23,7 @@ def parse_args():
     parser.add_argument('--epochs', type=int,default=1000)
     parser.add_argument('--seed', type=int, default=0, help='random seed')
     parser.add_argument('--contrast-size', type=int, default=16)
-    parser.add_argument('--evaluate-interval', type=int, default=5000)
+    parser.add_argument('--evaluate-interval', type=int, default=1000)
     parser.add_argument('--neg-sampling', type=str, default='uniform')
     parser.add_argument('--device', type=str, default='none')
     parser.add_argument('--tau', type=float, default=0.5)

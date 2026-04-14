@@ -55,16 +55,16 @@ RANDOM_SEED=0
 
 experiments=(
 
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=0"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=1"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=2"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=3"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=4"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairec --seed=0"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairec --seed=1"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairec --seed=2"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairec --seed=3"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairec --seed=4"
+    # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=0"
+    # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=1"
+    # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=2"
+    # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=3"
+    # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=4"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=1"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=2"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=3"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=4"
 )
 
 

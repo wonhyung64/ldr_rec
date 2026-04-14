@@ -71,9 +71,11 @@ class NCF(ResidualBase):
         if user_idx is None:
             raise ValueError("NCFResidual requires user_idx.")
         u = self.user_embedding(user_idx)
-        v = self.get_item_repr(item_idx)
-        x = torch.cat([u, v], dim=-1)
-        h = self.mlp(x)
+        mini_batch, recdim = u.shape
+        v = self.get_item_repr(item_idx).reshape(mini_batch, -1, recdim)
+        u_expanded = u.unsqueeze(1).expand(-1, v.size(1), -1)
+        x = torch.cat([v, u_expanded], dim=-1)
+        h = self.mlp(x).squeeze(-1)
         return h
 
     def score_all_items(self, hist_item_idx, user_idx=None):
@@ -188,7 +190,7 @@ class SASRec(ResidualBase):
             new_fwd_layer = PointWiseFeedForward(self.embedding_k, self.dropout)
             self.forward_layers.append(new_fwd_layer)
 
-    def encode_user(self, hist_item_idx, user_idx=None):
+    def encode_user(self, hist_item_idx):
         seqs = self.item_embedding(hist_item_idx)
         seqs *= self.item_embedding.embedding_dim ** 0.5
         seqs = seqs + self.pos_enc(hist_item_idx)

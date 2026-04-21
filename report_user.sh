@@ -90,25 +90,47 @@ experiments=(
     # "./baseline/cf.py --model-name=ncf --dataset=micro_video --seed=3"
     # "./baseline/cf.py --model-name=ncf --dataset=micro_video --seed=4"
 
-    "./baseline/cf.py --model-name=ncf --dataset=ml-100k --seed=0"
-    "./baseline/cf.py --model-name=ncf --dataset=ml-100k --seed=1"
-    "./baseline/cf.py --model-name=ncf --dataset=ml-100k --seed=2"
-    "./baseline/cf.py --model-name=ncf --dataset=ml-100k --seed=3"
-    "./baseline/cf.py --model-name=ncf --dataset=ml-100k --seed=4"
+    # "./baseline/cf.py --model-name=ncf --dataset=ml-100k --seed=0"
+    # "./baseline/cf.py --model-name=ncf --dataset=ml-100k --seed=1"
+    # "./baseline/cf.py --model-name=ncf --dataset=ml-100k --seed=2"
+    # "./baseline/cf.py --model-name=ncf --dataset=ml-100k --seed=3"
+    # "./baseline/cf.py --model-name=ncf --dataset=ml-100k --seed=4"
 
-    "./baseline/cf.py --model-name=mf --dataset=ml-100k --seed=0"
-    "./baseline/cf.py --model-name=mf --dataset=ml-100k --seed=1"
-    "./baseline/cf.py --model-name=mf --dataset=ml-100k --seed=2"
-    "./baseline/cf.py --model-name=mf --dataset=ml-100k --seed=3"
-    "./baseline/cf.py --model-name=mf --dataset=ml-100k --seed=4"
+    # "./baseline/cf.py --model-name=mf --dataset=ml-100k --seed=0"
+    # "./baseline/cf.py --model-name=mf --dataset=ml-100k --seed=1"
+    # "./baseline/cf.py --model-name=mf --dataset=ml-100k --seed=2"
+    # "./baseline/cf.py --model-name=mf --dataset=ml-100k --seed=3"
+    # "./baseline/cf.py --model-name=mf --dataset=ml-100k --seed=4"
 
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=ml-100k --seed=0"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=ml-100k --seed=1"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=ml-100k --seed=2"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=ml-100k --seed=3"
-    "./baseline/seq_rec.py --model-name=sasrec --dataset=ml-100k --seed=4"
+    # "./baseline/seq_rec.py --model-name=sasrec --dataset=ml-100k --seed=0"
+    # "./baseline/seq_rec.py --model-name=sasrec --dataset=ml-100k --seed=1"
+    # "./baseline/seq_rec.py --model-name=sasrec --dataset=ml-100k --seed=2"
+    # "./baseline/seq_rec.py --model-name=sasrec --dataset=ml-100k --seed=3"
+    # "./baseline/seq_rec.py --model-name=sasrec --dataset=ml-100k --seed=4"
+    
+    "./baseline/seq_rec.py --model-name=grurec --dataset=ml-100k --seed=0"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=ml-100k --seed=1"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=ml-100k --seed=2"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=ml-100k --seed=3"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=ml-100k --seed=4"
+
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=0"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=1"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=2"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=3"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=4"
+
+    "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=0"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=1"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=2"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=3"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=4"
     
 )
+
+
+)
+
 
 
 echo "$SLURM_SCRIPT" > runner.sh

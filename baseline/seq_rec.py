@@ -31,6 +31,8 @@ Key design choices:
 
 args = parse_args()
 set_seed(args.seed)
+# args.model_name = "grurec"
+args.dataset = "ml-100k"
 args.device = set_device(args.device)
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True)
@@ -58,6 +60,7 @@ dataset = UserItemTime(args)
 dataset.build_user_histories(max_seq_len=args.max_seq_len)
 dataset.get_pair_item_uniform(k=args.contrast_size-1)
 hot_ratio = dataset.hotDataSize / dataset.trainDataSize
+
 
 #%%
 mini_batch = args.batch_size // args.contrast_size

@@ -65,12 +65,11 @@ class TiSASRec(ResidualBase):
         """
         hist_timestamps = hist_timestamps.long()
         valid = hist_item_idx.ne(self.padding_item_id)         # [B, L]
+        # valid = hist_item_idx.ne(model.padding_item_id)         # [B, L]
         pair_valid = valid.unsqueeze(1) & valid.unsqueeze(2)   # [B, L, L]
-
         delta = torch.abs(
             hist_timestamps.unsqueeze(2) - hist_timestamps.unsqueeze(1)
         )  # [B, L, L]
-
         delta = torch.clamp(delta, max=self.time_span)
         delta = delta + 1
         delta = delta * pair_valid.long()
@@ -122,6 +121,7 @@ class TiSASRec(ResidualBase):
         time_mat = self._build_time_matrix(hist_timestamps, hist_item_idx)  # [B, L, L]
 
         abs_pos_k = self.abs_pos_k_emb(pos_ids)     # [B, L, D]
+        
         abs_pos_v = self.abs_pos_v_emb(pos_ids)     # [B, L, D]
         time_mat_k = self.time_matrix_k_emb(time_mat)  # [B, L, L, D]
         time_mat_v = self.time_matrix_v_emb(time_mat)  # [B, L, L, D]

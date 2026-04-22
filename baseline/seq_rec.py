@@ -89,7 +89,9 @@ for epoch in range(1, args.epochs + 1):
         anchor_user = torch.tensor(dataset.hot_user_list[hot_sample_idx], dtype=torch.long, device=args.device)
         pos_item = torch.tensor(dataset.hot_pos_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
         neg_item = torch.tensor(dataset.hot_neg_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
-        anchor_hist_items = torch.tensor(dataset.hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
+        anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
+        anchor_hist_times = torch.tensor(dataset.train_hist_time_list[hot_sample_idx], dtype=torch.long, device=args.device)
+
 
         pos_score = score_pair(model, pos_item, anchor_hist_items, anchor_user)
         neg_score = score_pair(model, neg_item, anchor_hist_items, anchor_user)

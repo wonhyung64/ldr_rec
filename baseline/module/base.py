@@ -26,8 +26,8 @@ class ResidualBase(nn.Module):
     def get_item_repr(self, item_idx):
         return self.item_embedding(item_idx)
 
-    def residual_score(self, item_idx, hist_item_idx, user_idx=None):
-        u = self.encode_user(hist_item_idx, user_idx=user_idx)
+    def residual_score(self, item_idx, hist_item_idx, additional_feat):
+        u = self.encode_user(hist_item_idx, additional_feat)
         mini_batch, recdim = u.shape
         v = self.get_item_repr(item_idx).reshape(mini_batch, -1, recdim)
         # u = F.normalize(u, dim=-1, eps=1e-8)

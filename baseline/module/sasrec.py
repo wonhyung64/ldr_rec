@@ -59,7 +59,7 @@ class SASRec(ResidualBase):
             new_fwd_layer = PointWiseFeedForward(self.embedding_k, self.dropout)
             self.forward_layers.append(new_fwd_layer)
 
-    def encode_user(self, hist_item_idx):
+    def encode_user(self, hist_item_idx, user_idx=None):
         seqs = self.item_embedding(hist_item_idx)
         seqs *= self.item_embedding.embedding_dim ** 0.5
         seqs = seqs + self.pos_enc(hist_item_idx)

@@ -5,8 +5,9 @@ from .mf import MF
 from .ncf import NCF
 from .grurec import GRURec
 from .sasrec import SASRec
-from .mlp4rec import MLP4Rec
-from .bert4rec import BERT4Rec
+# from .mlp4rec import MLP4Rec
+# from .bert4rec import BERT4Rec
+from .tisasrec import TiSASRec
 
 
 MODEL_REGISTRY = {
@@ -14,8 +15,9 @@ MODEL_REGISTRY = {
     "ncf": NCF,
     "grurec": GRURec,
     "sasrec": SASRec,
-    "mlp4rec": MLP4Rec,
-    "bert4rec": BERT4Rec,
+    # "mlp4rec": MLP4Rec,
+    # "bert4rec": BERT4Rec,
+    "tisasrec": TiSASRec,
 }
 
 
@@ -38,8 +40,8 @@ def build_model(args, dataset, mini_batch):
     ).to(args.device)
 
 
-def score_pair(model, item_idx, hist_item_idx, user_idx):
-    return model.residual_score(item_idx=item_idx, hist_item_idx=hist_item_idx, user_idx=user_idx)
+def score_pair(model, item_idx, hist_item_idx, additional_feat):
+    return model.residual_score(item_idx, hist_item_idx, additional_feat)
 
 
 def score_all(model, hist_item_idx, user_idx):

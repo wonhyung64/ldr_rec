@@ -52,7 +52,8 @@ class UserItemTime(Dataset):
         user_item_time = {}
         for user in set_dict:
             for item in set_dict[user]:
-                time = time_dict[user][item] / 60 / 60 / 24
+                # time = time_dict[user][item] / 60 / 60 / 24
+                time = time_dict[user][item]
                 user_item_time[(user, item)] = time
         return user_item_time
 
@@ -72,7 +73,8 @@ class UserItemTime(Dataset):
         user_interactions = {u: [] for u in range(self.n_user)}
         for u, item_time in time_dict.items():
             for it, t in item_time.items():
-                t_day = float(t) / 60 / 60 / 24
+                t_day = float(t)
+                # t_day = float(t) / 60 / 60 / 24
                 user_interactions[u].append((t_day, it))
         for u in user_interactions:
             user_interactions[u].sort(key=lambda x: x[0])
@@ -126,20 +128,24 @@ class UserItemTime(Dataset):
         self.max_seq_len = max_seq_len
 
         def _build_histories(events):
-            hist_item_list = []
+            hist_item_list, hist_time_list = [], []
             for (u, v, t) in events:
                 hist = [(tt, vv) for (tt, vv) in self.user_interactions[u] if tt < t]
                 hist = hist[-max_seq_len:]
-                h_items = [vv for (tt, vv) in hist]
+                h_items, h_times = [], []
+                for (tt, vv) in hist:
+                    h_items.append(vv)
+                    h_times.append(tt)
                 pad_len = max_seq_len - len(h_items)
                 h_items = [self.m_item] * pad_len + h_items
+                h_times = [h_times[0]] * pad_len + h_times
                 hist_item_list.append(h_items)
-            return np.array(hist_item_list, dtype=np.int64)
+                hist_time_list.append(h_times)
+            return np.array(hist_item_list, dtype=np.int64), np.array(hist_time_list)
 
-        self.train_hist_item_list = _build_histories(self.train_hot_events)
-        self.valid_hist_item_list = _build_histories(self.valid_events)
-        self.test_hist_item_list = _build_histories(self.test_events)
-        self.hist_item_list = self.train_hist_item_list
+        self.train_hist_item_list, self.train_hist_time_list = _build_histories(self.train_hot_events)
+        self.valid_hist_item_list, self.valid_hist_time_list = _build_histories(self.valid_events)
+        self.test_hist_item_list, self.test_hist_time_list = _build_histories(self.test_events)
 
     def get_histories_for_users_at_times(self, users, query_times, max_seq_len):
         hist_items_batch = []

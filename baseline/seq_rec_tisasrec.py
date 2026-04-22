@@ -30,7 +30,6 @@ Key design choices:
 """
 
 args = parse_args()
-args.model_name = "tisasrec"
 set_seed(args.seed)
 args.device = set_device(args.device)
 args.save_path = f"{args.weights_path}/{args.dataset}"

@@ -30,6 +30,7 @@ Key design choices:
 """
 
 args = parse_args()
+args.model_name = "grurec"
 set_seed(args.seed)
 args.device = set_device(args.device)
 args.save_path = f"{args.weights_path}/{args.dataset}"
@@ -68,6 +69,7 @@ hot_idxs = np.arange(dataset.hotDataSize)
 cold_mini_batch = mini_batch - hot_mini_batch
 cold_idxs = np.arange(dataset.coldDataSize)
 
+args.model_name = "tisasrec"
 model = build_model(args, dataset, mini_batch)
 optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
 
@@ -91,6 +93,61 @@ for epoch in range(1, args.epochs + 1):
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_times = torch.tensor(dataset.train_hist_time_list[hot_sample_idx], dtype=torch.long, device=args.device)
 
+
+
+#%%
+hist_item_idx = anchor_hist_items
+hist_timestamps = anchor_hist_times
+    # def encode_user(self, hist_item_idx, hist_timestamps):
+timeline_mask = hist_item_idx.eq(self.padding_item_id)  # [B, L]
+
+seqs = self.item_embedding(hist_item_idx)
+seqs = seqs * (self.item_embedding.embedding_dim ** 0.5)
+seqs = self.emb_dropout(seqs)
+seqs = seqs.masked_fill(timeline_mask.unsqueeze(-1), 0.0)
+
+pos_ids = self._build_position_ids(hist_item_idx)               # [B, L]
+time_mat = self._build_time_matrix(hist_timestamps, hist_item_idx)  # [B, L, L]
+
+abs_pos_k = self.abs_pos_k_emb(pos_ids)     # [B, L, D]
+abs_pos_v = self.abs_pos_v_emb(pos_ids)     # [B, L, D]
+time_mat_k = self.time_matrix_k_emb(time_mat)  # [B, L, L, D]
+time_mat_v = self.time_matrix_v_emb(time_mat)  # [B, L, L, D]
+
+for i in range(len(self.attention_layers)):
+    if self.norm_first:
+        x = self.attention_layernorms[i](seqs)
+        attn_out = self.attention_layers[i](
+            x,
+            abs_pos_k,
+            abs_pos_v,
+            time_mat_k,
+            time_mat_v,
+            padding_mask=timeline_mask,
+        )
+        seqs = seqs + attn_out
+        seqs = seqs + self.forward_layers[i](self.forward_layernorms[i](seqs))
+    else:
+        attn_out = self.attention_layers[i](
+            seqs,
+            abs_pos_k,
+            abs_pos_v,
+            time_mat_k,
+            time_mat_v,
+            padding_mask=timeline_mask,
+        )
+        seqs = self.attention_layernorms[i](seqs + attn_out)
+        seqs = self.forward_layernorms[i](seqs + self.forward_layers[i](seqs))
+
+    seqs = seqs.masked_fill(timeline_mask.unsqueeze(-1), 0.0)
+
+seqs = self.last_layernorm(seqs)
+u = self._get_last_hidden(seqs, hist_item_idx)  # [B, D]
+return u
+
+
+
+#%%
 
         pos_score = score_pair(model, pos_item, anchor_hist_items, anchor_user)
         neg_score = score_pair(model, neg_item, anchor_hist_items, anchor_user)

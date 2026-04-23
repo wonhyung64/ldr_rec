@@ -147,16 +147,24 @@ class UserItemTime(Dataset):
         self.valid_hist_item_list, self.valid_hist_time_list = _build_histories(self.valid_events)
         self.test_hist_item_list, self.test_hist_time_list = _build_histories(self.test_events)
 
-    def get_histories_for_users_at_times(self, users, query_times, max_seq_len):
-        hist_items_batch = []
+    def get_histories_for_users_at_times(self, users, query_times, max_seq_len, w_time=False):
+        hist_items_batch, hist_times_batch = [], []
         for u, t in zip(users, query_times):
             hist = [(tt, vv) for (tt, vv) in self.user_interactions[int(u)] if tt < float(t)]
             hist = hist[-max_seq_len:]
-            h_items = [vv for (tt, vv) in hist]
+            h_items, h_times = [], []
+            for (tt, vv) in hist:
+                h_items.append(vv)
+                h_times.append(tt)
             pad_len = max_seq_len - len(h_items)
             h_items = [self.m_item] * pad_len + h_items
+            h_times = [h_times[0]] * pad_len + h_times
             hist_items_batch.append(h_items)
-        return np.array(hist_items_batch, dtype=np.int64)
+            hist_times_batch.append(h_times)
+        if not w_time:
+            return np.array(hist_items_batch, dtype=np.int64)
+        if w_time:
+            return np.array(hist_items_batch, dtype=np.int64), 
 
     def get_pair_user_uniform(self, k=1):
         pos_user = self.user_list.astype(np.int64)

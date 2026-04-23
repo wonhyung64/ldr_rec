@@ -35,8 +35,8 @@ class ResidualBase(nn.Module):
         h = torch.sum(u.unsqueeze(1) * v, dim=-1)
         return h
 
-    def score_all_items(self, hist_item_idx, user_idx=None):
-        u = self.encode_user(hist_item_idx, user_idx=user_idx)
+    def score_all_items(self, hist_item_idx, additional_feat):
+        u = self.encode_user(hist_item_idx, additional_feat)
         v_all = self.get_item_repr(torch.arange(self.num_items, device=hist_item_idx.device))
         h = torch.matmul(u, v_all.T)
         return h

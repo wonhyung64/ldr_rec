@@ -164,7 +164,7 @@ class UserItemTime(Dataset):
         if not w_time:
             return np.array(hist_items_batch, dtype=np.int64)
         if w_time:
-            return np.array(hist_items_batch, dtype=np.int64), 
+            return np.array(hist_items_batch, dtype=np.int64), np.array(hist_times_batch)
 
     def get_pair_user_uniform(self, k=1):
         pos_user = self.user_list.astype(np.int64)

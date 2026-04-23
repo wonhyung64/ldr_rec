@@ -44,6 +44,6 @@ def score_pair(model, item_idx, hist_item_idx, additional_feat):
     return model.residual_score(item_idx, hist_item_idx, additional_feat)
 
 
-def score_all(model, hist_item_idx, user_idx):
-    return model.score_all_items(hist_item_idx=hist_item_idx, user_idx=user_idx)
+def score_all(model, hist_item_idx, additional_feat):
+    return model.score_all_items(hist_item_idx, additional_feat)
 

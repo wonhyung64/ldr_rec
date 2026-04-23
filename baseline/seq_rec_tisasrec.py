@@ -31,6 +31,7 @@ Key design choices:
 
 args = parse_args()
 set_seed(args.seed)
+args.model_name = "tisasrec"
 args.device = set_device(args.device)
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True)
@@ -113,7 +114,7 @@ for epoch in range(1, args.epochs + 1):
 
         model.eval()
         for (user, item), pos_time_val in dataset.valid_user_item_time.items():
-            hist_item_np, hist_time_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
+            hist_item_np, hist_time_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len, w_time=True)
             hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
             hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device)
 

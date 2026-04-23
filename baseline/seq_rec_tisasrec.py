@@ -158,7 +158,7 @@ best_model.load_state_dict(best_state)
 best_model.eval()
 
 for (user, item), pos_time_val in dataset.test_user_item_time.items():
-    hist_item_np, hist_time_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
+    hist_item_np, hist_time_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len, w_time=True)
     hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
     hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device)
 

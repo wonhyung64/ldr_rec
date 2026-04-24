@@ -17,21 +17,8 @@ from module.model import build_model, score_pair, score_all
 
 
 #%%
-"""
-Residual-only density-ratio baselines trained with logistic loss.
-
-Key design choices:
-- No prior module.
-- Uniform negative sampling distribution q(u) over users.
-- Keep the training/evaluation skeleton close to the user's current code.
-- Make model replacement easy by sharing the same interface:
-    residual_score(item_idx, hist_item_idx, user_idx=None)
-    score_all_items(hist_item_idx, user_idx=None)
-"""
-
 args = parse_args()
 set_seed(args.seed)
-args.model_name = "tisasrec"
 args.device = set_device(args.device)
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True)
@@ -51,7 +38,6 @@ if wandb_login:
     args.expt_name = f"{file_name.split('.')[-2]}_{args.model_name}_{expt_num}"
     wandb_var = wandb.init(project="ldr_rec2", config=vars(args))
     wandb.run.name = args.expt_name
-
 
 
 #%%
@@ -181,5 +167,3 @@ if wandb_login:
     wandb_var.log({"best_valid_score": best_valid_score})
     wandb_var.log({"best_epoch": best_epoch})
     wandb_var.finish()
-
-# %%

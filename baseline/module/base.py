@@ -40,3 +40,17 @@ class ResidualBase(nn.Module):
         v_all = self.get_item_repr(torch.arange(self.num_items, device=hist_item_idx.device))
         h = torch.matmul(u, v_all.T)
         return h
+
+
+class PositionalEncoding(torch.nn.Module):
+    def __init__(self, max_len, d_model, padding_item_id):
+        super().__init__()
+        self.padding_item_id = padding_item_id
+        self.pos_emb = torch.nn.Embedding(max_len+1, d_model)
+
+    def forward(self, x):
+        B, L = x.shape
+        pos = torch.arange(1, L+1, device=x.device).unsqueeze(0).expand(B, -1)
+        hist_mask = x != self.padding_item_id
+        pos = hist_mask * pos
+        return self.pos_emb(pos)

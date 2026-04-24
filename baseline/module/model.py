@@ -8,6 +8,7 @@ from .sasrec import SASRec
 # from .mlp4rec import MLP4Rec
 # from .bert4rec import BERT4Rec
 from .tisasrec import TiSASRec
+from .fearec import FEARec
 
 
 MODEL_REGISTRY = {
@@ -18,6 +19,7 @@ MODEL_REGISTRY = {
     # "mlp4rec": MLP4Rec,
     # "bert4rec": BERT4Rec,
     "tisasrec": TiSASRec,
+    "fearec": FEARec,
 }
 
 
@@ -36,7 +38,6 @@ def build_model(args, dataset, mini_batch):
         max_seq_len=getattr(args, "max_seq_len", 50),
         n_heads=getattr(args, "n_heads", 2),
         dropout=getattr(args, "dropout", 0.1),
-        
     ).to(args.device)
 
 

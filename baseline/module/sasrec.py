@@ -1,20 +1,6 @@
 import torch
 import torch.nn as nn
-from .base import ResidualBase
-
-
-class PositionalEncoding(torch.nn.Module):
-    def __init__(self, max_len, d_model, padding_item_id):
-        super().__init__()
-        self.padding_item_id = padding_item_id
-        self.pos_emb = torch.nn.Embedding(max_len+1, d_model)
-
-    def forward(self, x):
-        B, L = x.shape
-        pos = torch.arange(1, L+1, device=x.device).unsqueeze(0).expand(B, -1)
-        hist_mask = x != self.padding_item_id
-        pos = hist_mask * pos
-        return self.pos_emb(pos)
+from .base import ResidualBase, PositionalEncoding
 
 
 class PointWiseFeedForward(torch.nn.Module):
@@ -46,7 +32,7 @@ class SASRec(ResidualBase):
         self.forward_layers = torch.nn.ModuleList()
         self.last_layernorm = torch.nn.LayerNorm(self.embedding_k, eps=1e-8)
 
-        for _ in range(max(1, self.depth)):
+        for _ in range(max(2, self.depth)):
             new_attn_layernorm = nn.LayerNorm(self.embedding_k, eps=1e-8)
             self.attention_layernorms.append(new_attn_layernorm)
 

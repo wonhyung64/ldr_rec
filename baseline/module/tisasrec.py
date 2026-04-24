@@ -28,7 +28,7 @@ class TiSASRec(ResidualBase):
         self.forward_layers = nn.ModuleList()
         self.last_layernorm = nn.LayerNorm(self.embedding_k, eps=1e-8)
 
-        for _ in range(max(1, self.depth)):
+        for _ in range(max(2, self.depth)):
             self.attention_layernorms.append(
                 nn.LayerNorm(self.embedding_k, eps=1e-8)
             )

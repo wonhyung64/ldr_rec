@@ -55,16 +55,17 @@ RANDOM_SEED=0
 
 experiments=(
 
-    # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=0"
-    # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=1"
-    # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=2"
-    # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=3"
-    # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=4"
-    # "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0"
-    # "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=1"
-    # "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=2"
-    # "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=3"
-    # "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=4"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=0"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=1"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=2"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=3"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=4"
+
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=1"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=2"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=3"
+    "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=4"
 
     # "./baseline/cf.py --model-name=mf --dataset=kuairand --seed=0"
     # "./baseline/cf.py --model-name=mf --dataset=kuairand --seed=1"
@@ -114,23 +115,23 @@ experiments=(
     # "./baseline/seq_rec.py --model-name=grurec --dataset=ml-100k --seed=3"
     # "./baseline/seq_rec.py --model-name=grurec --dataset=ml-100k --seed=4"
 
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=0"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=1"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=2"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=3"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=4"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=0"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=1"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=2"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=3"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=4"
 
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=0"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=1"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=2"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=3"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=4"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=0"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=1"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=2"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=3"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=micro_video --seed=4"
 
-    "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-100k --seed=0"
-    "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-100k --seed=1"
-    "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-100k --seed=2"
-    "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-100k --seed=3"
-    "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-100k --seed=4"
+    # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-100k --seed=0"
+    # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-100k --seed=1"
+    # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-100k --seed=2"
+    # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-100k --seed=3"
+    # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-100k --seed=4"
     
     "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=0"
     "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=1"
@@ -143,6 +144,19 @@ experiments=(
     "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=2"
     "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=3"
     "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=4"
+
+    "./baseline/seq_rec.py --model-name=fearec --dataset=kuairand --seed=0"
+    "./baseline/seq_rec.py --model-name=fearec --dataset=kuairand --seed=1"
+    "./baseline/seq_rec.py --model-name=fearec --dataset=kuairand --seed=2"
+    "./baseline/seq_rec.py --model-name=fearec --dataset=kuairand --seed=3"
+    "./baseline/seq_rec.py --model-name=fearec --dataset=kuairand --seed=4"
+
+    "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=0"
+    "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=1"
+    "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=2"
+    "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=3"
+    "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=4"
+
 )
 
 

@@ -1,5 +1,6 @@
 #%%
 import os
+import math
 import copy
 import wandb
 import torch
@@ -22,7 +23,7 @@ set_seed(args.seed)
 args.device = set_device(args.device)
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True)
-
+args.model_name = "bsarec"
 
 wandb_login = False
 file_dir = inspect.getfile(inspect.currentframe())
@@ -78,7 +79,6 @@ for epoch in range(1, args.epochs + 1):
         neg_item = torch.tensor(dataset.hot_neg_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_times = torch.tensor(dataset.train_hist_time_list[hot_sample_idx], dtype=torch.long, device=args.device)
-
 
         pos_score = score_pair(model, pos_item, anchor_hist_items, anchor_user)
         neg_score = score_pair(model, neg_item, anchor_hist_items, anchor_user)
@@ -169,3 +169,8 @@ if wandb_login:
     wandb_var.log({"best_valid_score": best_valid_score})
     wandb_var.log({"best_epoch": best_epoch})
     wandb_var.finish()
+
+
+
+#%%
+

@@ -269,12 +269,12 @@ class HybridAttention(nn.Module):
 
 
 class FeedForward(nn.Module):
-    def __init__(self, hidden_size, dropout):
+    def __init__(self, hidden_size, dropout_rate):
         super(FeedForward, self).__init__()
         self.dense_1 = nn.Linear(hidden_size, hidden_size)
         self.dense_2 = nn.Linear(hidden_size, hidden_size)
         self.LayerNorm = nn.LayerNorm(hidden_size, eps=1e-8)
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout_rate)
 
     def gelu(self, x):
         return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))

@@ -9,6 +9,7 @@ from .sasrec import SASRec
 # from .bert4rec import BERT4Rec
 from .tisasrec import TiSASRec
 from .fearec import FEARec
+from .bsarec import BSARec
 
 
 MODEL_REGISTRY = {
@@ -20,6 +21,7 @@ MODEL_REGISTRY = {
     # "bert4rec": BERT4Rec,
     "tisasrec": TiSASRec,
     "fearec": FEARec,
+    "bsarec": BSARec,
 }
 
 

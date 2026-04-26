@@ -17,8 +17,6 @@ MODEL_REGISTRY = {
     "ncf": NCF,
     "grurec": GRURec,
     "sasrec": SASRec,
-    # "mlp4rec": MLP4Rec,
-    # "bert4rec": BERT4Rec,
     "tisasrec": TiSASRec,
     "fearec": FEARec,
     "bsarec": BSARec,

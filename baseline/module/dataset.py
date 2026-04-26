@@ -33,6 +33,7 @@ class UserItemTime(Dataset):
         self.train_user_item_time = self.set_to_pair(self.train_dict, self.time_dict)
         self.valid_user_item_time = self.set_to_pair(self.valid_dict, self.time_dict)
         self.test_user_item_time = self.set_to_pair(self.test_dict, self.time_dict)
+        self.item_time_array = self.time_dict_to_array(self.time_dict)
 
         self.user_interactions = self.build_user_interactions(self.time_dict)
         self.build_event_lists()
@@ -123,6 +124,7 @@ class UserItemTime(Dataset):
         self.coldDataSize = len(self.train_cold_events)
 
         self.trainDataSize = self.hotDataSize + self.coldDataSize
+        self.item_time_array = self.time_dict_to_array(self.time_dict)
 
     def build_user_histories(self, max_seq_len=50):
         self.max_seq_len = max_seq_len
@@ -174,7 +176,7 @@ class UserItemTime(Dataset):
         self.pos_user_list = pos_user
         self.neg_user_list = neg_user
 
-    def get_pair_item_uniform(self, k=1):
+    def get_pair_item_uniform(self, k=1, w_time=False):
         hot_pos_item = self.hot_item_list.astype(np.int64)
         hot_N = len(hot_pos_item)
         hot_neg_item = np.random.randint(0, self.m_item - 1, size=(hot_N, k), dtype=np.int64)
@@ -188,3 +190,34 @@ class UserItemTime(Dataset):
         cold_neg_item += (cold_neg_item >= cold_pos_item[:, None])
         self.cold_pos_item_list = cold_pos_item
         self.cold_neg_item_list = cold_neg_item
+        if w_time:
+            self.hot_pos_time_all = self.item_time_array[hot_pos_item]
+            self.hot_neg_time_all = self.item_time_array[hot_neg_item]
+            self.cold_pos_time_all = self.item_time_array[cold_pos_item]
+            self.cold_neg_time_all = self.item_time_array[cold_neg_item]
+        
+    def time_dict_to_array(self, time_dict):
+        max_pos, item_time_dict, item_time_array = 0, {}, []
+        for _, user_dict in time_dict.items():
+            for item_idx, times in user_dict.items():
+                try:
+                    assert item_time_dict[item_idx]
+                except:
+                    item_time_dict[item_idx] = []
+                item_time_dict[item_idx].append(times)
+        max_time = 0.
+        for i in range(max(item_time_dict.keys())+1):
+            try:
+                times = np.array(item_time_dict[i])
+                max_time = max(np.max(times), max_time)
+            except:
+                times = np.array([])
+            max_pos = max(max_pos, len(times))
+            times.sort()
+            item_time_array.append(times)
+        self.max_pos = max_pos
+        self.max_time = max_time+1
+        for i in range(max(item_time_dict.keys())+1):
+            item_time_array[i] = np.pad(item_time_array[i], (0, max_pos - len(item_time_array[i])), "constant", constant_values=max_time)
+        item_time_array = np.stack(item_time_array, 0)
+        return item_time_array

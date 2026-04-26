@@ -5,30 +5,20 @@ import wandb
 import torch
 import inspect
 import numpy as np
+import torch.nn as nn
 import torch.nn.functional as F
 
-from torch import optim
 from datetime import datetime
 
 from module.utils import parse_args, set_seed, set_device
 from module.procedure import computeTopNAccuracy
 from module.dataset import UserItemTime
-from module.model import build_model, score_pair, score_all
+from module.model import score_pair, score_all, MODEL_REGISTRY
+from module.debias import build_debias_model
+from module.sampler import make_prior_snapshot, sample_epoch_negatives
 
 
 #%%
-"""
-Residual-only density-ratio baselines trained with logistic loss.
-
-Key design choices:
-- No prior module.
-- Uniform negative sampling distribution q(u) over users.
-- Keep the training/evaluation skeleton close to the user's current code.
-- Make model replacement easy by sharing the same interface:
-    residual_score(item_idx, hist_item_idx, user_idx=None)
-    score_all_items(hist_item_idx, user_idx=None)
-"""
-
 args = parse_args()
 set_seed(args.seed)
 args.device = set_device(args.device)
@@ -52,26 +42,86 @@ if wandb_login:
     wandb.run.name = args.expt_name
 
 
-
 #%%
 dataset = UserItemTime(args)
 dataset.build_user_histories(max_seq_len=args.max_seq_len)
-dataset.get_pair_item_uniform(k=args.contrast_size-1)
-hot_ratio = dataset.hotDataSize / dataset.trainDataSize
+dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
 
-#%%
 mini_batch = args.batch_size // args.contrast_size
 batch_num = dataset.trainDataSize // mini_batch + 1
 
+hot_ratio = dataset.hotDataSize / dataset.trainDataSize
 hot_mini_batch = round(mini_batch * hot_ratio)
 hot_idxs = np.arange(dataset.hotDataSize)
 cold_mini_batch = mini_batch - hot_mini_batch
 cold_idxs = np.arange(dataset.coldDataSize)
-model = build_model(args, dataset, mini_batch)
-optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
+
+#%%
+model_name = getattr(args, "model_name", "grurec").lower()
+if model_name not in MODEL_REGISTRY:
+    raise ValueError(f"Unknown model_name={model_name}. Available: {list(MODEL_REGISTRY.keys())}")
+model_class = MODEL_REGISTRY[model_name]
+
+debiased_class = build_debias_model(model_class)
+model = debiased_class(
+    num_users=dataset.n_user,
+    num_items=dataset.m_item,
+    embedding_k=args.recdim,
+    device=args.device,
+    tau=args.tau,
+    depth=args.depth,
+    max_seq_len=args.max_seq_len,
+    n_heads=args.n_heads,
+    dropout=args.dropout,
+    ).to(args.device)
+
+prior_params = (
+    list(model.base_net.parameters())
+    + list(model.excitation_net.parameters())
+    + [model.log_beta]
+)
+shared_params = list(model.item_embedding.parameters())
+excluded_param_ids = {id(p) for p in prior_params + shared_params}
+residual_params = [
+    p for p in model.parameters()
+    if id(p) not in excluded_param_ids
+]
+
+optimizer_prior = torch.optim.Adam(
+    prior_params,
+    lr=args.lr,
+    weight_decay=args.decay,
+)
+
+optimizer_shared = torch.optim.Adam(
+    shared_params,
+    lr=args.lr,
+    weight_decay=args.decay,
+)
+
+optimizer_residual = torch.optim.Adam(
+    residual_params,
+    lr=args.lr,
+    weight_decay=args.decay,
+)
 
 
 #%%
+dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
+snapshot = make_prior_snapshot(model)
+hot_negs = sample_epoch_negatives(
+    snapshot=snapshot,
+    train_events=dataset.train_hot_events,
+    num_items=dataset.m_item,
+    num_negatives=args.contrast_size-1,
+)
+cold_negs = sample_epoch_negatives(
+    snapshot=snapshot,
+    train_events=dataset.train_cold_events,
+    num_items=dataset.m_item,
+    num_negatives=args.contrast_size-1,
+)
+
 best_valid_score = 0.0
 best_state = copy.deepcopy(model.state_dict())
 best_epoch = 0
@@ -81,39 +131,84 @@ for epoch in range(1, args.epochs + 1):
     model.train()
     np.random.shuffle(hot_idxs)
     epoch_user_loss = 0.0
+    epoch_item_loss = 0.0
 
     for idx in range(batch_num):
         hot_sample_idx = hot_idxs[hot_mini_batch*idx : (idx + 1)*hot_mini_batch]
         hot_anchor_user = torch.tensor(dataset.hot_user_list[hot_sample_idx], dtype=torch.long, device=args.device)
         hot_pos_item = torch.tensor(dataset.hot_pos_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
-        hot_neg_item = torch.tensor(dataset.hot_neg_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
+        hot_neg_item = torch.tensor(hot_negs[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
 
         cold_sample_idx = cold_idxs[cold_mini_batch*idx : (idx + 1)*cold_mini_batch]
         cold_anchor_user = torch.tensor(dataset.cold_user_list[cold_sample_idx], dtype=torch.long, device=args.device)
         cold_pos_item = torch.tensor(dataset.cold_pos_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
-        cold_neg_item = torch.tensor(dataset.cold_neg_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
+        cold_neg_item = torch.tensor(cold_negs[cold_sample_idx], dtype=torch.long, device=args.device)
 
         anchor_user = torch.cat([cold_anchor_user, hot_anchor_user], dim=0)
         pos_item = torch.cat([cold_pos_item, hot_pos_item], dim=0)
         neg_item = torch.cat([cold_neg_item, hot_neg_item], dim=0)
-        
+       
         pos_score = score_pair(model, pos_item, anchor_hist_items, anchor_user)
         neg_score = score_pair(model, neg_item, anchor_hist_items, anchor_user)
-
-
         user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum()
-        optimizer.zero_grad()
-        user_loss.backward()
-        optimizer.step()
-
         epoch_user_loss += user_loss.item()
 
-    print(f"[Epoch {epoch:>4d} Train Loss] ldr: {epoch_user_loss / batch_num:.4f}")
+        optimizer_residual.zero_grad()
+        optimizer_shared.zero_grad()
+        user_loss.backward()
+        optimizer_residual.step()
+        optimizer_shared.step()
+
+        hot_neg_item = torch.tensor(dataset.hot_neg_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
+        cold_neg_item = torch.tensor(dataset.cold_neg_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
+        neg_item = torch.cat([cold_neg_item, hot_neg_item], dim=0)
+
+        hot_pos_time = torch.Tensor(dataset.hot_event_time_list[hot_sample_idx]).reshape(-1, 1, 1).to(args.device)
+        cold_pos_time = torch.Tensor(dataset.cold_event_time_list[cold_sample_idx]).reshape(-1, 1, 1).to(args.device)
+        pos_time = torch.cat([cold_pos_time, hot_pos_time], dim=0)
+
+        hot_pos_time_all = torch.Tensor(dataset.hot_pos_time_all[hot_sample_idx]).to(args.device)
+        cold_pos_time_all = torch.Tensor(dataset.cold_pos_time_all[cold_sample_idx]).to(args.device)
+        pos_time_all = torch.cat([cold_pos_time_all, hot_pos_time_all], dim=0)
+
+        hot_neg_time_all = torch.Tensor(dataset.hot_neg_time_all[hot_sample_idx]).to(args.device)
+        cold_neg_time_all = torch.Tensor(dataset.cold_neg_time_all[cold_sample_idx]).to(args.device)
+        neg_time_all = torch.cat([cold_neg_time_all, hot_neg_time_all], dim=0)
+
+        batch_items = torch.concat([pos_item.unsqueeze(-1), neg_item], -1).reshape(pos_item.shape[0], -1)
+        batch_time_all = torch.concat([pos_time_all.unsqueeze(1), neg_time_all], 1)
+
+        logits = model.prior(batch_items, pos_time, batch_time_all)
+        log_logits = torch.log(logits + 1e-9)
+        item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean()
+        epoch_item_loss += item_loss.item()
+
+        optimizer_prior.zero_grad()
+        optimizer_shared.zero_grad()
+        item_loss.backward()
+        optimizer_prior.step()
+        optimizer_shared.step()
+
+    print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss / batch_num:.4f} / item: {epoch_item_loss / batch_num:.4f}")
+
 
     if epoch % args.pair_reset_interval == 0:
-        print("Reset uniform negative users")
-        dataset.get_pair_item_uniform(k=args.contrast_size-1)
+        print("Reset Negs")
+        dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
+        snapshot = make_prior_snapshot(model)
+        hot_negs = sample_epoch_negatives(
+            snapshot=snapshot,
+            train_events=dataset.train_hot_events,
+            num_items=dataset.m_item,
+            num_negatives=args.contrast_size-1,
+        )
+        cold_negs = sample_epoch_negatives(
+            snapshot=snapshot,
+            train_events=dataset.train_cold_events,
+            num_items=dataset.m_item,
+            num_negatives=args.contrast_size-1,
+        )
 
     if epoch % args.evaluate_interval == 0:
         pred_list = []
@@ -160,9 +255,10 @@ for epoch in range(1, args.epochs + 1):
 pred_list = []
 gt_list = []
 
-best_model = build_model(args, dataset, mini_batch)
-best_model.load_state_dict(best_state)
-best_model.eval()
+# best_model = build_model(args, dataset, mini_batch)
+# best_model.load_state_dict(best_state)
+# best_model.eval()
+model.eval()
 
 for (user, item), pos_time_val in dataset.test_user_item_time.items():
     hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
@@ -170,7 +266,8 @@ for (user, item), pos_time_val in dataset.test_user_item_time.items():
     user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 
     with torch.no_grad():
-        pred = score_all(best_model, hist_item_t, user_t).squeeze(0).cpu()
+        # pred = score_all(best_model, hist_item_t, user_t).squeeze(0).cpu()
+        pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
 
     exclude_items = list(dataset._allPos[user])
     pred[exclude_items] = -9999
@@ -188,3 +285,5 @@ if wandb_login:
     wandb_var.log({"best_valid_score": best_valid_score})
     wandb_var.log({"best_epoch": best_epoch})
     wandb_var.finish()
+
+# %%

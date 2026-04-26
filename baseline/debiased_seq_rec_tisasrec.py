@@ -8,6 +8,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 
+from torch import optim
 from datetime import datetime
 
 from module.utils import parse_args, set_seed, set_device
@@ -45,7 +46,7 @@ if wandb_login:
 #%%
 dataset = UserItemTime(args)
 dataset.build_user_histories(max_seq_len=args.max_seq_len)
-dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
+dataset.get_pair_item_uniform(k=args.contrast_size-1)
 
 mini_batch = args.batch_size // args.contrast_size
 batch_num = dataset.trainDataSize // mini_batch + 1
@@ -55,6 +56,7 @@ hot_mini_batch = round(mini_batch * hot_ratio)
 hot_idxs = np.arange(dataset.hotDataSize)
 cold_mini_batch = mini_batch - hot_mini_batch
 cold_idxs = np.arange(dataset.coldDataSize)
+
 
 #%%
 model_name = getattr(args, "model_name", "grurec").lower()
@@ -115,12 +117,6 @@ hot_negs = sample_epoch_negatives(
     num_items=dataset.m_item,
     num_negatives=args.contrast_size-1,
 )
-cold_negs = sample_epoch_negatives(
-    snapshot=snapshot,
-    train_events=dataset.train_cold_events,
-    num_items=dataset.m_item,
-    num_negatives=args.contrast_size-1,
-)
 
 best_valid_score = 0.0
 best_state = copy.deepcopy(model.state_dict())
@@ -134,23 +130,16 @@ for epoch in range(1, args.epochs + 1):
     epoch_item_loss = 0.0
 
     for idx in range(batch_num):
+
         hot_sample_idx = hot_idxs[hot_mini_batch*idx : (idx + 1)*hot_mini_batch]
         hot_anchor_user = torch.tensor(dataset.hot_user_list[hot_sample_idx], dtype=torch.long, device=args.device)
         hot_pos_item = torch.tensor(dataset.hot_pos_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
         hot_neg_item = torch.tensor(hot_negs[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
+        anchor_hist_times = torch.tensor(dataset.train_hist_time_list[hot_sample_idx], dtype=torch.long, device=args.device)
 
-        cold_sample_idx = cold_idxs[cold_mini_batch*idx : (idx + 1)*cold_mini_batch]
-        cold_anchor_user = torch.tensor(dataset.cold_user_list[cold_sample_idx], dtype=torch.long, device=args.device)
-        cold_pos_item = torch.tensor(dataset.cold_pos_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
-        cold_neg_item = torch.tensor(cold_negs[cold_sample_idx], dtype=torch.long, device=args.device)
-
-        anchor_user = torch.cat([cold_anchor_user, hot_anchor_user], dim=0)
-        pos_item = torch.cat([cold_pos_item, hot_pos_item], dim=0)
-        neg_item = torch.cat([cold_neg_item, hot_neg_item], dim=0)
-       
-        pos_score = score_pair(model, pos_item, anchor_hist_items, anchor_user)
-        neg_score = score_pair(model, neg_item, anchor_hist_items, anchor_user)
+        pos_score = score_pair(model, hot_pos_item, anchor_hist_items, anchor_hist_times)
+        neg_score = score_pair(model, hot_neg_item, anchor_hist_items, anchor_hist_times)
         user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum()
         epoch_user_loss += user_loss.item()
 
@@ -159,6 +148,11 @@ for epoch in range(1, args.epochs + 1):
         user_loss.backward()
         optimizer_residual.step()
         optimizer_shared.step()
+
+
+        cold_sample_idx = cold_idxs[cold_mini_batch*idx : (idx + 1)*cold_mini_batch]
+        cold_pos_item = torch.tensor(dataset.cold_pos_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
+        pos_item = torch.cat([cold_pos_item, hot_pos_item], dim=0)
 
         hot_neg_item = torch.tensor(dataset.hot_neg_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
         cold_neg_item = torch.tensor(dataset.cold_neg_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
@@ -194,21 +188,8 @@ for epoch in range(1, args.epochs + 1):
 
 
     if epoch % args.pair_reset_interval == 0:
-        print("Reset Negs")
-        dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
-        snapshot = make_prior_snapshot(model)
-        hot_negs = sample_epoch_negatives(
-            snapshot=snapshot,
-            train_events=dataset.train_hot_events,
-            num_items=dataset.m_item,
-            num_negatives=args.contrast_size-1,
-        )
-        cold_negs = sample_epoch_negatives(
-            snapshot=snapshot,
-            train_events=dataset.train_cold_events,
-            num_items=dataset.m_item,
-            num_negatives=args.contrast_size-1,
-        )
+        print("Reset uniform negative users")
+        dataset.get_pair_item_uniform(k=args.contrast_size-1)
 
     if epoch % args.evaluate_interval == 0:
         pred_list = []
@@ -216,12 +197,12 @@ for epoch in range(1, args.epochs + 1):
 
         model.eval()
         for (user, item), pos_time_val in dataset.valid_user_item_time.items():
-            hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
+            hist_item_np, hist_time_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len, w_time=True)
             hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
-            user_t = torch.tensor([user], dtype=torch.long, device=args.device)
+            hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device)
 
             with torch.no_grad():
-                pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+                pred = score_all(model, hist_item_t, hist_time_t).squeeze(0).cpu()
 
             exclude_items = list(dataset._allPos[user])
             pred[exclude_items] = -9999
@@ -261,13 +242,13 @@ gt_list = []
 model.eval()
 
 for (user, item), pos_time_val in dataset.test_user_item_time.items():
-    hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
+    hist_item_np, hist_time_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len, w_time=True)
     hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
-    user_t = torch.tensor([user], dtype=torch.long, device=args.device)
+    hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device)
 
     with torch.no_grad():
         # pred = score_all(best_model, hist_item_t, user_t).squeeze(0).cpu()
-        pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+        pred = score_all(model, hist_item_t, hist_time_t).squeeze(0).cpu()
 
     exclude_items = list(dataset._allPos[user])
     pred[exclude_items] = -9999
@@ -285,3 +266,5 @@ if wandb_login:
     wandb_var.log({"best_valid_score": best_valid_score})
     wandb_var.log({"best_epoch": best_epoch})
     wandb_var.finish()
+
+# %%

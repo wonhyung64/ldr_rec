@@ -23,7 +23,6 @@ set_seed(args.seed)
 args.device = set_device(args.device)
 args.save_path = f"{args.weights_path}/{args.dataset}"
 os.makedirs(args.save_path, exist_ok=True)
-args.model_name = "bsarec"
 
 wandb_login = False
 file_dir = inspect.getfile(inspect.currentframe())

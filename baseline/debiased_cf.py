@@ -56,6 +56,8 @@ hot_idxs = np.arange(dataset.hotDataSize)
 cold_mini_batch = mini_batch - hot_mini_batch
 cold_idxs = np.arange(dataset.coldDataSize)
 
+all_item_idxs = np.arange(dataset.m_item)
+
 #%%
 model_name = getattr(args, "model_name", "grurec").lower()
 if model_name not in MODEL_REGISTRY:
@@ -211,17 +213,44 @@ for epoch in range(1, args.epochs + 1):
         )
 
     if epoch % args.evaluate_interval == 0:
+        item_nll_list = []
         pred_list = []
         gt_list = []
 
         model.eval()
+        with torch.no_grad():
+            mu, alpha, beta = model.prior_parameters_from_embeddings()
+
         for (user, item), pos_time_val in dataset.valid_user_item_time.items():
             hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
             hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
             user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 
             with torch.no_grad():
-                pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+                resid = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+
+
+            pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
+
+            item_logits_list = []
+            for idx2 in range(dataset.m_item // args.batch_size + 1):
+                item_idx = all_item_idxs[idx2 * args.batch_size: (idx2 + 1) * args.batch_size]
+                if len(item_idx) == 0:
+                    continue
+
+                batch_time_all = torch.tensor(dataset.item_time_array[item_idx], dtype=torch.float32).to(args.device)
+                batch_time_mask = batch_time_all < pos_time_t
+                batch_time_delta = (pos_time_t - batch_time_all).clamp(min=0.0)
+
+                with torch.no_grad():
+                    time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
+                    logits = (mu[idx2] + alpha[idx2] * time_intensity).flatten()
+                item_logits_list.append(logits)
+
+            item_logits = torch.concat(item_logits_list)
+            item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
+
+            pred = (item_log_prob.cpu() + resid.cpu()).cpu()
 
             exclude_items = list(dataset._allPos[user])
             pred[exclude_items] = -9999
@@ -259,6 +288,8 @@ gt_list = []
 # best_model.load_state_dict(best_state)
 # best_model.eval()
 model.eval()
+with torch.no_grad():
+    mu, alpha, beta = model.prior_parameters_from_embeddings()
 
 for (user, item), pos_time_val in dataset.test_user_item_time.items():
     hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
@@ -266,8 +297,30 @@ for (user, item), pos_time_val in dataset.test_user_item_time.items():
     user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 
     with torch.no_grad():
-        # pred = score_all(best_model, hist_item_t, user_t).squeeze(0).cpu()
-        pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+        resid = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+
+
+    pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
+
+    item_logits_list = []
+    for idx2 in range(dataset.m_item // args.batch_size + 1):
+        item_idx = all_item_idxs[idx2 * args.batch_size: (idx2 + 1) * args.batch_size]
+        if len(item_idx) == 0:
+            continue
+
+        batch_time_all = torch.tensor(dataset.item_time_array[item_idx], dtype=torch.float32).to(args.device)
+        batch_time_mask = batch_time_all < pos_time_t
+        batch_time_delta = (pos_time_t - batch_time_all).clamp(min=0.0)
+
+        with torch.no_grad():
+            time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
+            logits = (mu[idx2] + alpha[idx2] * time_intensity).flatten()
+        item_logits_list.append(logits)
+
+    item_logits = torch.concat(item_logits_list)
+    item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
+
+    pred = (item_log_prob.cpu() + resid.cpu()).cpu()
 
     exclude_items = list(dataset._allPos[user])
     pred[exclude_items] = -9999
@@ -285,3 +338,5 @@ if wandb_login:
     wandb_var.log({"best_valid_score": best_valid_score})
     wandb_var.log({"best_epoch": best_epoch})
     wandb_var.finish()
+
+# %%

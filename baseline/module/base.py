@@ -40,7 +40,7 @@ class ResidualBase(nn.Module):
         u = self.encode_user(hist_item_idx, additional_feat)
         v_all = self.get_item_repr(torch.arange(self.num_items, device=hist_item_idx.device))
         u = F.normalize(u, dim=-1, eps=1e-8)
-        v = F.normalize(v, dim=-1, eps=1e-8)
+        v_all = F.normalize(v_all, dim=-1, eps=1e-8)
         h = torch.matmul(u, v_all.T) / self.tau
         return h
 

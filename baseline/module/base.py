@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class ResidualBase(nn.Module):
@@ -31,17 +30,15 @@ class ResidualBase(nn.Module):
         u = self.encode_user(hist_item_idx, additional_feat)
         mini_batch, recdim = u.shape
         v = self.get_item_repr(item_idx).reshape(mini_batch, -1, recdim)
-        u = F.normalize(u, dim=-1, eps=1e-8)
-        v = F.normalize(v, dim=-1, eps=1e-8)
-        h = torch.sum(u.unsqueeze(1) * v, dim=-1) / self.tau
+        # u = F.normalize(u, dim=-1, eps=1e-8)
+        # v = F.normalize(v, dim=-1, eps=1e-8)
+        h = torch.sum(u.unsqueeze(1) * v, dim=-1)
         return h
 
     def score_all_items(self, hist_item_idx, additional_feat):
         u = self.encode_user(hist_item_idx, additional_feat)
         v_all = self.get_item_repr(torch.arange(self.num_items, device=hist_item_idx.device))
-        u = F.normalize(u, dim=-1, eps=1e-8)
-        v = F.normalize(v, dim=-1, eps=1e-8)
-        h = torch.matmul(u, v_all.T) / self.tau
+        h = torch.matmul(u, v_all.T)
         return h
 
 

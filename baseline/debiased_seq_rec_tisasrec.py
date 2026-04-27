@@ -141,7 +141,7 @@ for epoch in range(1, args.epochs + 1):
 
         pos_score = score_pair(model, hot_pos_item, anchor_hist_items, anchor_hist_times)
         neg_score = score_pair(model, hot_neg_item, anchor_hist_items, anchor_hist_times)
-        user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum()
+        user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum() * args.lambda1
         epoch_user_loss += user_loss.item()
 
         optimizer_residual.zero_grad()
@@ -176,7 +176,7 @@ for epoch in range(1, args.epochs + 1):
 
         logits = model.prior(batch_items, pos_time, batch_time_all)
         log_logits = torch.log(logits + 1e-9)
-        item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean()
+        item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean() * (1-args.lambda1)
         epoch_item_loss += item_loss.item()
 
         optimizer_prior.zero_grad()

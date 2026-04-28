@@ -106,6 +106,11 @@ optimizer_residual = torch.optim.Adam(
     weight_decay=args.decay,
 )
 
+optimizer = torch.optim.Adam(
+    model.parameters(),
+    lr=args.lr,
+    weight_decay=args.decay,
+)
 
 #%%
 dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
@@ -140,11 +145,11 @@ for epoch in range(1, args.epochs + 1):
         user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum() * args.lambda1
         epoch_user_loss += user_loss.item()
 
-        optimizer_residual.zero_grad()
-        optimizer_shared.zero_grad()
-        user_loss.backward()
-        optimizer_residual.step()
-        optimizer_shared.step()
+        # optimizer_residual.zero_grad()
+        # optimizer_shared.zero_grad()
+        # user_loss.backward()
+        # optimizer_residual.step()
+        # optimizer_shared.step()
 
         cold_sample_idx = cold_idxs[cold_mini_batch*idx : (idx + 1)*cold_mini_batch]
         cold_pos_item = torch.tensor(dataset.cold_pos_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
@@ -174,11 +179,16 @@ for epoch in range(1, args.epochs + 1):
         item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean() * (1-args.lambda1)
         epoch_item_loss += item_loss.item()
 
-        optimizer_prior.zero_grad()
-        optimizer_shared.zero_grad()
-        item_loss.backward()
-        optimizer_prior.step()
-        optimizer_shared.step()
+        # optimizer_prior.zero_grad()
+        # optimizer_shared.zero_grad()
+        # item_loss.backward()
+        # optimizer_prior.step()
+        # optimizer_shared.step()
+
+        total_loss = item_loss + user_loss
+        optimizer.zero_grad()
+        total_loss.backward()
+        optimizer.step()
 
     print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss / batch_num:.4f} / item: {epoch_item_loss / batch_num:.4f}")
 

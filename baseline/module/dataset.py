@@ -53,8 +53,8 @@ class UserItemTime(Dataset):
         user_item_time = {}
         for user in set_dict:
             for item in set_dict[user]:
-                # time = time_dict[user][item] / 60 / 60 / 24
-                time = time_dict[user][item]
+                time = time_dict[user][item] / 60 / 60 / 24
+                # time = time_dict[user][item]
                 user_item_time[(user, item)] = time
         return user_item_time
 
@@ -74,8 +74,8 @@ class UserItemTime(Dataset):
         user_interactions = {u: [] for u in range(self.n_user)}
         for u, item_time in time_dict.items():
             for it, t in item_time.items():
-                t_day = float(t)
-                # t_day = float(t) / 60 / 60 / 24
+                # t_day = float(t)
+                t_day = float(t) / 60 / 60 / 24
                 user_interactions[u].append((t_day, it))
         for u in user_interactions:
             user_interactions[u].sort(key=lambda x: x[0])

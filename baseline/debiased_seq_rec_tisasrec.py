@@ -191,6 +191,13 @@ for epoch in range(1, args.epochs + 1):
     if epoch % args.pair_reset_interval == 0:
         print("Reset uniform negative users")
         dataset.get_pair_item_uniform(k=args.contrast_size-1)
+        snapshot = make_prior_snapshot(model)
+        hot_negs = sample_epoch_negatives(
+            snapshot=snapshot,
+            train_events=dataset.train_hot_events,
+            num_items=dataset.m_item,
+            num_negatives=args.contrast_size-1,
+        )
 
     if epoch % args.evaluate_interval == 0:
         pred_list = []

@@ -96,11 +96,11 @@ experiments=(
     # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.75"
     # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.75"
 
-    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.1 --lambda1=0.75"
-    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=1 --tau=0.1 --lambda1=0.75"
-    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=2 --tau=0.1 --lambda1=0.75"
-    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=3 --tau=0.1 --lambda1=0.75"
-    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=4 --tau=0.1 --lambda1=0.75"
+    # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.1 --lambda1=0.75"
+    # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=1 --tau=0.1 --lambda1=0.75"
+    # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=2 --tau=0.1 --lambda1=0.75"
+    # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=3 --tau=0.1 --lambda1=0.75"
+    # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=4 --tau=0.1 --lambda1=0.75"
 
     # "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=0 --tau=0.1 --lambda1=0.75"
     # "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=1 --tau=0.1 --lambda1=0.75"

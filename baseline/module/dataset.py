@@ -160,7 +160,7 @@ class UserItemTime(Dataset):
                 h_times.append(tt)
             pad_len = max_seq_len - len(h_items)
             h_items = [self.m_item] * pad_len + h_items
-            h_times = [h_times[0]] * pad_len + h_times
+            h_times = [0.] * pad_len + h_times
             hist_items_batch.append(h_items)
             hist_times_batch.append(h_times)
         if not w_time:
@@ -169,7 +169,7 @@ class UserItemTime(Dataset):
             return np.array(hist_items_batch, dtype=np.int64), np.array(hist_times_batch)
 
     def get_pair_user_uniform(self, k=1):
-        pos_user = self.user_list.astype(np.int64)
+        pos_user = self.hot_user_list.astype(np.int64)
         N = len(pos_user)
         neg_user = np.random.randint(0, self.n_user - 1, size=(N, k), dtype=np.int64)
         neg_user += (neg_user >= pos_user[:, None])

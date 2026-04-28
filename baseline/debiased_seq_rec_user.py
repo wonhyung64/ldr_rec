@@ -114,18 +114,20 @@ optimizer = torch.optim.Adam(
 
 #%%
 dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
-snapshot = make_prior_snapshot(model)
-hot_negs = sample_epoch_negatives(
-    snapshot=snapshot,
-    train_events=dataset.train_hot_events,
-    num_items=dataset.m_item,
-    num_negatives=args.contrast_size-1,
-)
+dataset.get_pair_user_uniform()
+# snapshot = make_prior_snapshot(model)
+# hot_negs = sample_epoch_negatives(
+#     snapshot=snapshot,
+#     train_events=dataset.train_hot_events,
+#     num_items=dataset.m_item,
+#     num_negatives=args.contrast_size-1,
+# )
 
 best_valid_score = 0.0
 best_state = copy.deepcopy(model.state_dict())
 best_epoch = 0
 cnt = 1
+
 for epoch in range(1, args.epochs + 1):
     torch.cuda.empty_cache()
     model.train()
@@ -137,11 +139,18 @@ for epoch in range(1, args.epochs + 1):
         hot_sample_idx = hot_idxs[hot_mini_batch*idx : (idx + 1)*hot_mini_batch]
         hot_anchor_user = torch.tensor(dataset.hot_user_list[hot_sample_idx], dtype=torch.long, device=args.device)
         hot_pos_item = torch.tensor(dataset.hot_pos_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
-        hot_neg_item = torch.tensor(hot_negs[hot_sample_idx], dtype=torch.long, device=args.device)
+        # hot_neg_item = torch.tensor(hot_negs[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
 
+        neg_hist_items_np = dataset.get_histories_for_users_at_times(
+	        dataset.neg_user_list[hot_sample_idx, 0],
+	        dataset.hot_event_time_list[hot_sample_idx],
+	        max_seq_len=args.max_seq_len,
+        )
+        neg_hist_items = torch.tensor(neg_hist_items_np, device=args.device)
+        
         pos_score = score_pair(model, hot_pos_item, anchor_hist_items, hot_anchor_user)
-        neg_score = score_pair(model, hot_neg_item, anchor_hist_items, hot_anchor_user)
+        neg_score = score_pair(model, hot_pos_item, neg_hist_items, hot_anchor_user)
         user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum() * args.lambda1
         epoch_user_loss += user_loss.item()
 
@@ -193,15 +202,9 @@ for epoch in range(1, args.epochs + 1):
     print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss / batch_num:.4f} / item: {epoch_item_loss / batch_num:.4f}")
 
     if epoch % args.pair_reset_interval == 0:
-        print("Reset negative users")
+        print("Reset uniform negative users")
         dataset.get_pair_item_uniform(k=args.contrast_size-1)
-        snapshot = make_prior_snapshot(model)
-        hot_negs = sample_epoch_negatives(
-            snapshot=snapshot,
-            train_events=dataset.train_hot_events,
-            num_items=dataset.m_item,
-            num_negatives=args.contrast_size-1,
-        )
+        dataset.get_pair_user_uniform()
 
     if epoch % args.evaluate_interval == 0:
         pred_list = []

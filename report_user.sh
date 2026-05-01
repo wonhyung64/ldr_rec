@@ -328,7 +328,222 @@ experiments=(
     # "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=3 --tau=0.499"
     # "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=4 --tau=0.499"
 
+#
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.1"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.1"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.1"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.1"
 
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.3"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.3"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.3"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.3"
+
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.5"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.5"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.5"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.5"
+
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.7"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.7"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.7"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.7"
+
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.9"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.9"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.9"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.9"
+
+#
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.1"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.1"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.1"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.1"
+
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.1 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.3 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.5 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.7 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.9 --lambda1=0.1"
+
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.1"
+
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.1"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.1"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.1"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.1"
+
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.1"
+
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.1"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.1"
+    #
+#
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.3"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.3"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.3"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.3"
+
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.1 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.3 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.5 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.7 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.9 --lambda1=0.3"
+
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.3"
+
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.3"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.3"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.3"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.3"
+
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.3"
+
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.3"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.3"
+    #
+#
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.5"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.5"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.5"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.5"
+
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.1 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.3 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.5 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.7 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.9 --lambda1=0.5"
+
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.5"
+
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.5"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.5"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.5"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.5"
+
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.5"
+
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.5"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.5"
+    #
+#
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.7"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.7"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.7"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.7"
+
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.1 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.3 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.5 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.7 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.9 --lambda1=0.7"
+
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.7"
+
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.7"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.7"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.7"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.7"
+
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.7"
+
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.7"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.7"
+    #
+#
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.9"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.9"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.9"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.9"
+
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.1 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.3 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.5 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.7 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.9 --lambda1=0.9"
+
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.9"
+
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.9"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.9"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.9"
+    "./baseline/debiased_seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.9"
+
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.9"
+
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.3 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.5 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.7 --lambda1=0.9"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.9 --lambda1=0.9"
+    #
 )
 
 

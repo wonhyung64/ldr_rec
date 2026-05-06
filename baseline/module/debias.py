@@ -37,7 +37,8 @@ def build_debias_model(model_class):
 
         def prior_parameters_from_embeddings(self):
             # z = nn.functional.normalize(self.p_item_embedding.weight, dim=-1)
-            z = self.p_item_embedding.weight
+            z = nn.functional.normalize(self.item_embedding.weight, dim=-1)
+            # z = self.p_item_embedding.weight
             # z = self.item_embedding.weight
             mu = self.softplus(self.base_net(z)).squeeze(-1) + 1e-8
             alpha = self.softplus(self.excitation_net(z)).squeeze(-1) + 1e-8
@@ -46,7 +47,8 @@ def build_debias_model(model_class):
 
         def prior(self, batch_items, pos_time, batch_time_all):
             # item_vec = nn.functional.normalize(self.p_item_embedding(batch_items), dim=-1)
-            item_vec = self.p_item_embedding(batch_items)
+            item_vec = nn.functional.normalize(self.item_embedding(batch_items), dim=-1)
+            # item_vec = self.p_item_embedding(batch_items)
             # item_vec = self.item_embedding(batch_items)
             beta = self.current_beta()
             query = pos_time.view(-1, 1, 1)

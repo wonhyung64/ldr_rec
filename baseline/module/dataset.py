@@ -90,8 +90,8 @@ class UserItemTime(Dataset):
         u_start = -1
         t_start = 0
         for i, (u, v, t) in enumerate(self.train_events):
-            if u == 1150:
-                break
+            # if u == 1150:
+            #     break
             if (u != u_start):
                 self.train_cold_events.append((u, v, float(t)))
                 u_start = u

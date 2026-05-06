@@ -90,11 +90,6 @@ dataset.prepare_user_timebucket_sampler()
 dataset.get_pair_user_event_timebucket_fast()
 
 
-best_valid_score = 0.0
-best_state = copy.deepcopy(model.state_dict())
-best_epoch = 0
-cnt = 1
-
 for epoch in range(1, args.epochs + 1):
     torch.cuda.empty_cache()
     model.train()
@@ -223,24 +218,11 @@ for epoch in range(1, args.epochs + 1):
             wandb_var.log(dict(zip([f"valid_ndcg_{k}" for k in args.topks], valid_results[2])))
             wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
 
-        current_valid_score = valid_results[1][0]
-        if current_valid_score - best_valid_score <= 0.0:
-            cnt += 1
-        else:
-            best_valid_score = current_valid_score
-            best_state = copy.deepcopy(model.state_dict())
-            best_epoch = epoch
-            cnt = 1
 
-        if cnt == 5:
-            break
-
+#%%
 pred_list = []
 gt_list = []
 
-# best_model = build_model(args, dataset, mini_batch)
-# best_model.load_state_dict(best_state)
-# best_model.eval()
 model.eval()
 with torch.no_grad():
     mu, alpha, beta = model.prior_parameters_from_embeddings()
@@ -289,8 +271,6 @@ if wandb_login:
     wandb_var.log(dict(zip([f"test_recall_{k}" for k in args.topks], test_results[1])))
     wandb_var.log(dict(zip([f"test_ndcg_{k}" for k in args.topks], test_results[2])))
     wandb_var.log(dict(zip([f"test_mrr_{k}" for k in args.topks], test_results[3])))
-    wandb_var.log({"best_valid_score": best_valid_score})
-    wandb_var.log({"best_epoch": best_epoch})
     wandb_var.finish()
 
 

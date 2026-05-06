@@ -57,8 +57,8 @@ experiments=(
 
     "./baseline/debiased_seq_rec_user.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.1 --lambda1=0.125"
     "./baseline/debiased_seq_rec_user.py --model-name=grurec --dataset=micro_video --seed=0 --tau=0.1 --lambda1=0.125 --lr=1e-2"
-    # "./baseline/debiased_seq_rec_user.py --model-name=grurec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.875"
-    # "./baseline/debiased_seq_rec_user.py --model-name=grurec --dataset=ml-1m --seed=0 --tau=0.1 --lambda1=0.875"
+    "./baseline/debiased_seq_rec_user.py --model-name=grurec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.875"
+    "./baseline/debiased_seq_rec_user.py --model-name=grurec --dataset=ml-1m --seed=0 --tau=0.1 --lambda1=0.875"
 )
 
 

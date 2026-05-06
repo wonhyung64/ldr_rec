@@ -236,7 +236,7 @@ for epoch in range(1, args.epochs + 1):
 
                 with torch.no_grad():
                     time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
-                    logits = (mu[idx2] + alpha[idx2] * time_intensity).flatten()
+                    logits = (mu[item_idx] + alpha[item_idx] * time_intensity).flatten()
                 item_logits_list.append(logits)
 
             item_logits = torch.concat(item_logits_list)
@@ -306,7 +306,7 @@ for (user, item), pos_time_val in dataset.test_user_item_time.items():
 
         with torch.no_grad():
             time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
-            logits = (mu[idx2] + alpha[idx2] * time_intensity).flatten()
+            logits = (mu[item_idx] + alpha[item_idx] * time_intensity).flatten()
         item_logits_list.append(logits)
 
     item_logits = torch.concat(item_logits_list)

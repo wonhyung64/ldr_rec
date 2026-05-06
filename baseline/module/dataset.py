@@ -221,3 +221,71 @@ class UserItemTime(Dataset):
             item_time_array[i] = np.pad(item_time_array[i], (0, max_pos - len(item_time_array[i])), "constant", constant_values=max_time)
         item_time_array = np.stack(item_time_array, 0)
         return item_time_array
+    
+    def prepare_user_timebucket_sampler(self, bucket_size=86400):
+        self.user_bucket_size = float(bucket_size)
+
+	    # active users per bucket from TRAIN events
+        hot_bucket_to_users = {}
+        for (u, v, t) in self.train_hot_events:
+            b = int(t // self.user_bucket_size)
+            if b not in hot_bucket_to_users:
+                hot_bucket_to_users[b] = set()
+            hot_bucket_to_users[b].add(u)
+
+	    # store as numpy arrays for fast indexing
+        self.hot_bucket_to_users_np = {
+            b: np.array(sorted(list(users)), dtype=np.int64)
+            for b, users in hot_bucket_to_users.items()
+        }
+
+	    # bucket id for each train event
+        self.train_hot_event_bucket = np.array(
+		    [int(t // self.user_bucket_size) for t in self.hot_event_time_list],
+		    dtype=np.int64
+	    )
+
+	    # event indices grouped by bucket
+        self.hot_bucket_to_event_idx = {}
+        for idx, b in enumerate(self.train_hot_event_bucket):
+            if b not in self.hot_bucket_to_event_idx:
+                self.hot_bucket_to_event_idx[b] = []
+            self.hot_bucket_to_event_idx[b].append(idx)
+        self.hot_bucket_to_event_idx = {
+            b: np.array(idxs, dtype=np.int64)
+            for b, idxs in self.hot_bucket_to_event_idx.items()
+        }
+
+	    # global users for fallback
+        self.hot_all_users_np = np.arange(self.n_user, dtype=np.int64)
+        
+    def get_pair_user_event_timebucket_fast(self, k=1):
+        hot_pos_user = self.hot_user_list  # [N]
+        N = len(hot_pos_user)
+
+        hot_neg_user = np.empty((N, k), dtype=np.int64)
+
+        for b, event_idx in self.hot_bucket_to_event_idx.items():
+            users_arr = self.hot_bucket_to_users_np[b]   # active users in this bucket
+            pos_u_b = hot_pos_user[event_idx]            # positive users for events in this bucket
+
+            if len(users_arr) >= 2:
+                # vectorized rejection sampling to avoid sampling the positive user
+                rand_idx = np.random.randint(0, len(users_arr), size=len(event_idx))
+                sampled = users_arr[rand_idx]
+
+                mask = (sampled == pos_u_b)
+                while mask.any():
+                    rand_idx_resample = np.random.randint(0, len(users_arr), size=mask.sum())
+                    sampled[mask] = users_arr[rand_idx_resample]
+                    mask = (sampled == pos_u_b)
+
+                hot_neg_user[event_idx, 0] = sampled
+
+            else:
+                u = pos_u_b
+                r = np.random.randint(0, self.n_user - 1, size=len(event_idx))
+                r += (r >= u)
+                hot_neg_user[event_idx, 0] = r
+
+        self.hot_neg_user_list = hot_neg_user.astype(np.int64)

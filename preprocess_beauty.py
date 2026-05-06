@@ -123,3 +123,27 @@ for k,v in test_dict.items():
 print(f"user num: {len(set(user_set))} / item num: {len(set(item_set))}")
 print(f"train num: {train_num} / valid num: {valid_num} / test num: {test_num}")
 # %%
+train_dict = np.load(f"{file_dir}/beauty/training_dict.npy", allow_pickle=True).item()
+test_dict = np.load(f"{file_dir}/beauty/testing_dict.npy", allow_pickle=True).item()
+
+train_items = []
+for k,v in train_dict.items():
+    train_items.extend(v)
+
+test_items = []
+for k,v in test_dict.items():
+    test_items.extend(v)
+
+# %%
+train = list(set(train_items))
+
+train.sort()
+
+
+test = list(set(test_items))
+test.sort()
+
+train
+
+tmp = [i in train for i in test]
+sum(tmp) / len(tmp)

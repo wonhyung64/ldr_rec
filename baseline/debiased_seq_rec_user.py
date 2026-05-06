@@ -58,6 +58,7 @@ cold_idxs = np.arange(dataset.coldDataSize)
 all_item_idxs = np.arange(dataset.m_item)
 
 #%%
+args.model_name = "grurec"
 model_name = getattr(args, "model_name", "grurec").lower()
 if model_name not in MODEL_REGISTRY:
     raise ValueError(f"Unknown model_name={model_name}. Available: {list(MODEL_REGISTRY.keys())}")
@@ -112,16 +113,13 @@ optimizer = torch.optim.Adam(
     weight_decay=args.decay,
 )
 
+
+
 #%%
 dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
-dataset.get_pair_user_uniform()
-# snapshot = make_prior_snapshot(model)
-# hot_negs = sample_epoch_negatives(
-#     snapshot=snapshot,
-#     train_events=dataset.train_hot_events,
-#     num_items=dataset.m_item,
-#     num_negatives=args.contrast_size-1,
-# )
+dataset.prepare_user_timebucket_sampler()
+dataset.get_pair_user_event_timebucket_fast()
+
 
 best_valid_score = 0.0
 best_state = copy.deepcopy(model.state_dict())
@@ -143,7 +141,7 @@ for epoch in range(1, args.epochs + 1):
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
 
         neg_hist_items_np = dataset.get_histories_for_users_at_times(
-	        dataset.neg_user_list[hot_sample_idx, 0],
+	        dataset.hot_neg_user_list[hot_sample_idx, 0],
 	        dataset.hot_event_time_list[hot_sample_idx],
 	        max_seq_len=args.max_seq_len,
         )
@@ -204,7 +202,8 @@ for epoch in range(1, args.epochs + 1):
     if epoch % args.pair_reset_interval == 0:
         print("Reset uniform negative users")
         dataset.get_pair_item_uniform(k=args.contrast_size-1)
-        dataset.get_pair_user_uniform()
+        dataset.prepare_user_timebucket_sampler()
+        dataset.get_pair_user_event_timebucket_fast()
 
     if epoch % args.evaluate_interval == 0:
         pred_list = []

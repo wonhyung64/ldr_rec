@@ -149,7 +149,7 @@ for epoch in range(1, args.epochs + 1):
         
         pos_score = score_pair(model, hot_pos_item, anchor_hist_items, hot_anchor_user)
         neg_score = score_pair(model, hot_pos_item, neg_hist_items, hot_anchor_user)
-        user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum() * args.lambda1
+        user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).mean() * args.lambda1
         epoch_user_loss += user_loss.item()
 
         # optimizer_residual.zero_grad()

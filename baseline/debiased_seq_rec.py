@@ -76,36 +76,6 @@ model = debiased_class(
     dropout=args.dropout,
     ).to(args.device)
 
-prior_params = (
-    list(model.base_net.parameters())
-    + list(model.excitation_net.parameters())
-    + [model.log_beta]
-)
-shared_params = list(model.item_embedding.parameters())
-excluded_param_ids = {id(p) for p in prior_params + shared_params}
-residual_params = [
-    p for p in model.parameters()
-    if id(p) not in excluded_param_ids
-]
-
-optimizer_prior = torch.optim.Adam(
-    prior_params,
-    lr=args.lr,
-    weight_decay=args.decay,
-)
-
-optimizer_shared = torch.optim.Adam(
-    shared_params,
-    lr=args.lr,
-    weight_decay=args.decay,
-)
-
-optimizer_residual = torch.optim.Adam(
-    residual_params,
-    lr=args.lr,
-    weight_decay=args.decay,
-)
-
 optimizer = torch.optim.Adam(
     model.parameters(),
     lr=args.lr,
@@ -142,14 +112,9 @@ for epoch in range(1, args.epochs + 1):
 
         pos_score = score_pair(model, hot_pos_item, anchor_hist_items, hot_anchor_user)
         neg_score = score_pair(model, hot_neg_item, anchor_hist_items, hot_anchor_user)
-        user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum() * args.lambda1
+        user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).mean() * args.lambda1
         epoch_user_loss += user_loss.item()
 
-        # optimizer_residual.zero_grad()
-        # optimizer_shared.zero_grad()
-        # user_loss.backward()
-        # optimizer_residual.step()
-        # optimizer_shared.step()
 
         cold_sample_idx = cold_idxs[cold_mini_batch*idx : (idx + 1)*cold_mini_batch]
         cold_pos_item = torch.tensor(dataset.cold_pos_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
@@ -178,12 +143,6 @@ for epoch in range(1, args.epochs + 1):
         log_logits = torch.log(logits + 1e-9)
         item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean() * (1-args.lambda1)
         epoch_item_loss += item_loss.item()
-
-        # optimizer_prior.zero_grad()
-        # optimizer_shared.zero_grad()
-        # item_loss.backward()
-        # optimizer_prior.step()
-        # optimizer_shared.step()
 
         total_loss = item_loss + user_loss
         optimizer.zero_grad()
@@ -234,7 +193,7 @@ for epoch in range(1, args.epochs + 1):
 
                 with torch.no_grad():
                     time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
-                    logits = (mu[idx2] + alpha[idx2] * time_intensity).flatten()
+                    logits = (mu[item_idx] + alpha[item_idx] * time_intensity.squeeze(-1)).flatten()
                 item_logits_list.append(logits)
 
             item_logits = torch.concat(item_logits_list)
@@ -259,24 +218,10 @@ for epoch in range(1, args.epochs + 1):
             wandb_var.log(dict(zip([f"valid_ndcg_{k}" for k in args.topks], valid_results[2])))
             wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
 
-        current_valid_score = valid_results[1][0]
-        if current_valid_score - best_valid_score <= 0.0:
-            cnt += 1
-        else:
-            best_valid_score = current_valid_score
-            best_state = copy.deepcopy(model.state_dict())
-            best_epoch = epoch
-            cnt = 1
-
-        if cnt == 5:
-            break
 
 pred_list = []
 gt_list = []
 
-# best_model = build_model(args, dataset, mini_batch)
-# best_model.load_state_dict(best_state)
-# best_model.eval()
 model.eval()
 with torch.no_grad():
     mu, alpha, beta = model.prior_parameters_from_embeddings()
@@ -304,7 +249,7 @@ for (user, item), pos_time_val in dataset.test_user_item_time.items():
 
         with torch.no_grad():
             time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
-            logits = (mu[idx2] + alpha[idx2] * time_intensity).flatten()
+            logits = (mu[item_idx] + alpha[item_idx] * time_intensity.squeeze(-1)).flatten()
         item_logits_list.append(logits)
 
     item_logits = torch.concat(item_logits_list)
@@ -325,8 +270,6 @@ if wandb_login:
     wandb_var.log(dict(zip([f"test_recall_{k}" for k in args.topks], test_results[1])))
     wandb_var.log(dict(zip([f"test_ndcg_{k}" for k in args.topks], test_results[2])))
     wandb_var.log(dict(zip([f"test_mrr_{k}" for k in args.topks], test_results[3])))
-    wandb_var.log({"best_valid_score": best_valid_score})
-    wandb_var.log({"best_epoch": best_epoch})
     wandb_var.finish()
 
 

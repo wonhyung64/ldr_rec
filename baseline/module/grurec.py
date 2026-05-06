@@ -8,7 +8,7 @@ class GRURec(ResidualBase):
         self.user_gru = torch.nn.GRU(
             input_size=self.embedding_k,
             hidden_size=self.embedding_k,
-            num_layers=max(1,self.depth),
+            num_layers=max(2,self.depth),
             batch_first=True,
         )
 

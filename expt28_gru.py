@@ -631,7 +631,7 @@ for epoch in range(1, args.epochs+1):
 		batch_intensity = (time_intensity[:,0,:].sum(-1) / (time_intensity[:,0,:] != 0).sum(-1).clamp(1)).mean()
 
 		"""USER"""
-		neg_user = torch.tensor(dataset.neg_user_list[sample_idx, 0], dtype=torch.long).to(args.device)
+		# neg_user = torch.tensor(dataset.neg_user_list[sample_idx, 0], dtype=torch.long).to(args.device)
 		anchor_item = torch.tensor(dataset.item_list[sample_idx], dtype=torch.long).to(args.device)
 
 		# positive user history: precomputed

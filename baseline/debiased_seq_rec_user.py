@@ -77,42 +77,11 @@ model = debiased_class(
     dropout=args.dropout,
     ).to(args.device)
 
-prior_params = (
-    list(model.base_net.parameters())
-    + list(model.excitation_net.parameters())
-    + [model.log_beta]
-)
-shared_params = list(model.item_embedding.parameters())
-excluded_param_ids = {id(p) for p in prior_params + shared_params}
-residual_params = [
-    p for p in model.parameters()
-    if id(p) not in excluded_param_ids
-]
-
-optimizer_prior = torch.optim.Adam(
-    prior_params,
-    lr=args.lr,
-    weight_decay=args.decay,
-)
-
-optimizer_shared = torch.optim.Adam(
-    shared_params,
-    lr=args.lr,
-    weight_decay=args.decay,
-)
-
-optimizer_residual = torch.optim.Adam(
-    residual_params,
-    lr=args.lr,
-    weight_decay=args.decay,
-)
-
 optimizer = torch.optim.Adam(
     model.parameters(),
     lr=args.lr,
     weight_decay=args.decay,
 )
-
 
 
 #%%
@@ -130,14 +99,16 @@ for epoch in range(1, args.epochs + 1):
     torch.cuda.empty_cache()
     model.train()
     np.random.shuffle(hot_idxs)
+    np.random.shuffle(cold_idxs)
     epoch_user_loss = 0.0
     epoch_item_loss = 0.0
 
     for idx in range(batch_num):
         hot_sample_idx = hot_idxs[hot_mini_batch*idx : (idx + 1)*hot_mini_batch]
+
+        """USER"""
         hot_anchor_user = torch.tensor(dataset.hot_user_list[hot_sample_idx], dtype=torch.long, device=args.device)
         hot_pos_item = torch.tensor(dataset.hot_pos_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
-        # hot_neg_item = torch.tensor(hot_negs[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
 
         neg_hist_items_np = dataset.get_histories_for_users_at_times(
@@ -152,12 +123,7 @@ for epoch in range(1, args.epochs + 1):
         user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).mean() * args.lambda1
         epoch_user_loss += user_loss.item()
 
-        # optimizer_residual.zero_grad()
-        # optimizer_shared.zero_grad()
-        # user_loss.backward()
-        # optimizer_residual.step()
-        # optimizer_shared.step()
-
+        """ITEM"""
         cold_sample_idx = cold_idxs[cold_mini_batch*idx : (idx + 1)*cold_mini_batch]
         cold_pos_item = torch.tensor(dataset.cold_pos_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
         pos_item = torch.cat([cold_pos_item, hot_pos_item], dim=0)
@@ -186,11 +152,6 @@ for epoch in range(1, args.epochs + 1):
         item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean() * (1-args.lambda1)
         epoch_item_loss += item_loss.item()
 
-        # optimizer_prior.zero_grad()
-        # optimizer_shared.zero_grad()
-        # item_loss.backward()
-        # optimizer_prior.step()
-        # optimizer_shared.step()
 
         total_loss = item_loss + user_loss
         optimizer.zero_grad()

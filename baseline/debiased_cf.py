@@ -43,6 +43,7 @@ if wandb_login:
 
 
 #%%
+args.dataset = "ml-1m"
 dataset = UserItemTime(args)
 dataset.build_user_histories(max_seq_len=args.max_seq_len)
 dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
@@ -57,6 +58,7 @@ cold_mini_batch = mini_batch - hot_mini_batch
 cold_idxs = np.arange(dataset.coldDataSize)
 
 all_item_idxs = np.arange(dataset.m_item)
+
 
 #%%
 model_name = getattr(args, "model_name", "grurec").lower()

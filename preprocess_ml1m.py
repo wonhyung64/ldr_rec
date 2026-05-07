@@ -76,6 +76,13 @@ np.save(f"{file_dir}/ml-1m/validation_dict.npy", valid_dict, allow_pickle=True)
 np.save(f"{file_dir}/ml-1m/interaction_time_dict.npy", time_dict, allow_pickle=True)
 
 # %%
+train_dict = np.load(f"{file_dir}/kuairand/training_dict.npy", allow_pickle=True).item()
+valid_dict = np.load(f"{file_dir}/kuairand/testing_dict.npy", allow_pickle=True).item()
+test_dict = np.load(f"{file_dir}/kuairand/validation_dict.npy", allow_pickle=True).item()
+time_dict = np.load(f"{file_dir}/kuairand/interaction_time_dict.npy", allow_pickle=True).item()
+
+
+
 user_set, item_set = [], []
 train_num, valid_num, test_num = 0, 0, 0
 
@@ -96,3 +103,24 @@ for k,v in test_dict.items():
 
 print(f"user num: {len(set(user_set))} / item num: {len(set(item_set))}")
 print(f"train num: {train_num} / valid num: {valid_num} / test num: {test_num}")
+
+# %%
+seq_len_list = []
+seq_len_num = 0
+for u in train_dict.keys():
+    u_seq = train_dict[u]
+    try:
+        u_seq += valid_dict[u]
+    except:
+        pass
+
+    try:
+        u_seq += test_dict[u]
+    except:
+        pass
+
+    seq_len_list.append(len(u_seq))
+    seq_len_num += 1
+sum(seq_len_list) / seq_len_num
+
+# %%

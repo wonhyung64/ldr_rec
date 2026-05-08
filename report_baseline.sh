@@ -82,7 +82,7 @@ experiments=(
     # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=3"
     # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=4"
 
-    "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=0"
+    # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=0"
     # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=1"
     # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=2"
     # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=3"

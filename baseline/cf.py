@@ -53,7 +53,7 @@ if wandb_login:
 
 
 #%%
-args.dataset = "ml-1m"
+# args.dataset = "ml-1m"
 dataset = UserItemTime(args)
 dataset.build_user_histories(max_seq_len=args.max_seq_len)
 dataset.get_pair_item_uniform(k=args.contrast_size-1)
@@ -169,5 +169,6 @@ if wandb_login:
     wandb_var.log(dict(zip([f"test_ndcg_{k}" for k in args.topks], test_results[2])))
     wandb_var.log(dict(zip([f"test_mrr_{k}" for k in args.topks], test_results[3])))
     wandb_var.finish()
+
 
 # %%

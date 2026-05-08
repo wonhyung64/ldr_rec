@@ -137,7 +137,7 @@ for epoch in range(1, args.epochs + 1):
         hot_pos_item = torch.tensor(dataset.hot_pos_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
         hot_neg_item = torch.tensor(hot_negs[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
-        anchor_hist_times = torch.tensor(dataset.train_hist_time_list[hot_sample_idx], dtype=torch.long, device=args.device)
+        anchor_hist_times = torch.tensor(dataset.train_hist_time_list[hot_sample_idx], dtype=torch.long, device=args.device) * 24 * 60 * 60
 
         pos_score = score_pair(model, hot_pos_item, anchor_hist_items, anchor_hist_times)
         neg_score = score_pair(model, hot_neg_item, anchor_hist_items, anchor_hist_times)
@@ -210,7 +210,7 @@ for epoch in range(1, args.epochs + 1):
         for (user, item), pos_time_val in dataset.valid_user_item_time.items():
             hist_item_np, hist_time_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len, w_time=True)
             hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
-            hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device)
+            hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device) * 24 * 60 * 60
 
             with torch.no_grad():
                 resid = score_all(model, hist_item_t, hist_time_t).squeeze(0).cpu()
@@ -265,7 +265,7 @@ with torch.no_grad():
 for (user, item), pos_time_val in dataset.test_user_item_time.items():
     hist_item_np, hist_time_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len, w_time=True)
     hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
-    hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device)
+    hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device) * 24 * 60 * 60
 
     with torch.no_grad():
         resid = score_all(model, hist_item_t, hist_time_t).squeeze(0).cpu()

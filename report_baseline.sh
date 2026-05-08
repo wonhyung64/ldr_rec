@@ -82,7 +82,7 @@ experiments=(
     # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=3"
     # "./baseline/seq_rec.py --model-name=sasrec --dataset=micro_video --seed=4"
 
-    # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=0"
+    "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=0"
     # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=1"
     # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=2"
     # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=3"
@@ -94,7 +94,36 @@ experiments=(
     # "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=3"
     # "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=4"
 
-    # "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=1 --alpha=0.1"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=1 --alpha=0.3"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=1 --alpha=0.5"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=1 --alpha=0.7"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=1 --alpha=0.9"
+
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=3 --alpha=0.1"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=3 --alpha=0.3"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=3 --alpha=0.7"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=3 --alpha=0.9"
+
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=5 --alpha=0.1"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=5 --alpha=0.3"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=5 --alpha=0.5"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=5 --alpha=0.7"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=5 --alpha=0.9"
+
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=7 --alpha=0.1"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=7 --alpha=0.3"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=7 --alpha=0.5"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=7 --alpha=0.7"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=7 --alpha=0.9"
+
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=9 --alpha=0.1"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=9 --alpha=0.3"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=9 --alpha=0.5"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=9 --alpha=0.7"
+    "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=9 --alpha=0.9"
+
+
     # "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=1"
     # "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=2"
     # "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=3"
@@ -144,10 +173,10 @@ experiments=(
     # "./baseline/seq_rec.py --model-name=bsarec --dataset=kuairand --seed=4"
 
 
-    "./baseline/cf.py --model-name=mf --dataset=ml-1m --seed=0"
-    "./baseline/cf.py --model-name=mf --dataset=ml-1m --seed=1"
-    "./baseline/cf.py --model-name=mf --dataset=ml-1m --seed=2"
-    "./baseline/cf.py --model-name=mf --dataset=ml-1m --seed=3"
+    # "./baseline/cf.py --model-name=mf --dataset=ml-1m --seed=0"
+    # "./baseline/cf.py --model-name=mf --dataset=ml-1m --seed=1"
+    # "./baseline/cf.py --model-name=mf --dataset=ml-1m --seed=2"
+    # "./baseline/cf.py --model-name=mf --dataset=ml-1m --seed=3"
     # "./baseline/cf.py --model-name=mf --dataset=ml-1m --seed=4"
 
     # "./baseline/cf.py --model-name=ncf --dataset=ml-1m --seed=0"

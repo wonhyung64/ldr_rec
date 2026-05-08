@@ -5,14 +5,16 @@ from module.base import ResidualBase, PositionalEncoding
 
 
 class BSARec(ResidualBase):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, c=3, alpha=0.5, **kwargs):
         super().__init__(*args, **kwargs)
         self.pos_enc = PositionalEncoding(self.max_seq_len, self.embedding_k, self.padding_item_id)
         self.emb_dropout = torch.nn.Dropout(p=self.dropout)
         self.n_layers = max(2, self.depth)
         self.layer = nn.ModuleList()
+        self.c = c
+        self.alpha = alpha
         for i in range(self.n_layers):
-            self.layer_ramp = BSARecBlock(self.dropout, self.embedding_k, self.n_heads)
+            self.layer_ramp = BSARecBlock(self.dropout, self.embedding_k, self.n_heads, self.c, self.alpha)
             self.layer.append(self.layer_ramp)
 
     def encode_user(self, hist_item_idx, user_idx=None):
@@ -26,9 +28,9 @@ class BSARec(ResidualBase):
 
 
 class BSARecBlock(nn.Module):
-    def __init__(self, dropout_rate, embedding_k, n_heads):
+    def __init__(self, dropout_rate, embedding_k, n_heads, c, alpha):
         super(BSARecBlock, self).__init__()
-        self.layer = BSARecLayer(dropout_rate, embedding_k, n_heads)
+        self.layer = BSARecLayer(dropout_rate, embedding_k, n_heads, c, alpha)
         self.feed_forward = FeedForward(embedding_k, dropout_rate)
 
     def forward(self, hidden_states):
@@ -38,12 +40,11 @@ class BSARecBlock(nn.Module):
 
 
 class BSARecLayer(nn.Module):
-    def __init__(self, dropout_rate, embedding_k, n_heads):
+    def __init__(self, dropout_rate, embedding_k, n_heads, c, alpha):
         super(BSARecLayer, self).__init__()
-        self.filter_layer = FrequencyLayer(dropout_rate, embedding_k)
+        self.filter_layer = FrequencyLayer(dropout_rate, embedding_k, c)
         self.attention_layer = nn.MultiheadAttention(embedding_k, n_heads, dropout_rate)
-        self.alpha = torch.tensor([0.5])
-        self.alpha = 0.5
+        self.alpha = alpha
 
     def forward(self, input_tensor):
         dsp = self.filter_layer(input_tensor)
@@ -54,11 +55,11 @@ class BSARecLayer(nn.Module):
     
 
 class FrequencyLayer(nn.Module):
-    def __init__(self, dropout_rate, embedding_k):
+    def __init__(self, dropout_rate, embedding_k, c):
         super(FrequencyLayer, self).__init__()
         self.out_dropout = nn.Dropout(dropout_rate)
         self.LayerNorm = nn.LayerNorm(embedding_k, eps=1e-8)
-        self.c = 5 // 2 + 1
+        self.c = c
         self.sqrt_beta = nn.Parameter(torch.randn(1, 1, embedding_k))
 
     def forward(self, input_tensor):

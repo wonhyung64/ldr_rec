@@ -65,6 +65,11 @@ if model_name not in MODEL_REGISTRY:
     raise ValueError(f"Unknown model_name={model_name}. Available: {list(MODEL_REGISTRY.keys())}")
 model_class = MODEL_REGISTRY[model_name]
 
+if args.dataset == "ml-1m":
+    time_span = 2048
+else:
+    time_span = 512
+
 debiased_class = build_debias_model(model_class)
 model = debiased_class(
     num_users=dataset.n_user,
@@ -76,6 +81,7 @@ model = debiased_class(
     max_seq_len=args.max_seq_len,
     n_heads=args.n_heads,
     dropout=args.dropout,
+    time_span=time_span
     ).to(args.device)
 
 prior_params = (
@@ -90,23 +96,7 @@ residual_params = [
     if id(p) not in excluded_param_ids
 ]
 
-optimizer_prior = torch.optim.Adam(
-    prior_params,
-    lr=args.lr,
-    weight_decay=args.decay,
-)
-
-optimizer_shared = torch.optim.Adam(
-    shared_params,
-    lr=args.lr,
-    weight_decay=args.decay,
-)
-
-optimizer_residual = torch.optim.Adam(
-    residual_params,
-    lr=args.lr,
-    weight_decay=args.decay,
-)
+optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
 
 
 #%%
@@ -119,10 +109,7 @@ hot_negs = sample_epoch_negatives(
     num_negatives=args.contrast_size-1,
 )
 
-best_valid_score = 0.0
-best_state = copy.deepcopy(model.state_dict())
-best_epoch = 0
-cnt = 1
+
 for epoch in range(1, args.epochs + 1):
     torch.cuda.empty_cache()
     model.train()
@@ -143,12 +130,6 @@ for epoch in range(1, args.epochs + 1):
         neg_score = score_pair(model, hot_neg_item, anchor_hist_items, anchor_hist_times)
         user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum() * args.lambda1
         epoch_user_loss += user_loss.item()
-
-        optimizer_residual.zero_grad()
-        optimizer_shared.zero_grad()
-        user_loss.backward()
-        optimizer_residual.step()
-        optimizer_shared.step()
 
 
         cold_sample_idx = cold_idxs[cold_mini_batch*idx : (idx + 1)*cold_mini_batch]
@@ -179,11 +160,10 @@ for epoch in range(1, args.epochs + 1):
         item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean() * (1-args.lambda1)
         epoch_item_loss += item_loss.item()
 
-        optimizer_prior.zero_grad()
-        optimizer_shared.zero_grad()
-        item_loss.backward()
-        optimizer_prior.step()
-        optimizer_shared.step()
+        total_loss = item_loss + user_loss
+        optimizer.zero_grad()
+        total_loss.backward()
+        optimizer.step()
 
     print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss / batch_num:.4f} / item: {epoch_item_loss / batch_num:.4f}")
 

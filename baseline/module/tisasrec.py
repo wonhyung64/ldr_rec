@@ -65,7 +65,6 @@ class TiSASRec(ResidualBase):
         """
         hist_timestamps = hist_timestamps.long()
         valid = hist_item_idx.ne(self.padding_item_id)         # [B, L]
-        # valid = hist_item_idx.ne(model.padding_item_id)         # [B, L]
         pair_valid = valid.unsqueeze(1) & valid.unsqueeze(2)   # [B, L, L]
         delta = torch.abs(
             hist_timestamps.unsqueeze(2) - hist_timestamps.unsqueeze(1)

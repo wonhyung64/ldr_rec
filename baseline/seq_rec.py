@@ -15,6 +15,7 @@ from module.utils import parse_args, set_seed, set_device
 from module.procedure import computeTopNAccuracy
 from module.dataset import UserItemTime
 from module.model import build_model, score_pair, score_all
+from module.bsarec import BSARec
 
 
 #%%
@@ -57,14 +58,26 @@ cold_mini_batch = mini_batch - hot_mini_batch
 cold_idxs = np.arange(dataset.coldDataSize)
 
 model = build_model(args, dataset, mini_batch)
+if args.model_name == "bsarec":
+    BSARec(
+        num_users=dataset.n_user,
+        num_items=dataset.m_item,
+        embedding_k=args.recdim,
+        device=args.device,
+        tau=args.tau,
+        depth=args.depth,
+        max_seq_len=args.max_seq_len,
+        n_heads=args.n_heads,
+        dropout=args.dropout,
+        c=args.c,
+        alpha=args.alpha,
+        ).to(args.device)
+
+
 optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
 
 
 #%%
-best_valid_score = 0.0
-best_state = copy.deepcopy(model.state_dict())
-best_epoch = 0
-cnt = 1
 for epoch in range(1, args.epochs + 1):
     torch.cuda.empty_cache()
     model.train()
@@ -125,24 +138,12 @@ for epoch in range(1, args.epochs + 1):
             wandb_var.log(dict(zip([f"valid_ndcg_{k}" for k in args.topks], valid_results[2])))
             wandb_var.log(dict(zip([f"valid_mrr_{k}" for k in args.topks], valid_results[3])))
 
-        current_valid_score = valid_results[1][0]
-        if current_valid_score - best_valid_score <= 0.0:
-            cnt += 1
-        else:
-            best_valid_score = current_valid_score
-            best_state = copy.deepcopy(model.state_dict())
-            best_epoch = epoch
-            cnt = 1
-
-        if cnt == 5:
-            break
 
 pred_list = []
 gt_list = []
 
-best_model = build_model(args, dataset, mini_batch)
-best_model.load_state_dict(best_state)
-best_model.eval()
+
+model.eval()
 
 for (user, item), pos_time_val in dataset.test_user_item_time.items():
     hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
@@ -150,7 +151,7 @@ for (user, item), pos_time_val in dataset.test_user_item_time.items():
     user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 
     with torch.no_grad():
-        pred = score_all(best_model, hist_item_t, user_t).squeeze(0).cpu()
+        pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
 
     exclude_items = list(dataset._allPos[user])
     pred[exclude_items] = -9999
@@ -165,8 +166,6 @@ if wandb_login:
     wandb_var.log(dict(zip([f"test_recall_{k}" for k in args.topks], test_results[1])))
     wandb_var.log(dict(zip([f"test_ndcg_{k}" for k in args.topks], test_results[2])))
     wandb_var.log(dict(zip([f"test_mrr_{k}" for k in args.topks], test_results[3])))
-    wandb_var.log({"best_valid_score": best_valid_score})
-    wandb_var.log({"best_epoch": best_epoch})
     wandb_var.finish()
 
 

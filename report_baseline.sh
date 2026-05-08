@@ -89,10 +89,10 @@ experiments=(
     # "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=micro_video --seed=4"
 
     # "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=0"
-    "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=1"
-    "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=2"
-    "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=3"
-    "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=4"
+    # "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=1"
+    # "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=2"
+    # "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=3"
+    # "./baseline/seq_rec.py --model-name=fearec --dataset=micro_video --seed=4"
 
     # "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=1 --alpha=0.1"
     # "./baseline/seq_rec.py --model-name=bsarec --dataset=micro_video --seed=0 --c=1 --alpha=0.3"
@@ -142,10 +142,10 @@ experiments=(
     # "./baseline/cf.py --model-name=ncf --dataset=kuairand --seed=4"
 
     # "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=0 --max-seq-len=100"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=1 --max-seq-len=100"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=2 --max-seq-len=100"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=3 --max-seq-len=100"
-    # "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=4 --max-seq-len=100"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=1"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=2"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=3"
+    "./baseline/seq_rec.py --model-name=grurec --dataset=kuairand --seed=4"
 
     # "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --max-seq-len=100 --dropout=0.2"
     # "./baseline/seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --max-seq-len=100 --dropout=0.5"

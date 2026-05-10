@@ -57,9 +57,8 @@ hot_idxs = np.arange(dataset.hotDataSize)
 cold_mini_batch = mini_batch - hot_mini_batch
 cold_idxs = np.arange(dataset.coldDataSize)
 
-model = build_model(args, dataset, mini_batch)
 if args.model_name == "bsarec":
-    BSARec(
+    model = BSARec(
         num_users=dataset.n_user,
         num_items=dataset.m_item,
         embedding_k=args.recdim,
@@ -72,6 +71,8 @@ if args.model_name == "bsarec":
         c=args.c,
         alpha=args.alpha,
         ).to(args.device)
+else:
+    model = build_model(args, dataset, mini_batch)
 
 
 optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)

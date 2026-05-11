@@ -39,6 +39,7 @@ def parse_args():
     parser.add_argument('--n-layers', type=int, default=2)
     parser.add_argument('--model-name', type=str, default="mf")
     parser.add_argument('--norm-first', type=bool, default=True)
+    parser.add_argument('--dr-anchor', type=str, default="user")
 
 
 

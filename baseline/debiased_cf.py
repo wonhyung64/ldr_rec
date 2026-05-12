@@ -136,7 +136,7 @@ for epoch in range(1, args.epochs + 1):
        
             pos_score = score_pair(model, pos_item, anchor_hist_items, anchor_user)
             neg_score = score_pair(model, neg_item, anchor_hist_items, anchor_user)
-            user_loss += -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).mean()
+            user_loss += -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).mean() * args.lambda1
 
         if args.dr_anchor != "user":
 
@@ -176,7 +176,7 @@ for epoch in range(1, args.epochs + 1):
 
         logits = model.prior(batch_items, pos_time, batch_time_all)
         log_logits = torch.log(logits + 1e-9)
-        item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean() * args.lambda1
+        item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean() * (1-args.lambda1)
         epoch_item_loss += item_loss.item()
 
         dataset.get_pair_item_uniform(k=args.contrast_size-1)

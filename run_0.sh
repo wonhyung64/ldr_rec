@@ -64,7 +64,12 @@ DEVICE1=cuda:1
 DEVICE2=cuda:2
 DEVICE3=cuda:3
 
-$ENV ${experiments[0]} --data_path=$DATADIR --device=$DEVICE0 &
-$ENV ${experiments[1]} --data_path=$DATADIR --device=$DEVICE1 &
-$ENV ${experiments[2]} --data_path=$DATADIR --device=$DEVICE2 & 
-$ENV ${experiments[3]} --data_path=$DATADIR --device=$DEVICE3 & 
+# $ENV ${experiments[0]} --data_path=$DATADIR --device=$DEVICE0 &
+# $ENV ${experiments[1]} --data_path=$DATADIR --device=$DEVICE1 &
+# $ENV ${experiments[2]} --data_path=$DATADIR --device=$DEVICE2 & 
+# $ENV ${experiments[3]} --data_path=$DATADIR --device=$DEVICE3 & 
+
+$ENV ${experiments[4]} --data_path=$DATADIR --device=$DEVICE0 &
+$ENV ${experiments[5]} --data_path=$DATADIR --device=$DEVICE1 &
+$ENV ${experiments[6]} --data_path=$DATADIR --device=$DEVICE2 & 
+$ENV ${experiments[7]} --data_path=$DATADIR --device=$DEVICE3 & 

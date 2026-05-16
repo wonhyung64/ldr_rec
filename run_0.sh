@@ -46,6 +46,12 @@ experiments=(
 
 ENV=/home1/wonhyung64/anaconda3/envs/openmmlab/bin/python3
 DATADIR=/home1/wonhyung64/Github/ldr_rec/data
-DEVICE=cuda:0
+DEVICE0=cuda:0
+DEVICE1=cuda:1
+DEVICE2=cuda:2
+DEVICE3=cuda:3
 
-$ENV ${experiments[0]} --data_path=$DATADIR --device=$DEVICE
+$ENV ${experiments[0]} --data_path=$DATADIR --device=$DEVICE0
+$ENV ${experiments[1]} --data_path=$DATADIR --device=$DEVICE1
+$ENV ${experiments[2]} --data_path=$DATADIR --device=$DEVICE2
+$ENV ${experiments[3]} --data_path=$DATADIR --device=$DEVICE3

@@ -8,6 +8,12 @@ experiments=(
     "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --alpha=0.7 --c=1 --epochs=500"
     "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --alpha=0.7 --c=1 --epochs=500"
 
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+
+    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
 #
 
     # "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
@@ -59,6 +65,6 @@ DEVICE2=cuda:2
 DEVICE3=cuda:3
 
 $ENV ${experiments[0]} --data_path=$DATADIR --device=$DEVICE0 &
-$ENV ${experiments[0]} --data_path=$DATADIR --device=$DEVICE1 &
-$ENV ${experiments[0]} --data_path=$DATADIR --device=$DEVICE2 & 
-$ENV ${experiments[0]} --data_path=$DATADIR --device=$DEVICE3 & 
+$ENV ${experiments[1]} --data_path=$DATADIR --device=$DEVICE1 &
+$ENV ${experiments[2]} --data_path=$DATADIR --device=$DEVICE2 & 
+$ENV ${experiments[3]} --data_path=$DATADIR --device=$DEVICE3 & 

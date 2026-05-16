@@ -191,6 +191,15 @@ for epoch in range(1, args.epochs + 1):
 
     print(f"[Epoch {epoch:>4d} Train Loss] user: {epoch_user_loss / batch_num:.4f} / item: {epoch_item_loss / batch_num:.4f}")
 
+
+    if epoch % 100 == 0:
+        torch.save({
+            "epoch": epoch,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "loss": epoch_user_loss,
+        }, f"{args.save_path}/{args.model_name}_lambda{args.lambda1}_e{epoch}.pt")
+
     if epoch % args.pair_reset_interval == 0:
         if args.dr_anchor != "item":
             print("Reset negative users")

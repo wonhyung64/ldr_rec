@@ -82,12 +82,12 @@ DEVICE3=cuda:3
 # $ENV ${experiments[6]} --data_path=$DATADIR --device=$DEVICE2 & 
 # $ENV ${experiments[7]} --data_path=$DATADIR --device=$DEVICE3 & 
 
-$ENV ${experiments[8]} --data_path=$DATADIR --device=$DEVICE0 &
-$ENV ${experiments[9]} --data_path=$DATADIR --device=$DEVICE1 &
-$ENV ${experiments[10]} --data_path=$DATADIR --device=$DEVICE2 & 
-$ENV ${experiments[11]} --data_path=$DATADIR --device=$DEVICE3 & 
+# $ENV ${experiments[8]} --data_path=$DATADIR --device=$DEVICE0 &
+# $ENV ${experiments[9]} --data_path=$DATADIR --device=$DEVICE1 &
+# $ENV ${experiments[10]} --data_path=$DATADIR --device=$DEVICE2 & 
+# $ENV ${experiments[11]} --data_path=$DATADIR --device=$DEVICE3 & 
 
-# $ENV ${experiments[12]} --data_path=$DATADIR --device=$DEVICE0 &
-# $ENV ${experiments[13]} --data_path=$DATADIR --device=$DEVICE1 &
-# $ENV ${experiments[14]} --data_path=$DATADIR --device=$DEVICE2 & 
-# $ENV ${experiments[15]} --data_path=$DATADIR --device=$DEVICE3 & 
+$ENV ${experiments[12]} --data_path=$DATADIR --device=$DEVICE0 &
+$ENV ${experiments[13]} --data_path=$DATADIR --device=$DEVICE1 &
+$ENV ${experiments[14]} --data_path=$DATADIR --device=$DEVICE2 & 
+$ENV ${experiments[15]} --data_path=$DATADIR --device=$DEVICE3 & 

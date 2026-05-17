@@ -14,6 +14,14 @@ experiments=(
     "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
 
     "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_cf.py --model-name=mf --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
 #
 
     # "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
@@ -69,7 +77,17 @@ DEVICE3=cuda:3
 # $ENV ${experiments[2]} --data_path=$DATADIR --device=$DEVICE2 & 
 # $ENV ${experiments[3]} --data_path=$DATADIR --device=$DEVICE3 & 
 
-$ENV ${experiments[4]} --data_path=$DATADIR --device=$DEVICE0 &
-$ENV ${experiments[5]} --data_path=$DATADIR --device=$DEVICE1 &
-$ENV ${experiments[6]} --data_path=$DATADIR --device=$DEVICE2 & 
-$ENV ${experiments[7]} --data_path=$DATADIR --device=$DEVICE3 & 
+# $ENV ${experiments[4]} --data_path=$DATADIR --device=$DEVICE0 &
+# $ENV ${experiments[5]} --data_path=$DATADIR --device=$DEVICE1 &
+# $ENV ${experiments[6]} --data_path=$DATADIR --device=$DEVICE2 & 
+# $ENV ${experiments[7]} --data_path=$DATADIR --device=$DEVICE3 & 
+
+$ENV ${experiments[8]} --data_path=$DATADIR --device=$DEVICE0 &
+$ENV ${experiments[9]} --data_path=$DATADIR --device=$DEVICE1 &
+$ENV ${experiments[10]} --data_path=$DATADIR --device=$DEVICE2 & 
+$ENV ${experiments[11]} --data_path=$DATADIR --device=$DEVICE3 & 
+
+# $ENV ${experiments[12]} --data_path=$DATADIR --device=$DEVICE0 &
+# $ENV ${experiments[13]} --data_path=$DATADIR --device=$DEVICE1 &
+# $ENV ${experiments[14]} --data_path=$DATADIR --device=$DEVICE2 & 
+# $ENV ${experiments[15]} --data_path=$DATADIR --device=$DEVICE3 & 

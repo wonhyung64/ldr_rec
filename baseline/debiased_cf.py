@@ -112,7 +112,7 @@ if args.dr_anchor != "user":
     dataset.prepare_user_timebucket_sampler(w_cold=True)
     dataset.get_pair_user_event_timebucket_fast(w_cold=True)
 
-epoch =1
+epoch = 0
 
 save_dir = Path(args.save_path)
 pattern = f"{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}.pt"
@@ -125,7 +125,8 @@ if len(matched_files) > 0:
     epoch = checkpoint["epoch"]
     print("MODEL LOADED!")
 
-while epoch <= args.epochs: 
+while epoch < args.epochs: 
+    epoch += 1
     torch.cuda.empty_cache()
     model.train()
     np.random.shuffle(hot_idxs)
@@ -233,7 +234,6 @@ while epoch <= args.epochs:
                 num_negatives=args.contrast_size-1,
             )
 
-    epoch += 1
 
 if epoch % args.evaluate_interval == 0:
     item_nll_list = []

@@ -121,7 +121,7 @@ pattern = f"{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}.pt"
 matched_files = sorted(save_dir.glob(pattern))
 if len(matched_files) > 0:
     recent_file = max(matched_files, key=get_epoch)
-    checkpoint = torch.load(recent_file, map_location=args.device, weights_only=True)
+    checkpoint = torch.load(recent_file, map_location=args.device)
     model.load_state_dict(checkpoint["model_state_dict"])
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     epoch = checkpoint["epoch"]

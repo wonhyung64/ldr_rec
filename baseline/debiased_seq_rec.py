@@ -47,8 +47,8 @@ if wandb_login:
     wandb_var = wandb.init(project="ldr_rec2", config=vars(args))
     wandb.run.name = args.expt_name
 
-args.model_name = "bsarec"
-args.dataset = "kuairand"
+# args.model_name = "bsarec"
+# args.dataset = "kuairand"
 #%%
 dataset = UserItemTime(args)
 dataset.build_user_histories(max_seq_len=args.max_seq_len)

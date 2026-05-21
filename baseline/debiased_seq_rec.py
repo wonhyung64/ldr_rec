@@ -1,4 +1,5 @@
 #%%
+import re
 import os
 import math
 import copy
@@ -9,6 +10,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from datetime import datetime
+from pathlib import Path
 
 from module.utils import parse_args, set_seed, set_device
 from module.procedure import computeTopNAccuracy
@@ -16,6 +18,11 @@ from module.dataset import UserItemTime
 from module.model import score_pair, score_all, MODEL_REGISTRY
 from module.debias import build_debias_model
 from module.sampler import make_prior_snapshot, sample_epoch_negatives
+
+
+def get_epoch(path):
+    match = re.search(r"_e(\d+)_", path.name)
+    return int(match.group(1)) if match else -1
 
 
 #%%
@@ -40,7 +47,8 @@ if wandb_login:
     wandb_var = wandb.init(project="ldr_rec2", config=vars(args))
     wandb.run.name = args.expt_name
 
-
+args.model_name = "bsarec"
+args.dataset = "kuairand"
 #%%
 dataset = UserItemTime(args)
 dataset.build_user_histories(max_seq_len=args.max_seq_len)
@@ -112,8 +120,21 @@ if args.dr_anchor != "user":
     dataset.prepare_user_timebucket_sampler()
     dataset.get_pair_user_event_timebucket_fast()
 
+epoch =1
 
-for epoch in range(1, args.epochs + 1):
+save_dir = Path(args.save_path)
+pattern = f"{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}.pt"
+matched_files = sorted(save_dir.glob(pattern))
+if len(matched_files) > 0:
+    recent_file = max(matched_files, key=get_epoch)
+    checkpoint = torch.load(recent_file, map_location=args.device, weights_only=True)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    epoch = checkpoint["epoch"]
+    print("MODEL LOADED!")
+
+while epoch <= args.epochs: 
+
     torch.cuda.empty_cache()
     model.train()
     np.random.shuffle(hot_idxs)

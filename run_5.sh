@@ -24,19 +24,19 @@ experiments=(
 
     #############3
 
-    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
 
     # "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
     # "./baseline/debiased_cf.py --model-name=mf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
     # "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
     # "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
 
-    # "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    # "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    # "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_cf.py --model-name=ncf --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
 
 )
 
@@ -52,5 +52,5 @@ sleep 20
 $ENV ${experiments[1]} --data_path=$DATADIR --device=$DEVICE1 &
 sleep 20
 $ENV ${experiments[2]} --data_path=$DATADIR --device=$DEVICE2 & 
-sleep 20
-$ENV ${experiments[3]} --data_path=$DATADIR --device=$DEVICE3 & 
+# sleep 20
+# $ENV ${experiments[3]} --data_path=$DATADIR --device=$DEVICE3 & 

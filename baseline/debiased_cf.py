@@ -1,4 +1,5 @@
 #%%
+import re
 import os
 import copy
 import wandb
@@ -8,6 +9,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 
+from pathlib import Path
 from datetime import datetime
 
 from module.utils import parse_args, set_seed, set_device
@@ -17,6 +19,10 @@ from module.model import score_pair, score_all, MODEL_REGISTRY
 from module.debias import build_debias_model
 from module.sampler import make_prior_snapshot, sample_epoch_negatives
 
+
+def get_epoch(path):
+    match = re.search(r"_e(\d+)_", path.name)
+    return int(match.group(1)) if match else -1
 
 #%%
 args = parse_args()
@@ -106,7 +112,20 @@ if args.dr_anchor != "user":
     dataset.prepare_user_timebucket_sampler(w_cold=True)
     dataset.get_pair_user_event_timebucket_fast(w_cold=True)
 
-for epoch in range(1, args.epochs + 1):
+epoch =1
+
+save_dir = Path(args.save_path)
+pattern = f"{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}.pt"
+matched_files = sorted(save_dir.glob(pattern))
+if len(matched_files) > 0:
+    recent_file = max(matched_files, key=get_epoch)
+    checkpoint = torch.load(recent_file, map_location=args.device, weights_only=True)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    epoch = checkpoint["epoch"]
+    print("MODEL LOADED!")
+
+while epoch <= args.epochs: 
     torch.cuda.empty_cache()
     model.train()
     np.random.shuffle(hot_idxs)

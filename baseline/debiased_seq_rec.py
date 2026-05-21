@@ -285,9 +285,9 @@ if epoch % args.evaluate_interval == 0:
     valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
 
     if wandb_login:
-        wandb_var.log({
-            "train_ldr": epoch_user_loss / batch_num,
-        })
+        # wandb_var.log({
+        #     "train_ldr": epoch_user_loss / batch_num,
+        # })
         wandb_var.log(dict(zip([f"valid_precision_{k}_{epoch}" for k in args.topks], valid_results[0])))
         wandb_var.log(dict(zip([f"valid_recall_{k}_{epoch}" for k in args.topks], valid_results[1])))
         wandb_var.log(dict(zip([f"valid_ndcg_{k}_{epoch}" for k in args.topks], valid_results[2])))

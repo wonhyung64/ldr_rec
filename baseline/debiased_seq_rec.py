@@ -120,7 +120,8 @@ if args.dr_anchor != "user":
     dataset.prepare_user_timebucket_sampler()
     dataset.get_pair_user_event_timebucket_fast()
 
-epoch =1
+
+epoch = 1
 
 save_dir = Path(args.save_path)
 pattern = f"{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}.pt"
@@ -133,8 +134,8 @@ if len(matched_files) > 0:
     epoch = checkpoint["epoch"]
     print("MODEL LOADED!")
 
-while epoch <= args.epochs: 
 
+while epoch <= args.epochs: 
     torch.cuda.empty_cache()
     model.train()
     np.random.shuffle(hot_idxs)
@@ -233,114 +234,118 @@ while epoch <= args.epochs:
                 num_negatives=args.contrast_size-1,
             )
 
-    if epoch % args.evaluate_interval == 0:
-        pred_list = []
-        gt_list = []
+    epoch += 1 
 
-        model.eval()
+
+if epoch % args.evaluate_interval == 0:
+    pred_list = []
+    gt_list = []
+
+    model.eval()
+    with torch.no_grad():
+        mu, alpha, beta = model.prior_parameters_from_embeddings()
+
+    for (user, item), pos_time_val in dataset.valid_user_item_time.items():
+        hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
+        hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
+        user_t = torch.tensor([user], dtype=torch.long, device=args.device)
+
         with torch.no_grad():
-            mu, alpha, beta = model.prior_parameters_from_embeddings()
+            resid = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
 
-        for (user, item), pos_time_val in dataset.valid_user_item_time.items():
-            hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
-            hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
-            user_t = torch.tensor([user], dtype=torch.long, device=args.device)
+
+        pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
+
+        item_logits_list = []
+        for idx2 in range(dataset.m_item // args.batch_size + 1):
+            item_idx = all_item_idxs[idx2 * args.batch_size: (idx2 + 1) * args.batch_size]
+            if len(item_idx) == 0:
+                continue
+
+            batch_time_all = torch.tensor(dataset.item_time_array[item_idx], dtype=torch.float32).to(args.device)
+            batch_time_mask = batch_time_all < pos_time_t
+            batch_time_delta = (pos_time_t - batch_time_all).clamp(min=0.0)
 
             with torch.no_grad():
-                resid = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+                time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
+                logits = (mu[item_idx] + alpha[item_idx] * time_intensity.squeeze(-1)).flatten()
+            item_logits_list.append(logits)
+
+        item_logits = torch.concat(item_logits_list)
+        item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
+
+        pred = (item_log_prob.cpu() + resid.cpu()).cpu()
+
+        exclude_items = list(dataset._allPos[user])
+        pred[exclude_items] = -9999
+        _, pred_k = torch.topk(pred, k=max(args.topks))
+        pred_list.append(pred_k.cpu())
+        gt_list.append([item])
+
+    valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
+
+    if wandb_login:
+        wandb_var.log({
+            "train_ldr": epoch_user_loss / batch_num,
+        })
+        wandb_var.log(dict(zip([f"valid_precision_{k}_{epoch}" for k in args.topks], valid_results[0])))
+        wandb_var.log(dict(zip([f"valid_recall_{k}_{epoch}" for k in args.topks], valid_results[1])))
+        wandb_var.log(dict(zip([f"valid_ndcg_{k}_{epoch}" for k in args.topks], valid_results[2])))
+        wandb_var.log(dict(zip([f"valid_mrr_{k}_{epoch}" for k in args.topks], valid_results[3])))
 
 
-            pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
+    pred_list = []
+    gt_list = []
 
-            item_logits_list = []
-            for idx2 in range(dataset.m_item // args.batch_size + 1):
-                item_idx = all_item_idxs[idx2 * args.batch_size: (idx2 + 1) * args.batch_size]
-                if len(item_idx) == 0:
-                    continue
+    model.eval()
+    with torch.no_grad():
+        mu, alpha, beta = model.prior_parameters_from_embeddings()
 
-                batch_time_all = torch.tensor(dataset.item_time_array[item_idx], dtype=torch.float32).to(args.device)
-                batch_time_mask = batch_time_all < pos_time_t
-                batch_time_delta = (pos_time_t - batch_time_all).clamp(min=0.0)
+    for (user, item), pos_time_val in dataset.test_user_item_time.items():
+        hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
+        hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
+        user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 
-                with torch.no_grad():
-                    time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
-                    logits = (mu[item_idx] + alpha[item_idx] * time_intensity.squeeze(-1)).flatten()
-                item_logits_list.append(logits)
-
-            item_logits = torch.concat(item_logits_list)
-            item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
-
-            pred = (item_log_prob.cpu() + resid.cpu()).cpu()
-
-            exclude_items = list(dataset._allPos[user])
-            pred[exclude_items] = -9999
-            _, pred_k = torch.topk(pred, k=max(args.topks))
-            pred_list.append(pred_k.cpu())
-            gt_list.append([item])
-
-        valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
-
-        if wandb_login:
-            wandb_var.log({
-                "train_ldr": epoch_user_loss / batch_num,
-            })
-            wandb_var.log(dict(zip([f"valid_precision_{k}_{epoch}" for k in args.topks], valid_results[0])))
-            wandb_var.log(dict(zip([f"valid_recall_{k}_{epoch}" for k in args.topks], valid_results[1])))
-            wandb_var.log(dict(zip([f"valid_ndcg_{k}_{epoch}" for k in args.topks], valid_results[2])))
-            wandb_var.log(dict(zip([f"valid_mrr_{k}_{epoch}" for k in args.topks], valid_results[3])))
-
-
-        pred_list = []
-        gt_list = []
-
-        model.eval()
         with torch.no_grad():
-            mu, alpha, beta = model.prior_parameters_from_embeddings()
+            resid = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
 
-        for (user, item), pos_time_val in dataset.test_user_item_time.items():
-            hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
-            hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
-            user_t = torch.tensor([user], dtype=torch.long, device=args.device)
+
+        pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
+
+        item_logits_list = []
+        for idx2 in range(dataset.m_item // args.batch_size + 1):
+            item_idx = all_item_idxs[idx2 * args.batch_size: (idx2 + 1) * args.batch_size]
+            if len(item_idx) == 0:
+                continue
+
+            batch_time_all = torch.tensor(dataset.item_time_array[item_idx], dtype=torch.float32).to(args.device)
+            batch_time_mask = batch_time_all < pos_time_t
+            batch_time_delta = (pos_time_t - batch_time_all).clamp(min=0.0)
 
             with torch.no_grad():
-                resid = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+                time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
+                logits = (mu[item_idx] + alpha[item_idx] * time_intensity.squeeze(-1)).flatten()
+            item_logits_list.append(logits)
 
+        item_logits = torch.concat(item_logits_list)
+        item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
 
-            pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
+        pred = (item_log_prob.cpu() + resid.cpu()).cpu()
 
-            item_logits_list = []
-            for idx2 in range(dataset.m_item // args.batch_size + 1):
-                item_idx = all_item_idxs[idx2 * args.batch_size: (idx2 + 1) * args.batch_size]
-                if len(item_idx) == 0:
-                    continue
+        exclude_items = list(dataset._allPos[user])
+        pred[exclude_items] = -9999
+        _, pred_k = torch.topk(pred, k=max(args.topks))
+        pred_list.append(pred_k.cpu())
+        gt_list.append([item])
 
-                batch_time_all = torch.tensor(dataset.item_time_array[item_idx], dtype=torch.float32).to(args.device)
-                batch_time_mask = batch_time_all < pos_time_t
-                batch_time_delta = (pos_time_t - batch_time_all).clamp(min=0.0)
+    test_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
 
-                with torch.no_grad():
-                    time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
-                    logits = (mu[item_idx] + alpha[item_idx] * time_intensity.squeeze(-1)).flatten()
-                item_logits_list.append(logits)
+    if wandb_login:
+        wandb_var.log(dict(zip([f"test_precision_{k}_{epoch}" for k in args.topks], test_results[0])))
+        wandb_var.log(dict(zip([f"test_recall_{k}_{epoch}" for k in args.topks], test_results[1])))
+        wandb_var.log(dict(zip([f"test_ndcg_{k}_{epoch}" for k in args.topks], test_results[2])))
+        wandb_var.log(dict(zip([f"test_mrr_{k}_{epoch}" for k in args.topks], test_results[3])))
 
-            item_logits = torch.concat(item_logits_list)
-            item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
-
-            pred = (item_log_prob.cpu() + resid.cpu()).cpu()
-
-            exclude_items = list(dataset._allPos[user])
-            pred[exclude_items] = -9999
-            _, pred_k = torch.topk(pred, k=max(args.topks))
-            pred_list.append(pred_k.cpu())
-            gt_list.append([item])
-
-        test_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
-
-        if wandb_login:
-            wandb_var.log(dict(zip([f"test_precision_{k}_{epoch}" for k in args.topks], test_results[0])))
-            wandb_var.log(dict(zip([f"test_recall_{k}_{epoch}" for k in args.topks], test_results[1])))
-            wandb_var.log(dict(zip([f"test_ndcg_{k}_{epoch}" for k in args.topks], test_results[2])))
-            wandb_var.log(dict(zip([f"test_mrr_{k}_{epoch}" for k in args.topks], test_results[3])))
 
 if wandb_login:
     wandb_var.finish()

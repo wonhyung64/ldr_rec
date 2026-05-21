@@ -4,9 +4,9 @@
 experiments=(
 
     # "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
     # "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    # "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --alpha=0.9 --c=1"
+    "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --alpha=0.9 --c=1"
 
     # "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --alpha=0.9 --c=1"
     # "./baseline/debiased_seq_rec.py --model-name=bsarec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --alpha=0.9 --c=1"

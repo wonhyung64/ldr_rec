@@ -52,4 +52,4 @@ DEVICE3=cuda:3
 # sleep 20
 # $ENV ${experiments[2]} --data_path=$DATADIR --device=$DEVICE2 & 
 # sleep 20
-$ENV ${experiments[3]} --data_path=$DATADIR --device=$DEVICE3 & 
+$ENV ${experiments[3]} --data_path=$DATADIR --device=$DEVICE1 &

@@ -44,15 +44,13 @@ if file_name.endswith(".py"):
 if wandb_login:
     expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
     args.expt_name = f"{file_name.split('.')[-2]}_{args.model_name}_{expt_num}"
-    wandb_var = wandb.init(project="ldr_rec2", config=vars(args))
+    wandb_var = wandb.init(project="ldr_rec3", config=vars(args))
     wandb.run.name = args.expt_name
 
 # args.model_name = "bsarec"
 # args.dataset = "kuairand"
 #%%
-dataset = UserItemTime(args)
-dataset.build_user_histories(max_seq_len=args.max_seq_len)
-
+dataset = UserItemTime("./data", args.dataset, "d", 50, args.max_seq_len)
 mini_batch = args.batch_size // args.contrast_size
 batch_num = dataset.trainDataSize // mini_batch + 1
 
@@ -246,13 +244,12 @@ if epoch % args.evaluate_interval == 0:
         mu, alpha, beta = model.prior_parameters_from_embeddings()
 
     for (user, item), pos_time_val in dataset.valid_user_item_time.items():
-        hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
+        hist_item_np, hist_time_np = dataset.build_histories(zip([user], [0], [pos_time_val]), args.max_seq_len)
         hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
         user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 
         with torch.no_grad():
             resid = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
-
 
         pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
 
@@ -285,9 +282,6 @@ if epoch % args.evaluate_interval == 0:
     valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
 
     if wandb_login:
-        # wandb_var.log({
-        #     "train_ldr": epoch_user_loss / batch_num,
-        # })
         wandb_var.log(dict(zip([f"valid_precision_{k}_{epoch}" for k in args.topks], valid_results[0])))
         wandb_var.log(dict(zip([f"valid_recall_{k}_{epoch}" for k in args.topks], valid_results[1])))
         wandb_var.log(dict(zip([f"valid_ndcg_{k}_{epoch}" for k in args.topks], valid_results[2])))
@@ -302,13 +296,12 @@ if epoch % args.evaluate_interval == 0:
         mu, alpha, beta = model.prior_parameters_from_embeddings()
 
     for (user, item), pos_time_val in dataset.test_user_item_time.items():
-        hist_item_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len)
+        hist_item_np, hist_time_np = dataset.build_histories(zip([user], [0], [pos_time_val]), args.max_seq_len)
         hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
         user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 
         with torch.no_grad():
             resid = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
-
 
         pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
 

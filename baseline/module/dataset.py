@@ -196,7 +196,30 @@ class UserItemTime(Dataset):
             self.cold_pos_time_all = self.item_time_array[cold_pos_item]
             self.cold_neg_time_all = self.item_time_array[cold_neg_item]
         
-    def time_dict_to_array(self, time_dict):
+    def time_dict_to_array(self, time_dict, max_pos=50):
+        item_time_dict, item_time_array = {}, []
+        for _, user_dict in time_dict.items():
+            for item_idx, times in user_dict.items():
+                try:
+                    assert item_time_dict[item_idx]
+                except:
+                    item_time_dict[item_idx] = []
+                item_time_dict[item_idx].append(times)
+        max_time = 0.
+        for i in range(max(item_time_dict.keys())+1):
+            try:
+                times = np.array(item_time_dict[i])
+                max_time = max(np.max(times), max_time)
+            except:
+                times = np.array([])
+            times.sort()
+            item_time_array.append(times[-max_pos:])
+        for i in range(max(item_time_dict.keys())+1):
+            item_time_array[i] = np.pad(item_time_array[i], (0, max_pos - len(item_time_array[i])), "constant", constant_values=max_time)
+        item_time_array = np.stack(item_time_array, 0)
+        return item_time_array
+
+    def _time_dict_to_array(self, time_dict):
         max_pos, item_time_dict, item_time_array = 0, {}, []
         for _, user_dict in time_dict.items():
             for item_idx, times in user_dict.items():

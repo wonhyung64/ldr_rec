@@ -199,7 +199,7 @@ while epoch < args.epochs:
         item_loss = -nn.functional.log_softmax(log_logits, dim=-1)[:, 0].mean() * (1-args.lambda1)
         epoch_item_loss += item_loss.item()
 
-        dataset.get_pair_item_uniform(k=args.contrast_size-1)
+        dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
 
         total_loss = item_loss + user_loss
         optimizer.zero_grad()

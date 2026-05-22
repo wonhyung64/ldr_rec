@@ -114,7 +114,7 @@ if args.dr_anchor != "user":
 epoch = 0
 
 save_dir = Path(args.save_path)
-pattern = f"{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}.pt"
+pattern = f"_{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}.pt"
 matched_files = sorted(save_dir.glob(pattern))
 if len(matched_files) > 0:
     recent_file = max(matched_files, key=get_epoch)
@@ -213,7 +213,7 @@ while epoch < args.epochs:
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "loss": epoch_user_loss,
-        }, f"{args.save_path}/{args.model_name}_lambda{args.lambda1}_e{epoch}_seed{args.seed}.pt")
+        }, f"_{args.save_path}/{args.model_name}_lambda{args.lambda1}_e{epoch}_seed{args.seed}.pt")
 
     if epoch % args.pair_reset_interval == 0:
         if args.dr_anchor != "item":

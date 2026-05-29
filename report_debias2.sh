@@ -157,25 +157,21 @@ experiments=(
     #####
 
 
-    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_seq_rec.py --model-name=grurec --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
 
-    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    # "./baseline/debiased_seq_rec.py --model-name=sasrec --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
 
-    ######
-
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
+    "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
     
-    # "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-    
-    # "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-
-    # "./baseline/debiased_seq_rec.py --model-name=fearec --dataset=kuairand --seed=0 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
-
 )
 
 

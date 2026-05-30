@@ -76,7 +76,7 @@ if args.dataset == "ml-1m":
 else:
     time_span = 512
 
-debiased_class = build_debias_model(model_class)
+debiased_class = build_debias_model(model_class, shared=args.shared)
 model = debiased_class(
     num_users=dataset.n_user,
     num_items=dataset.m_item,

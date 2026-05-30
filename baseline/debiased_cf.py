@@ -69,7 +69,7 @@ if model_name not in MODEL_REGISTRY:
     raise ValueError(f"Unknown model_name={model_name}. Available: {list(MODEL_REGISTRY.keys())}")
 model_class = MODEL_REGISTRY[model_name]
 
-debiased_class = build_debias_model(model_class)
+debiased_class = build_debias_model(model_class, shared=args.shared)
 model = debiased_class(
     num_users=dataset.n_user,
     num_items=dataset.m_item,

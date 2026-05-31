@@ -17,7 +17,7 @@ from module.utils import parse_args, set_seed, set_device
 from module.procedure import computeTopNAccuracy
 from module.dataset import UserItemTime
 from module.model import score_pair, score_all, MODEL_REGISTRY
-from module.debias import build_debias_model
+from module.debias import build_debias_model, build_unshared_debias_model
 from module.sampler import make_prior_snapshot, sample_epoch_negatives
 
 
@@ -76,7 +76,11 @@ if args.dataset == "ml-1m":
 else:
     time_span = 512
 
-debiased_class = build_debias_model(model_class, shared=args.shared)
+if args.shared == "true":
+    debiased_class = build_debias_model(model_class)
+else:
+    debiased_class = build_unshared_debias_model(model_class)
+
 model = debiased_class(
     num_users=dataset.n_user,
     num_items=dataset.m_item,

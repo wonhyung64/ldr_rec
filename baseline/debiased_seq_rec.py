@@ -16,7 +16,7 @@ from module.utils import parse_args, set_seed, set_device
 from module.procedure import computeTopNAccuracy
 from module.dataset import UserItemTime
 from module.model import score_pair, score_all, MODEL_REGISTRY
-from module.debias import build_debias_model, build_unshared_debias_model
+from module.debias import build_debias_model, build_unshared_debias_model, build_linear_debias_model
 from module.sampler import make_prior_snapshot, sample_epoch_negatives
 
 
@@ -68,10 +68,13 @@ if model_name not in MODEL_REGISTRY:
     raise ValueError(f"Unknown model_name={model_name}. Available: {list(MODEL_REGISTRY.keys())}")
 model_class = MODEL_REGISTRY[model_name]
 
-if args.shared == "true":
-    debiased_class = build_debias_model(model_class)
-else:
+if args.ablation == "shared":
     debiased_class = build_unshared_debias_model(model_class)
+elif args.ablation == "linear":
+    debiased_class = build_linear_debias_model(model_class)
+elif args.ablation == "none": 
+    debiased_class = build_debias_model(model_class)
+
 
 if args.model_name == "bsarec":
     model = debiased_class(

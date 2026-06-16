@@ -45,7 +45,7 @@ if wandb_login:
 
 
 #%%
-dataset = UserItemTime("../data", args.dataset, "d", 50, args.max_seq_len)
+dataset = UserItemTime("./data", args.dataset, "d", 50, args.max_seq_len)
 
 mini_batch = args.batch_size // args.contrast_size
 batch_num = dataset.trainDataSize // mini_batch + 1

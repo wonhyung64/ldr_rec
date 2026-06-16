@@ -98,7 +98,7 @@ dataset.get_pair_item_uniform(k=args.contrast_size - 1, w_time=False)
 epoch = 0
 
 save_dir = Path(args.save_path)
-pattern = f"_dice_lgcn_lambda{args.lambda1}_e???_seed{args.seed}.pt"
+pattern = f"dice_lgcn_lambda{args.lambda1}_lr{args.lr}_alpha{args.alpha}_nlayers{args.n_layers}_e???_seed{args.seed}.pt"
 matched_files = sorted(save_dir.glob(pattern))
 if len(matched_files) > 0:
     recent_file = max(matched_files, key=get_epoch)
@@ -180,7 +180,7 @@ while epoch < args.epochs:
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "loss": epoch_int_loss,
-        }, f"{args.save_path}/_dice_lgcn_lambda{args.lambda1}_e{epoch}_seed{args.seed}.pt")
+        }, f"{args.save_path}/dice_lgcn_lambda{args.lambda1}_lr{args.lr}_alpha{args.alpha}_nlayers{args.n_layers}_e{epoch}_seed{args.seed}.pt")
 
     if epoch % args.evaluate_interval == 0:
         model.eval()

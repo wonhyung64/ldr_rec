@@ -17,7 +17,7 @@ from module.utils import parse_args, set_seed, set_device
 from module.procedure import computeTopNAccuracy
 from module.dataset import UserItemTime
 from module.model import score_pair, score_all, MODEL_REGISTRY
-from module.debias import build_debias_model
+from module.debias import build_debias_model, build_unshared_debias_model, build_linear_debias_model, build_unshared_linear_debias_model
 from module.sampler import make_prior_snapshot, sample_epoch_negatives
 
 
@@ -76,7 +76,15 @@ if args.dataset == "ml-1m":
 else:
     time_span = 512
 
-debiased_class = build_debias_model(model_class)
+if args.ablation == "shared":
+    debiased_class = build_unshared_debias_model(model_class)
+elif args.ablation == "linear":
+    debiased_class = build_linear_debias_model(model_class)
+elif args.ablation == "none": 
+    debiased_class = build_debias_model(model_class)
+elif args.ablation == "both":
+    debiased_class = build_unshared_linear_debias_model(model_class)
+
 model = debiased_class(
     num_users=dataset.n_user,
     num_items=dataset.m_item,
@@ -118,7 +126,7 @@ if args.dr_anchor != "user":
 epoch = 0
 
 save_dir = Path(args.save_path)
-pattern = f"_{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}.pt"
+pattern = f"_{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}_ablation{args.ablation}.pt"
 matched_files = sorted(save_dir.glob(pattern))
 if len(matched_files) > 0:
     recent_file = max(matched_files, key=get_epoch)
@@ -220,7 +228,7 @@ while epoch < args.epochs:
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "loss": epoch_user_loss,
-        }, f"{args.save_path}/_{args.model_name}_lambda{args.lambda1}_e{epoch}_seed{args.seed}.pt")
+        }, f"{args.save_path}/_{args.model_name}_lambda{args.lambda1}_e{epoch}_seed{args.seed}_ablation{args.ablation}.pt")
 
     if epoch % args.pair_reset_interval == 0:
         if args.dr_anchor != "item":

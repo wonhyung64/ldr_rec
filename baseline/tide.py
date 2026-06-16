@@ -85,7 +85,7 @@ dataset.get_pair_item_uniform(k=args.contrast_size - 1, w_time=False)
 epoch = 0
 
 save_dir = Path(args.save_path)
-pattern = f"_tide_lambda{args.lambda1}_e???_seed{args.seed}.pt"
+pattern = f"_tide_lambda{args.lambda1}_lr{args.lr}_alpha{args.alpha}_e???_seed{args.seed}.pt"
 matched_files = sorted(save_dir.glob(pattern))
 if len(matched_files) > 0:
     recent_file = max(matched_files, key=get_epoch)

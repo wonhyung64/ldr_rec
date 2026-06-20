@@ -41,6 +41,7 @@ def parse_args():
     parser.add_argument('--norm-first', type=bool, default=True)
     parser.add_argument('--dr-anchor', type=str, default="user")
     parser.add_argument('--ablation', type=str, default="none")
+    parser.add_argument('--n-intents', type=int, default=128)
 
 
 

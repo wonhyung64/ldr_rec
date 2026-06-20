@@ -1,4 +1,5 @@
 #%%
+import re
 import os
 import wandb
 import torch
@@ -6,6 +7,7 @@ import inspect
 import numpy as np
 import torch.nn.functional as F
 
+from pathlib import Path
 from datetime import datetime
 
 from module.utils import parse_args, set_seed, set_device
@@ -33,7 +35,7 @@ if file_name.endswith(".py"):
 if wandb_login:
     expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
     args.expt_name = f"{file_name.split('.')[-2]}_{expt_num}"
-    wandb_var = wandb.init(project="ldr_rec3", config=vars(args))
+    wandb_var = wandb.init(project="ldr_rec4", config=vars(args))
     wandb.run.name = args.expt_name
 
 
@@ -80,6 +82,20 @@ dataset.get_pair_item_uniform(k=args.contrast_size - 1, w_time=True)
 
 epoch = 0
 
+save_dir = Path(args.save_path)
+pattern = f"_dcrec_tau{args.tau}_lambda{args.lambda1}_gamma{args.gamma}_intents{args.n_intents}_lr{args.lr}_drop{args.dropout}_e???_seed{args.seed}.pt"
+matched_files = sorted(save_dir.glob(pattern))
+if len(matched_files) > 0:
+    def get_epoch(path):
+        match = re.search(r"_e(\d+)_", path.name)
+        return int(match.group(1)) if match else -1
+    recent_file = max(matched_files, key=get_epoch)
+    checkpoint = torch.load(recent_file, map_location=args.device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    epoch = checkpoint["epoch"]
+    print("MODEL LOADED!")
+
 
 #%%
 while epoch < args.epochs:
@@ -123,6 +139,18 @@ while epoch < args.epochs:
             dataset.get_pair_item_uniform(k=args.contrast_size - 1, w_time=True)
 
     print(f"[Epoch {epoch:>4d}] BPR: {epoch_bpr_loss / batch_num:.4f} | CL: {epoch_cl_loss / batch_num:.4f}")
+
+    if epoch % 100 == 0:
+        save_path = f"{args.save_path}/_dcrec_tau{args.tau}_lambda{args.lambda1}_gamma{args.gamma}_intents{args.n_intents}_lr{args.lr}_drop{args.dropout}_e{epoch}_seed{args.seed}.pt"
+        torch.save({
+            "epoch": epoch,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "loss": epoch_bpr_loss,
+        }, save_path)
+        for old_file in save_dir.glob(pattern):
+            if old_file != Path(save_path):
+                old_file.unlink()
 
     if epoch % args.evaluate_interval == 0:
         pred_list, gt_list = [], []

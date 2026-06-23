@@ -44,6 +44,7 @@ def parse_args():
     parser.add_argument('--n-intents', type=int, default=128)
     parser.add_argument('--n-proto', type=int, default=128)
     parser.add_argument('--melt-alpha', type=float, default=0.5)
+    parser.add_argument('--k-pop', type=int, default=1)
 
 
 

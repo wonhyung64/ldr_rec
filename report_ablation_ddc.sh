@@ -56,43 +56,52 @@ RANDOM_SEED=0
 experiments=(
 
     # ---- micro_video ----
-    # lr search (k_pop=1, decay=0)
-    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.0005 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.0001 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # decay search (best lr assumed 0.001, k_pop=1)
-    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=1e-4   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # k_pop search (best lr=0.001, decay=0)
-    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # lr search (k_pop=1, decay=0)
+    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=1 --recdim=128 --lr=0.001  --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=2 --recdim=128 --lr=0.001  --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=3 --recdim=128 --lr=0.001  --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=4 --recdim=128 --lr=0.001  --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.0005 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.0001 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # decay search (best lr assumed 0.001, k_pop=1)
+    # "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=1e-4   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # k_pop search (best lr=0.001, decay=0)
+    # "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
 
-    # ---- ml-1m ----
-    # lr search (k_pop=1, decay=0)
-    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.0005 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.0001 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # decay search
-    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=1e-4   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # k_pop search
-    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # ---- ml-1m ----
+    # # lr search (k_pop=1, decay=0)
+    # "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.0005 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.0001 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # decay search
+    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=1 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=2 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=3 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=4 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=1e-4   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # k_pop search
+    # "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
 
-    # ---- kuairand ----
-    # lr search (k_pop=1, decay=0)
-    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.0005 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.0001 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # decay search
-    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=1e-4   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # k_pop search
-    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # ---- kuairand ----
+    # # lr search (k_pop=1, decay=0)
+    # "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.0005 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.0001 --decay=0      --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # decay search
+    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=1 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=2 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=3 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=4 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=1e-4   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # k_pop search
+    # "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc.py --model-name=mf --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0      --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
 
 )
 

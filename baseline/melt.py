@@ -48,13 +48,9 @@ if wandb_login:
 dataset = UserItemTime("./data", args.dataset, "d", 50, args.max_seq_len)
 
 mini_batch = args.batch_size // args.contrast_size
-batch_num = dataset.trainDataSize // mini_batch + 1
+batch_num = dataset.hotDataSize // mini_batch + 1
 
-hot_ratio = dataset.hotDataSize / dataset.trainDataSize
-hot_mini_batch = round(mini_batch * hot_ratio)
 hot_idxs = np.arange(dataset.hotDataSize)
-cold_mini_batch = mini_batch - hot_mini_batch
-cold_idxs = np.arange(dataset.coldDataSize)
 
 all_item_idxs = np.arange(dataset.m_item)
 
@@ -148,21 +144,12 @@ while epoch < args.epochs:
     epoch_loss = 0.0
 
     for idx in range(batch_num):
-        hot_sample_idx = hot_idxs[hot_mini_batch * idx: (idx + 1) * hot_mini_batch]
-        cold_sample_idx = cold_idxs[cold_mini_batch * idx: (idx + 1) * cold_mini_batch]
+        hot_sample_idx = hot_idxs[mini_batch * idx: (idx + 1) * mini_batch]
 
-        hot_anchor_user = torch.tensor(dataset.hot_user_list[hot_sample_idx], dtype=torch.long, device=args.device)
-        hot_pos_item = torch.tensor(dataset.hot_pos_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
-        hot_neg_item = torch.tensor(dataset.hot_neg_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
+        anchor_user = torch.tensor(dataset.hot_user_list[hot_sample_idx], dtype=torch.long, device=args.device)
+        pos_item = torch.tensor(dataset.hot_pos_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
+        neg_item = torch.tensor(dataset.hot_neg_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
-
-        cold_anchor_user = torch.tensor(dataset.cold_user_list[cold_sample_idx], dtype=torch.long, device=args.device)
-        cold_pos_item = torch.tensor(dataset.cold_pos_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
-        cold_neg_item = torch.tensor(dataset.cold_neg_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
-
-        anchor_user = torch.cat([cold_anchor_user, hot_anchor_user], dim=0)
-        pos_item = torch.cat([cold_pos_item, hot_pos_item], dim=0)
-        neg_item = torch.cat([cold_neg_item, hot_neg_item], dim=0)
 
         pos_score = model.residual_score(pos_item, anchor_hist_items, anchor_user)
         neg_score = model.residual_score(neg_item, anchor_hist_items, anchor_user)

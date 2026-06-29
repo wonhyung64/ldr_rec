@@ -57,54 +57,63 @@ experiments=(
 
     # ---- micro_video ----
     # lr search (n_layers=3, k_pop=1, decay=0)
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.0005 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.0001 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # n_layers search (best lr=0.001, k_pop=1, decay=0)
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=1 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=4 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # k_pop search (best lr=0.001, n_layers=3, decay=0)
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # decay search (best lr=0.001, n_layers=3, k_pop=1)
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=1e-5 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=1e-4 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.0005 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.0001 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # n_layers search (best lr=0.001, k_pop=1, decay=0)
+    # "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=1 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=1 --recdim=128 --lr=0.001  --decay=0    --n-layers=4 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=2 --recdim=128 --lr=0.001  --decay=0    --n-layers=4 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=3 --recdim=128 --lr=0.001  --decay=0    --n-layers=4 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=micro_video --seed=4 --recdim=128 --lr=0.001  --decay=0    --n-layers=4 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # k_pop search (best lr=0.001, n_layers=3, decay=0)
+    # "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # decay search (best lr=0.001, n_layers=3, k_pop=1)
+    # "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=1e-5 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=micro_video --seed=0 --recdim=128 --lr=0.001  --decay=1e-4 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
 
     # ---- ml-1m ----
     # lr search (n_layers=3, k_pop=1, decay=0)
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.0005 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.0001 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # n_layers search
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=1 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=4 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # k_pop search
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # decay search
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=1e-5 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=1e-4 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.0005 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.0001 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # n_layers search
+    # "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=1 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=1 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=2 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=3 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=4 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=4 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # k_pop search
+    # "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # decay search
+    # "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=1e-5 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=ml-1m --seed=0 --recdim=128 --lr=0.001  --decay=1e-4 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
 
     # ---- kuairand ----
     # lr search (n_layers=3, k_pop=1, decay=0)
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.0005 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.0001 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # n_layers search
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=1 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=4 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # k_pop search
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    # decay search
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=1e-5 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
-    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=1e-4 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.0005 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.0001 --decay=0    --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # n_layers search
+    # "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=1 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=1 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=2 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=3 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/ddc_lgcn.py --dataset=kuairand --seed=4 --recdim=128 --lr=0.001  --decay=0    --n-layers=2 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=4 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # k_pop search
+    # "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=2 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=3 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=0    --n-layers=3 --k-pop=5 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # # decay search
+    # "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=1e-5 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
+    # "./baseline/ddc_lgcn.py --dataset=kuairand --seed=0 --recdim=128 --lr=0.001  --decay=1e-4 --n-layers=3 --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
 
 )
 

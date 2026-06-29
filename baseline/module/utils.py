@@ -46,6 +46,7 @@ def parse_args():
     parser.add_argument('--melt-alpha', type=float, default=0.5)
     parser.add_argument('--k-pop', type=int, default=1)
     parser.add_argument('--ablation2', type=str, default="none")
+    parser.add_argument('--alpha1', type=float, default=0.5)
 
 
 

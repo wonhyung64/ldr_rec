@@ -135,6 +135,7 @@ experiments=(
     # "./baseline/sapid.py --dataset=kuairand --seed=0 --recdim=128 --tau=0.5 --depth=2 --n-heads=2 --lr=0.005 --gamma=1.0 --dropout=0.1 --evaluate-interval=1000 --epochs=1000"
     # "./baseline/sapid.py --dataset=kuairand --seed=0 --recdim=128 --tau=0.5 --depth=2 --n-heads=2 --lr=0.005 --gamma=1.0 --dropout=0.2 --evaluate-interval=1000 --epochs=1000"
 
+
 )
 
 

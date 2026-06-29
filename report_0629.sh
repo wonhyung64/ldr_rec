@@ -78,6 +78,7 @@ experiments=(
 
     "./baseline/debiased_seq_rec_static_prior.py --model-name=sasrec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500"
 
+
 )
 
 

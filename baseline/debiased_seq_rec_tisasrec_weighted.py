@@ -256,8 +256,7 @@ if epoch % args.evaluate_interval == 0:
         hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device) * 24 * 60 * 60
 
         with torch.no_grad():
-            resid = score_all(model, hist_item_t, hist_time_t).squeeze(0).cpu()
-
+            resid = score_all(model, hist_item_t, hist_time_t).squeeze(0)
 
         pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
 
@@ -312,8 +311,7 @@ if epoch % args.evaluate_interval == 0:
         hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device) * 24 * 60 * 60
 
         with torch.no_grad():
-            resid = score_all(model, hist_item_t, hist_time_t).squeeze(0).cpu()
-
+            resid = score_all(model, hist_item_t, hist_time_t).squeeze(0)
 
         pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
 

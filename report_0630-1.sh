@@ -55,30 +55,13 @@ RANDOM_SEED=0
 
 experiments=(
 
-    "./baseline/debiased_cf_resid_only.py --model-name=mf --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_cf_resid_only.py --model-name=ncf --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=grurec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=sasrec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_tisasrec_resid_only.py --model-name=tisasrec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=fearec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=bsarec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --alpha=0.7 --c=1 --epochs=500 --ablation=shared"
-
-    "./baseline/debiased_cf_resid_only.py --model-name=mf --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_cf_resid_only.py --model-name=ncf --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=grurec --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=sasrec --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_tisasrec_resid_only.py --model-name=tisasrec --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=fearec --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=bsarec --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --alpha=0.9 --c=1 --epochs=500 --ablation=shared"
-
-    "./baseline/debiased_cf_resid_only.py --model-name=mf --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_cf_resid_only.py --model-name=ncf --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=grurec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=sasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_tisasrec_resid_only.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_resid_only.py --model-name=bsarec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --alpha=0.7 --c=1 --epochs=500 --ablation=shared"
-
+    "./baseline/debiased_seq_rec_tisasrec_weighted.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.1"
+    "./baseline/debiased_seq_rec_tisasrec_weighted.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
+    "./baseline/debiased_seq_rec_tisasrec_weighted.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.7"
+    "./baseline/debiased_seq_rec_tisasrec_weighted.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_seq_rec_tisasrec_weighted.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
+    "./baseline/debiased_seq_rec_tisasrec_resid_only.py --model-name=tisasrec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
+    "./baseline/debiased_seq_rec_tisasrec_resid_only.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
 
     # from here
     "./baseline/debiased_cf_resid_only.py --model-name=mf --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
@@ -93,7 +76,7 @@ experiments=(
     "./baseline/debiased_cf_resid_only.py --model-name=ncf --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
     "./baseline/debiased_seq_rec_resid_only.py --model-name=grurec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
     "./baseline/debiased_seq_rec_resid_only.py --model-name=sasrec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_tisasrec_resid_only.py --model-name=tisasrec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
+    "./baseline/debiased_seq_rec_tisasrec_resid_only.py --model-name=tisasrec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
     "./baseline/debiased_seq_rec_resid_only.py --model-name=fearec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
     "./baseline/debiased_seq_rec_resid_only.py --model-name=bsarec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --alpha=0.7 --c=1 --epochs=500 --ablation=shared"
 
@@ -109,7 +92,7 @@ experiments=(
     "./baseline/debiased_cf_resid_only.py --model-name=ncf --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
     "./baseline/debiased_seq_rec_resid_only.py --model-name=grurec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
     "./baseline/debiased_seq_rec_resid_only.py --model-name=sasrec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
-    "./baseline/debiased_seq_rec_tisasrec_resid_only.py --model-name=tisasrec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
+    "./baseline/debiased_seq_rec_tisasrec_resid_only.py --model-name=tisasrec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
     "./baseline/debiased_seq_rec_resid_only.py --model-name=fearec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared"
     "./baseline/debiased_seq_rec_resid_only.py --model-name=bsarec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --alpha=0.7 --c=1 --epochs=500 --ablation=shared"
 

@@ -654,7 +654,7 @@ def plot_item_time_heatmap(df, n_bins=50, top_k=30, out_path=None, fontsize=15):
         shrink=1.0,       # colorbar 높이
     )
     cbar.set_ticks([])
-    cbar.set_label("Popularity", fontsize=fontsize-5)
+    cbar.set_label("Frequency", fontsize=fontsize-5)
 
 
     ax.set_title(f"{TITLE}", fontsize=fontsize)
@@ -692,8 +692,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 DATASET, TITLE = "micro_video", "Micro Video"
 
-DATASET, TITLE = "ml-1m", "MovieLens-1M"
-DATASET, TITLE = "kuairand", "KuaiRand"
+# DATASET, TITLE = "ml-1m", "MovieLens-1M"
+# DATASET, TITLE = "kuairand", "KuaiRand"
 TRAIN_PATH = f"./data/{DATASET}/training_dict.npy"
 TIME_PATH = f"./data/{DATASET}/interaction_time_dict.npy"
 OUT_DIR = Path(f"../../Desktop")

@@ -127,12 +127,6 @@ for (split_name, data_split) in eval_datasets:
 
     results = computeTopNAccuracy(gt_list, pred_list, args.topks)
 
-    print(
-        f"[Epoch {epoch} {flag}] "
-        f"Recall@{args.topks}: {results[1]} | "
-        f"NDCG@{args.topks}: {results[2]}"
-    )
-
     if wandb_login:
         wandb_var.log(dict(zip([f"test_{split_name}_precision_{k}_{epoch}" for k in args.topks], test_results[0])))
         wandb_var.log(dict(zip([f"test_{split_name}_recall_{k}_{epoch}" for k in args.topks], test_results[1])))

@@ -83,20 +83,20 @@ experiments=(
     # "./baseline/ddc_pop.py --model-name=mf --dataset=kuairand --seed=4 --recdim=128 --lr=0.001  --decay=1e-5   --k-pop=1 --contrast-size=16 --pair-reset-interval=1 --evaluate-interval=500 --epochs=500"
     
 
-    "./baseline/dice_pop.py --dataset=micro_video --seed=1 --recdim=128 --tau=0.5 --lr=0.005 --lambda1=0.3 --alpha=1.0   --evaluate-interval=500 --epochs=500"
-    "./baseline/dice_pop.py --dataset=micro_video --seed=2 --recdim=128 --tau=0.5 --lr=0.005 --lambda1=0.3 --alpha=1.0   --evaluate-interval=500 --epochs=500"
-    "./baseline/dice_pop.py --dataset=micro_video --seed=3 --recdim=128 --tau=0.5 --lr=0.005 --lambda1=0.3 --alpha=1.0   --evaluate-interval=500 --epochs=500"
-    "./baseline/dice_pop.py --dataset=micro_video --seed=4 --recdim=128 --tau=0.5 --lr=0.005 --lambda1=0.3 --alpha=1.0   --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=micro_video --seed=1 --recdim=128 --tau=0.5 --lr=0.005 --lambda1=0.3 --alpha=1.0   --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=micro_video --seed=2 --recdim=128 --tau=0.5 --lr=0.005 --lambda1=0.3 --alpha=1.0   --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=micro_video --seed=3 --recdim=128 --tau=0.5 --lr=0.005 --lambda1=0.3 --alpha=1.0   --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=micro_video --seed=4 --recdim=128 --tau=0.5 --lr=0.005 --lambda1=0.3 --alpha=1.0   --evaluate-interval=500 --epochs=500"
     
-    "./baseline/dice_pop.py --dataset=ml-1m --seed=1 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.1 --alpha=0.1   --evaluate-interval=500 --epochs=500"
-    "./baseline/dice_pop.py --dataset=ml-1m --seed=2 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.1 --alpha=0.1   --evaluate-interval=500 --epochs=500"
-    "./baseline/dice_pop.py --dataset=ml-1m --seed=3 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.1 --alpha=0.1   --evaluate-interval=500 --epochs=500"
-    "./baseline/dice_pop.py --dataset=ml-1m --seed=4 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.1 --alpha=0.1   --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=ml-1m --seed=1 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.1 --alpha=0.1   --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=ml-1m --seed=2 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.1 --alpha=0.1   --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=ml-1m --seed=3 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.1 --alpha=0.1   --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=ml-1m --seed=4 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.1 --alpha=0.1   --evaluate-interval=500 --epochs=500"
     
-    "./baseline/dice_pop.py --dataset=kuairand --seed=1 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.5 --alpha=0.01  --evaluate-interval=500 --epochs=500"
-    "./baseline/dice_pop.py --dataset=kuairand --seed=2 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.5 --alpha=0.01  --evaluate-interval=500 --epochs=500"
-    "./baseline/dice_pop.py --dataset=kuairand --seed=3 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.5 --alpha=0.01  --evaluate-interval=500 --epochs=500"
-    "./baseline/dice_pop.py --dataset=kuairand --seed=4 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.5 --alpha=0.01  --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=kuairand --seed=1 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.5 --alpha=0.01  --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=kuairand --seed=2 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.5 --alpha=0.01  --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=kuairand --seed=3 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.5 --alpha=0.01  --evaluate-interval=500 --epochs=500"
+    # "./baseline/dice_pop.py --dataset=kuairand --seed=4 --recdim=128 --tau=0.5 --lr=0.001 --lambda1=0.5 --alpha=0.01  --evaluate-interval=500 --epochs=500"
     
     # "./baseline/melt_pop.py --dataset=micro_video --seed=1 --recdim=128 --tau=0.5 --dropout=0.2 --lr=0.005 --melt-alpha=1.0 --n-proto=128 --evaluate-interval=500 --epochs=500"
     # "./baseline/melt_pop.py --dataset=micro_video --seed=2 --recdim=128 --tau=0.5 --dropout=0.2 --lr=0.005 --melt-alpha=1.0 --n-proto=128 --evaluate-interval=500 --epochs=500"
@@ -231,10 +231,10 @@ experiments=(
 #     "./baseline/debiased_seq_rec_weighted_pop.py --model-name=sasrec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
 #     "./baseline/debiased_seq_rec_weighted_pop.py --model-name=sasrec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
 
-#     "./baseline/debiased_seq_rec_tisasrec_weighted_pop.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
-#     "./baseline/debiased_seq_rec_tisasrec_weighted_pop.py --model-name=tisasrec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
-#     "./baseline/debiased_seq_rec_tisasrec_weighted_pop.py --model-name=tisasrec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
-#     "./baseline/debiased_seq_rec_tisasrec_weighted_pop.py --model-name=tisasrec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
+    "./baseline/debiased_seq_rec_tisasrec_weighted_pop.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
+    "./baseline/debiased_seq_rec_tisasrec_weighted_pop.py --model-name=tisasrec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
+    "./baseline/debiased_seq_rec_tisasrec_weighted_pop.py --model-name=tisasrec --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
+    "./baseline/debiased_seq_rec_tisasrec_weighted_pop.py --model-name=tisasrec --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
 
 #     "./baseline/debiased_seq_rec_weighted_pop.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
 #     "./baseline/debiased_seq_rec_weighted_pop.py --model-name=fearec --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"

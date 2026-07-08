@@ -12,7 +12,7 @@ from datetime import datetime
 
 from module.utils import parse_args, set_seed, set_device
 from module.procedure import computeTopNAccuracy
-from module.dataset import UserItemTime
+from module.dataset_pop import UserItemTime
 from module.paac_model import PAACModel
 
 
@@ -40,7 +40,7 @@ if file_name.endswith(".py"):
 if wandb_login:
     expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
     args.expt_name = f"{file_name.split('.')[-2]}_{expt_num}"
-    wandb_var = wandb.init(project="ldr_rec4", config=vars(args))
+    wandb_var = wandb.init(project="ldr_rec_pop", config=vars(args))
     wandb.run.name = args.expt_name
 
 
@@ -95,130 +95,43 @@ if len(matched_files) > 0:
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     epoch = checkpoint["epoch"]
     print("MODEL LOADED!")
-
+else:
+    raise ValueError
 
 #%%
-while epoch < args.epochs:
-    epoch += 1
-    torch.cuda.empty_cache()
-    model.train()
-    np.random.shuffle(hot_idxs)
-    epoch_bpr_loss  = 0.0
-    epoch_aln_loss  = 0.0
-    epoch_con_loss  = 0.0
+eval_datasets = [
+    ("head_overall", dataset.test_head_overall_dict),
+    ("head_recent_3d", dataset.test_head_recent_3d_dict),
+    ("head_recent_7d", dataset.test_head_recent_7d_dict),
+    ("tail_overall", dataset.test_tail_overall_dict),
+    ("tail_recent_3d", dataset.test_tail_recent_3d_dict),
+    ("tail_recent_7d", dataset.test_tail_recent_7d_dict),
+]
 
-    for idx in range(batch_num):
-        hot_sample_idx  = hot_idxs[hot_mini_batch * idx : (idx + 1) * hot_mini_batch]
-        cold_sample_idx = cold_idxs[cold_mini_batch * idx : (idx + 1) * cold_mini_batch]
+pred_list, gt_list = [], []
+model.eval()
 
-        hot_anchor_user  = torch.tensor(dataset.hot_user_list[hot_sample_idx],  dtype=torch.long, device=args.device)
-        hot_pos_item     = torch.tensor(dataset.hot_pos_item_list[hot_sample_idx],  dtype=torch.long, device=args.device)
-        hot_neg_item     = torch.tensor(dataset.hot_neg_item_list[hot_sample_idx],  dtype=torch.long, device=args.device)
 
-        cold_anchor_user = torch.tensor(dataset.cold_user_list[cold_sample_idx], dtype=torch.long, device=args.device)
-        cold_pos_item    = torch.tensor(dataset.cold_pos_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
-        cold_neg_item    = torch.tensor(dataset.cold_neg_item_list[cold_sample_idx], dtype=torch.long, device=args.device)
+for (split_name, data_split) in eval_datasets:
+    for (user, item), pos_time_val in dataset.set_to_pair(data_split, dataset.time_dict, dataset.time_unit).items():
+        user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 
-        anchor_user = torch.cat([cold_anchor_user, hot_anchor_user], dim=0)
-        pos_item    = torch.cat([cold_pos_item,    hot_pos_item],    dim=0)
-        neg_item    = torch.cat([cold_neg_item,    hot_neg_item],    dim=0)
+        with torch.no_grad():
+            scores = model.score_all_items(user_t).squeeze(0).cpu()
 
-        # ---- BPR recommendation loss (interest branch) ----
-        bpr = model.bpr_loss(anchor_user, pos_item, neg_item)
+        exclude_items = list(dataset._allPos[user])
+        scores[exclude_items] = -9999
+        _, pred_k = torch.topk(scores, k=max(args.topks))
+        pred_list.append(pred_k.cpu())
+        gt_list.append([item])
 
-        # ---- Popularity-Aware Alignment ----
-        # For each interaction in the batch, pair with a random item from the
-        # OPPOSITE popularity group to form (pop_item, cold_item) pairs.
-        B = anchor_user.shape[0]
-        pos_np = pos_item.cpu().numpy()
-        is_pop_batch = is_pop_item[pos_np]             # bool [B]
+    results = computeTopNAccuracy(gt_list, pred_list, args.topks)
 
-        # For pop interactions → sample a cold item; for cold → sample a pop item
-        paired_np = np.empty(B, dtype=np.int64)
-        n_pop  = int(is_pop_batch.sum())
-        n_cold = B - n_pop
-        if n_pop > 0:
-            paired_np[is_pop_batch]  = cold_item_arr[np.random.randint(0, len(cold_item_arr), n_pop)]
-        if n_cold > 0:
-            paired_np[~is_pop_batch] = pop_item_arr[np.random.randint(0, len(pop_item_arr), n_cold)]
-
-        paired_item = torch.tensor(paired_np, dtype=torch.long, device=args.device)
-
-        # pop_for_align: the "popular" side; cold_for_align: the "cold" side
-        pop_for_align  = torch.where(
-            torch.tensor(is_pop_batch, device=args.device), pos_item, paired_item
-        )
-        cold_for_align = torch.where(
-            torch.tensor(is_pop_batch, device=args.device), paired_item, pos_item
-        )
-
-        aln = model.alignment_loss(anchor_user, pop_for_align, cold_for_align)
-
-        # ---- Popularity-Aware Contrast ----
-        con = model.contrast_loss(anchor_user, pop_for_align, cold_for_align)
-
-        total_loss = bpr + args.alpha * aln + args.gamma * con
-
-        optimizer.zero_grad()
-        total_loss.backward()
-        optimizer.step()
-
-        epoch_bpr_loss += bpr.item()
-        epoch_aln_loss += aln.item()
-        epoch_con_loss += con.item()
-
-        dataset.get_pair_item_uniform(k=args.contrast_size - 1, w_time=False)
-
-    print(
-        f"[Epoch {epoch:>4d} Train Loss] "
-        f"bpr: {epoch_bpr_loss / batch_num:.4f} / "
-        f"align: {epoch_aln_loss / batch_num:.4f} / "
-        f"con: {epoch_con_loss / batch_num:.4f}"
-    )
-
-    if epoch % 100 == 0:
-        save_name = f"paac_lr{args.lr}_tau{args.tau}_alpha{args.alpha}_gamma{args.gamma}_e{epoch}_seed{args.seed}.pt"
-        save_path = f"{args.save_path}/{save_name}"
-
-        # Delete previous checkpoint for this config
-        prev_pattern = f"paac_lr{args.lr}_tau{args.tau}_alpha{args.alpha}_gamma{args.gamma}_e???_seed{args.seed}.pt"
-        for old_file in save_dir.glob(prev_pattern):
-            if old_file != Path(save_path):
-                old_file.unlink()
-
-        torch.save({
-            "epoch": epoch,
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "loss": epoch_bpr_loss,
-        }, save_path)
-
-    if epoch % args.evaluate_interval == 0:
-        model.eval()
-
-        for flag, user_item_time in [("valid", dataset.valid_user_item_time),
-                                      ("test",  dataset.test_user_item_time)]:
-            pred_list, gt_list = [], []
-
-            for (user, item), _ in user_item_time.items():
-                user_t = torch.tensor([user], dtype=torch.long, device=args.device)
-
-                with torch.no_grad():
-                    scores = model.score_all_items(user_t).squeeze(0).cpu()
-
-                exclude_items = list(dataset._allPos[user])
-                scores[exclude_items] = -9999
-                _, pred_k = torch.topk(scores, k=max(args.topks))
-                pred_list.append(pred_k.cpu())
-                gt_list.append([item])
-
-            results = computeTopNAccuracy(gt_list, pred_list, args.topks)
-
-            if wandb_login:
-                wandb_var.log(dict(zip([f"{flag}_precision_{k}_{epoch}" for k in args.topks], results[0])))
-                wandb_var.log(dict(zip([f"{flag}_recall_{k}_{epoch}"    for k in args.topks], results[1])))
-                wandb_var.log(dict(zip([f"{flag}_ndcg_{k}_{epoch}"      for k in args.topks], results[2])))
-                wandb_var.log(dict(zip([f"{flag}_mrr_{k}_{epoch}"       for k in args.topks], results[3])))
+    if wandb_login:
+        wandb_var.log(dict(zip([f"test_{split_name}_precision_{k}_{epoch}" for k in args.topks], test_results[0])))
+        wandb_var.log(dict(zip([f"test_{split_name}_recall_{k}_{epoch}" for k in args.topks], test_results[1])))
+        wandb_var.log(dict(zip([f"test_{split_name}_ndcg_{k}_{epoch}" for k in args.topks], test_results[2])))
+        wandb_var.log(dict(zip([f"test_{split_name}_mrr_{k}_{epoch}" for k in args.topks], test_results[3])))
 
 if wandb_login:
     wandb_var.finish()

@@ -132,7 +132,7 @@ for (split_name, data_split) in eval_datasets:
         pred_list.append(pred_k.cpu())
         gt_list.append([item])
 
-    results = computeTopNAccuracy(gt_list, pred_list, args.topks)
+    test_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
 
     if wandb_login:
         wandb_var.log(dict(zip([f"test_{split_name}_precision_{k}_{epoch}" for k in args.topks], test_results[0])))

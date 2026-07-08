@@ -121,7 +121,7 @@ for (split_name, data_split) in eval_datasets:
         pred_list.append(pred_k.cpu())
         gt_list.append([item])
 
-    results = computeTopNAccuracy(gt_list, pred_list, args.topks)
+    test_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
 
 
     if wandb_login:

@@ -16,6 +16,15 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgb
+from matplotlib.ticker import FuncFormatter
+
+
+def no_leading_zero(x, pos):
+    """Format tick labels like .05 / .10 instead of 0.05 / 0.10 (0 stays 0)."""
+    if x == 0:
+        return "0"
+    s = f"{x:.2f}"
+    return s.replace("0.", ".", 1) if s.startswith("0.") else s.replace("-0.", "-.", 1)
 
 
 def lighten(hex_color, amount=0.35):
@@ -25,13 +34,13 @@ def lighten(hex_color, amount=0.35):
 
 
 plt.rcParams.update({
-    "font.size": 11,
-    "axes.titlesize": 15,
+    "font.size": 13,
+    "axes.titlesize": 17,
     "axes.titleweight": "normal",
-    "axes.labelsize": 13,
-    "xtick.labelsize": 11,
-    "ytick.labelsize": 11,
-    "legend.fontsize": 13,
+    "axes.labelsize": 15,
+    "xtick.labelsize": 13,
+    "ytick.labelsize": 13,
+    "legend.fontsize": 15,
     "axes.edgecolor": "#4d4d4d",
     "axes.linewidth": 0.9,
 })
@@ -49,7 +58,7 @@ DATASETS = ["Micro Video", "MovieLens-1M", "KuaiRand"]
 PERIODS = [
     ("Overall", "overall"),
     ("Recent 3d", "3d"),
-    ("Recent 5d", "5d"),
+    ("Recent 7d", "5d"),  # xlsx column suffix is "5d" but represents a 7-day window
 ]
 
 # name prefix (run "Name" column with the trailing timestamp/seed suffix
@@ -180,15 +189,16 @@ def plot(stats):
             ax.set_ylim(0, max_height * 1.18)
             ax.set_xticks(group_x)
             ax.set_xticklabels(groups)
+            ax.yaxis.set_major_formatter(FuncFormatter(no_leading_zero))
 
             for gx in group_x:
                 ax.text(
                     gx + (ours_lo + ours_hi) / 2, max_height * 1.18 * 0.965, "Ours",
-                    ha="center", va="top", fontsize=8, fontweight="bold", color="black", zorder=4,
+                    ha="center", va="top", fontsize=10, fontweight="bold", color="black", zorder=4,
                 )
 
             if r == 0:
-                ax.set_title(dataset, pad=6)
+                ax.set_title(dataset, pad=10)
             if c == 0:
                 ax.set_ylabel(period_label)
             else:
@@ -196,11 +206,11 @@ def plot(stats):
 
     fig.legend(
         list(bars_for_legend.values()), list(bars_for_legend.keys()),
-        loc="upper center", bbox_to_anchor=(0.5, 1.015), ncol=n_methods,
+        loc="upper center", bbox_to_anchor=(0.5, 1.0), ncol=n_methods,
         frameon=False, handlelength=1.0, handleheight=1.0, columnspacing=1.1,
     )
 
-    fig.subplots_adjust(left=0.06, right=0.99, bottom=0.05, top=0.90, hspace=0.22, wspace=0.16)
+    fig.subplots_adjust(left=0.06, right=0.99, bottom=0.05, top=0.86, hspace=0.26, wspace=0.16)
     return fig
 
 

@@ -72,7 +72,22 @@ optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
 
 
 #%%
-for epoch in range(1, args.epochs + 1):
+save_dir = Path(args.save_path)
+pattern = f"backbone_{args.model_name}_e???_seed{args.seed}.pt"
+matched_files = sorted(save_dir.glob(pattern))
+if len(matched_files) > 0:
+    recent_file = max(matched_files, key=get_epoch)
+    checkpoint = torch.load(recent_file, map_location=args.device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    epoch = checkpoint["epoch"]
+    print("MODEL LOADED!")
+
+epoch = 0
+
+
+while epoch < args.epochs: 
+    epoch += 1 
     torch.cuda.empty_cache()
     model.train()
     np.random.shuffle(hot_idxs)
@@ -106,6 +121,14 @@ for epoch in range(1, args.epochs + 1):
         epoch_user_loss += user_loss.item()
 
     print(f"[Epoch {epoch:>4d} Train Loss] ldr: {epoch_user_loss / batch_num:.4f}")
+
+    if epoch % 100 == 0:
+        torch.save({
+            "epoch": epoch,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "loss": epoch_user_loss,
+        }, f"{args.save_path}/backbone_{args.model_name}_e{epoch}_seed{args.seed}.pt")
 
     if epoch % args.pair_reset_interval == 0:
         print("Reset uniform negative users")

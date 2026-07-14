@@ -13,7 +13,7 @@ from datetime import datetime
 
 from module.utils import parse_args, set_seed, set_device
 from module.procedure import computeTopNAccuracy
-from module.dataset import UserItemTime
+from module._dataset import UserItemTime
 from module.model import build_model, score_pair, score_all
 from module.bsarec import BSARec
 

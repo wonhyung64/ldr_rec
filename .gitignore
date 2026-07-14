@@ -53,3 +53,6 @@ wandb_key.txt
 
 *.png
 *.xlsx
+
+collapse_analysis/embeddings/
+collapse_analysis/figures/

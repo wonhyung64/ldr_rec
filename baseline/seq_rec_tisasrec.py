@@ -1,20 +1,27 @@
 #%%
 import os
+import re
 import copy
 import wandb
 import torch
 import inspect
 import numpy as np
 import torch.nn.functional as F
+from pathlib import Path
 
 from torch import optim
 from datetime import datetime
 
 from module.utils import parse_args, set_seed, set_device
 from module.procedure import computeTopNAccuracy
-from module._dataset import UserItemTime
+from module.dataset import UserItemTime
 from module.model import build_model, score_pair, score_all
 from module.tisasrec import TiSASRec
+
+
+def get_epoch(path):
+    match = re.search(r"_e(\d+)_", path.name)
+    return int(match.group(1)) if match else -1
 
 
 #%%
@@ -37,25 +44,26 @@ if file_name.endswith(".py"):
 if wandb_login:
     expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
     args.expt_name = f"{file_name.split('.')[-2]}_{args.model_name}_{expt_num}"
-    wandb_var = wandb.init(project="ldr_rec2", config=vars(args))
+    wandb_var = wandb.init(project="ldr_rec_backbone", config=vars(args))
     wandb.run.name = args.expt_name
 
 
 #%%
-dataset = UserItemTime(args)
-dataset.build_user_histories(max_seq_len=args.max_seq_len)
-dataset.get_pair_item_uniform(k=args.contrast_size-1)
-hot_ratio = dataset.hotDataSize / dataset.trainDataSize
+dataset = UserItemTime("./data", args.dataset, "d", 50, args.max_seq_len)
+dataset.get_pair_item_uniform(k=args.contrast_size-1, w_time=True)
 
-#%%
 mini_batch = args.batch_size // args.contrast_size
 batch_num = dataset.trainDataSize // mini_batch + 1
 
+hot_ratio = dataset.hotDataSize / dataset.trainDataSize
 hot_mini_batch = round(mini_batch * hot_ratio)
 hot_idxs = np.arange(dataset.hotDataSize)
 cold_mini_batch = mini_batch - hot_mini_batch
 cold_idxs = np.arange(dataset.coldDataSize)
 
+all_item_idxs = np.arange(dataset.m_item)
+
+#%%
 if args.dataset == "ml-1m":
     time_span = 2048
 else:
@@ -78,9 +86,10 @@ optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
 
 
 #%%
+epoch = 0
 
 save_dir = Path(args.save_path)
-pattern = f"backbone_{args.model_name}_e???_seed{args.seed}.pt"
+pattern = f"_backbone_{args.model_name}_e???_seed{args.seed}.pt"
 matched_files = sorted(save_dir.glob(pattern))
 if len(matched_files) > 0:
     recent_file = max(matched_files, key=get_epoch)
@@ -89,8 +98,6 @@ if len(matched_files) > 0:
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     epoch = checkpoint["epoch"]
     print("MODEL LOADED!")
-
-epoch = 0
 
 
 while epoch < args.epochs: 
@@ -108,8 +115,14 @@ while epoch < args.epochs:
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_times = torch.tensor(dataset.train_hist_time_list[hot_sample_idx], dtype=torch.long, device=args.device) * 24 * 60 * 60
 
-        pos_score = score_pair(model, pos_item, anchor_hist_items, anchor_hist_times)
-        neg_score = score_pair(model, neg_item, anchor_hist_items, anchor_hist_times)
+        # pos_score = score_pair(model, pos_item, anchor_hist_items, anchor_hist_times)
+        # neg_score = score_pair(model, neg_item, anchor_hist_items, anchor_hist_times)
+        u = model.encode_user(anchor_hist_items, anchor_hist_times)
+        mini_batch, recdim = u.shape
+        v = model.get_item_repr(pos_item).reshape(mini_batch, -1, recdim)
+        pos_score = torch.sum(u.unsqueeze(1) * v, dim=-1)
+        v = model.get_item_repr(neg_item).reshape(mini_batch, -1, recdim)
+        neg_score = torch.sum(u.unsqueeze(1) * v, dim=-1)
 
         user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum()
         optimizer.zero_grad()
@@ -126,7 +139,7 @@ while epoch < args.epochs:
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "loss": epoch_user_loss,
-        }, f"{args.save_path}/backbone_{args.model_name}_e{epoch}_seed{args.seed}.pt")
+        }, f"{args.save_path}/_backbone_{args.model_name}_e{epoch}_seed{args.seed}.pt")
 
     if epoch % args.pair_reset_interval == 0:
         print("Reset uniform negative users")
@@ -138,12 +151,15 @@ while epoch < args.epochs:
 
         model.eval()
         for (user, item), pos_time_val in dataset.valid_user_item_time.items():
-            hist_item_np, hist_time_np = dataset.get_histories_for_users_at_times([user], [pos_time_val], max_seq_len=args.max_seq_len, w_time=True)
+            hist_item_np, hist_time_np = dataset.build_histories(zip([user], [0], [pos_time_val]), args.max_seq_len)
             hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
             hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device) * 24 * 60 * 60
 
             with torch.no_grad():
-                pred = score_all(model, hist_item_t, hist_time_t).squeeze(0).cpu()
+                # pred = score_all(model, hist_item_t, hist_time_t).squeeze(0).cpu()
+                u = model.encode_user(hist_item_t, hist_time_t)
+                v_all = model.get_item_repr(torch.arange(model.num_items, device=hist_item_t.device))
+                pred = torch.matmul(u, v_all.T).squeeze(0).cpu()
 
             exclude_items = list(dataset._allPos[user])
             pred[exclude_items] = -9999
@@ -173,7 +189,10 @@ for (user, item), pos_time_val in dataset.test_user_item_time.items():
     hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device) * 24 * 60 * 60
 
     with torch.no_grad():
-        pred = score_all(model, hist_item_t, hist_time_t).squeeze(0).cpu()
+        # pred = score_all(model, hist_item_t, hist_time_t).squeeze(0).cpu()
+        u = model.encode_user(hist_item_t, hist_time_t)
+        v_all = model.get_item_repr(torch.arange(model.num_items, device=hist_item_t.device))
+        pred = torch.matmul(u, v_all.T).squeeze(0).cpu()
 
     exclude_items = list(dataset._allPos[user])
     pred[exclude_items] = -9999

@@ -32,6 +32,7 @@ MODEL_ORDER = list(MODEL_LABELS.keys())
 
 ALPHA1_VALUES = [0.1, 0.3, 0.5, 0.7, 0.9]
 ALPHA1_VALUES_WITH_ETA0 = [0.0, 0.1, 0.3, 0.5, 0.7, 0.9]
+ALPHA1_VALUES_FULL = [0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0]
 
 MARKERS = ["o", "s", "^", "D", "v", "P", "X"]
 # Palette matched to the paper's figure (navy header, steel/teal blues,
@@ -66,13 +67,18 @@ def load_data(xlsx_path=XLSX_PATH, sheet_name=SHEET_NAME):
 
 
 def _draw_lines(ax, sub, alpha1_values, linewidth=3.0, markersize=10):
+    # Plot at evenly-spaced categorical positions rather than the raw eta
+    # values: the sweep is irregular (0, 0.1, 0.3, ..., 0.9, 1), so a linear
+    # x-axis crowds tick labels together wherever two etas sit close (e.g.
+    # 0/0.1 or 0.9/1). Equal spacing keeps every tick label legible.
+    position = {v: i for i, v in enumerate(alpha1_values)}
     lines = {}
     for i, model in enumerate(MODEL_ORDER):
         m = sub[(sub["model"] == model) & (sub["alpha1"].isin(alpha1_values))].sort_values("alpha1")
         if m.empty:
             continue
         (line,) = ax.plot(
-            m["alpha1"],
+            [position[v] for v in m["alpha1"]],
             m["recall_10"],
             marker=MARKERS[i % len(MARKERS)],
             color=COLORS[i % len(COLORS)],
@@ -86,9 +92,13 @@ def _draw_lines(ax, sub, alpha1_values, linewidth=3.0, markersize=10):
 
 
 def _xtick_labels(alpha1_values):
-    # "0" instead of "0.0" keeps the label compact next to the neighboring
-    # "0.1" tick, which sits only half as far away as the other ticks.
-    return ["0" if v == 0 else f"{v:g}" for v in alpha1_values]
+    return [f"{v:g}" for v in alpha1_values]
+
+
+def _set_xticks(ax, alpha1_values):
+    ax.set_xticks(range(len(alpha1_values)))
+    ax.set_xticklabels(_xtick_labels(alpha1_values))
+    ax.set_xlim(-0.5, len(alpha1_values) - 0.5)
 
 
 # NOTE: this figure is meant to be shrunk to a single (~3.3in) paper column,
@@ -109,8 +119,7 @@ def plot_combined(df, alpha1_values=ALPHA1_VALUES, out_path=None, figsize=(15, 4
 
         ax.set_title(DATASET_TITLES[dataset], fontsize=26, pad=10)
         ax.set_xlabel(r"$\eta$", fontsize=28)
-        ax.set_xticks(alpha1_values)
-        ax.set_xticklabels(_xtick_labels(alpha1_values))
+        _set_xticks(ax, alpha1_values)
         ax.tick_params(axis="both", labelsize=20, length=6, width=1.2)
         ax.yaxis.set_major_locator(plt.MaxNLocator(4))
         ax.grid(True, axis="y", linestyle=":", linewidth=1.1, alpha=0.5)
@@ -152,8 +161,7 @@ def plot_dataset(df, dataset, alpha1_values=ALPHA1_VALUES, out_path=None, figsiz
     ax.set_xlabel(r"$\eta$", fontsize=24)
     ax.set_ylabel("Recall@10", fontsize=22)
     ax.set_title(DATASET_TITLES[dataset], fontsize=24, pad=8)
-    ax.set_xticks(alpha1_values)
-    ax.set_xticklabels(_xtick_labels(alpha1_values))
+    _set_xticks(ax, alpha1_values)
     ax.tick_params(axis="both", labelsize=18, length=6, width=1.2)
     ax.yaxis.set_major_locator(plt.MaxNLocator(4))
     ax.grid(True, axis="y", linestyle=":", linewidth=1.0, alpha=0.5)
@@ -190,4 +198,16 @@ if __name__ == "__main__":
     plot_combined(
         data, ALPHA1_VALUES_WITH_ETA0,
         out_path=OUT_DIR / "alpha1_sensitivity_combined_with_eta0.png",
+    )
+
+    # Full sweep including eta = 0 and eta = 1, saved under distinct
+    # filenames so it can be compared against the other two versions.
+    for dataset in DATASET_TITLES:
+        plot_dataset(
+            data, dataset, ALPHA1_VALUES_FULL,
+            out_path=OUT_DIR / f"alpha1_sensitivity_{dataset}_full.png",
+        )
+    plot_combined(
+        data, ALPHA1_VALUES_FULL,
+        out_path=OUT_DIR / "alpha1_sensitivity_combined_full.png",
     )

@@ -69,7 +69,7 @@ experiments=(
     "./baseline/debiased_cf_weighted.py --model-name=ncf --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=1"
     "./baseline/debiased_seq_rec_weighted.py --model-name=grurec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=1"
     "./baseline/debiased_seq_rec_weighted.py --model-name=sasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=1"
-    "./baseline/debiased_seq_rec_tisasrec_weighted.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=1"
+    "./baseline/debiased_seq_rec_tisasrec_weighted.py --model-name=tisasrec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=1"
     "./baseline/debiased_seq_rec_weighted.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=1"
     "./baseline/debiased_seq_rec_weighted.py --model-name=bsarec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --alpha=0.7 --c=1 --epochs=500 --ablation=shared --alpha1=1"
 

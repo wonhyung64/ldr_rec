@@ -2,6 +2,7 @@
 import torch
 import numpy as np
 import torch.nn as nn
+import matplotlib.pyplot as plt
 
 
 # %%
@@ -37,3 +38,15 @@ vanilla_item_unit = nn.functional.normalize(torch.tensor(vanilla_item_emb), dim=
 
 
 # %%
+best_item_idx = item_popularity.argmax()
+
+
+#%%
+ours_cossim = torch.matmul(ours_item_unit[best_item_idx], ours_user_unit.T)
+vanilla_cossim = torch.matmul(vanilla_item_unit[best_item_idx], vanilla_user_unit.T)
+
+
+#%%
+plt.hist(ours_cossim, color="blue", bins=50)
+plt.hist(vanilla_cossim, color="orange", bins=50)
+

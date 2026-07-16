@@ -54,10 +54,12 @@ def set_device(device="none"):
 
 
 def build_model(model_name, num_users, num_items, recdim, device, tau, depth,
-                 max_seq_len, n_heads, dropout, time_span, debiased, ablation):
+                 max_seq_len, n_heads, dropout, time_span, debiased, ablation,
+                 alpha=0.5, c=3):
     model_class = MODEL_REGISTRY[model_name]
     if debiased:
         model_class = ABLATION_BUILDERS[ablation](model_class)
+    extra_kwargs = {"alpha": alpha, "c": c} if model_name == "bsarec" else {}
     if model_name == "tisasrec":
         model = model_class(
             num_users=num_users,
@@ -83,6 +85,7 @@ def build_model(model_name, num_users, num_items, recdim, device, tau, depth,
             max_seq_len=max_seq_len,
             n_heads=n_heads,
             dropout=dropout,
+            **extra_kwargs,
         ).to(device)
     return model
 
@@ -177,6 +180,8 @@ def parse_args():
     p.add_argument("--max-seq-len", type=int, default=50)
     p.add_argument("--n-heads", type=int, default=1)
     p.add_argument("--dropout", type=float, default=0.2)
+    p.add_argument("--alpha", type=float, default=0.5, help="BSARec only: frequency-mixing weight.")
+    p.add_argument("--c", type=int, default=3, help="BSARec only: low-pass filter cutoff.")
     p.add_argument("--weights-path", type=str, default="./weights")
     p.add_argument("--out-dir", type=str, default="./collapse_analysis/embeddings")
     p.add_argument("--device", type=str, default="none")
@@ -226,10 +231,12 @@ model = build_model(
     time_span=time_span,
     debiased=(args.condition == "ours"),
     ablation=args.ablation,
+    alpha=args.alpha,
+    c=args.c,
 )
 load_checkpoint(model, ckpt_path, args.device)
 
-if args.model_name == "mf" or "ncf":
+if args.model_name in ("mf", "ncf"):
     user_ids, pos_items, h_u = extract_user_embeddings(
         model, dataset, dataset.test_user_item_time, args.max_seq_len, args.device
     )

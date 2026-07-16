@@ -71,7 +71,7 @@ METHOD_PREFIX = {
     "DCRec": "dcrec_pop",
     "PAUDRec": "paud_rec_pop",
     "PAAC": "paac_pop",
-    "SAPID": "sapid_pop",
+    "TPAB": "tpab",
 }
 METHODS = list(METHOD_PREFIX.keys())
 
@@ -88,7 +88,7 @@ _BASE_COLORS = {
     "DCRec": "#4C72B0",
     "PAUDRec": "#9B7FB8",
     "PAAC": "#C0785A",
-    "SAPID": "#94A84C",
+    "TPAB": "#94A84C",
 }
 COLORS = {method: lighten(hex_color, 0.35) for method, hex_color in _BASE_COLORS.items()}
 
@@ -106,6 +106,9 @@ def load_data():
     frames = []
     for sheet, dataset in SHEET_TO_DATASET.items():
         df = pd.read_excel(xls, sheet_name=sheet, header=0)
+        # some sheets label the recent-window columns "_7d" (the actual window
+        # length) instead of "_5d"; normalize to "_5d" so both line up.
+        df = df.rename(columns={"head_7d": "head_5d", "tail_7d": "tail_5d"})
         df = df.dropna(subset=["Name"]).copy()
         df["method"] = df["Name"].apply(match_method)
         df = df[df["method"].notna()].copy()

@@ -131,32 +131,14 @@ if args.dr_anchor != "user":
 epoch = 0
 
 save_dir = Path(args.save_path)
-print(save_dir)
-
-pattern = f"{args.model_name}"
-matched_files = sorted(save_dir.glob(pattern))
-print(pattern)
-print(matched_files)
-
-
-pattern = f"{args.model_name}_lambda{args.lambda1}"
-matched_files = sorted(save_dir.glob(pattern))
-print(pattern)
-print(matched_files)
-
 pattern = f"{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}_window_prior.pt"
 matched_files = sorted(save_dir.glob(pattern))
-print(pattern)
-print(matched_files)
-
-
 if len(matched_files) > 0:
     recent_file = max(matched_files, key=get_epoch)
     checkpoint = torch.load(recent_file, map_location=args.device)
     model.load_state_dict(checkpoint["model_state_dict"])
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     epoch = checkpoint["epoch"]
-    print(epoch)
     print("MODEL LOADED!")
 
 while epoch < args.epochs:

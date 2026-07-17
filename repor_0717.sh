@@ -52,39 +52,38 @@ DATADIR=/home1/wonhyung64/Github/ldr_rec/data
 
 experiments=(
 
-    # "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=micro_video --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
-    # "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=micro_video --seed=2 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
-    # "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=micro_video --seed=3 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
-    # "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=micro_video --seed=4 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
+    "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=micro_video --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
+    "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=micro_video --seed=2 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
+    "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=micro_video --seed=3 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
+    "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=micro_video --seed=4 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
 
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=micro_video --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=micro_video --seed=2 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=micro_video --seed=3 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=micro_video --seed=4 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=micro_video --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=micro_video --seed=2 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=micro_video --seed=3 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=micro_video --seed=4 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
 
     "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.7"
     "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.7"
     "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.7"
     "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.7"
 
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=ml-1m --seed=2 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=ml-1m --seed=3 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=ml-1m --seed=4 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
 
-    # "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
-    # "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
-    # "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
-    # "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
+    "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
+    "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
+    "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
+    "./baseline/debiased_cf_window_prior.py --model-name=mf --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
 
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
-    # "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=kuairand --seed=2 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
 
-
-    # "./baseline/debiased_seq_rec_tisasrec_window_prior.py --model-name=tisasrec --dataset=micro_video --seed=2 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
-    # "./baseline/debiased_seq_rec_tisasrec_window_prior.py --model-name=tisasrec --dataset=micro_video --seed=4 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
+    "./baseline/debiased_seq_rec_tisasrec_window_prior.py --model-name=tisasrec --dataset=micro_video --seed=2 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
+    "./baseline/debiased_seq_rec_tisasrec_window_prior.py --model-name=tisasrec --dataset=micro_video --seed=4 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
 
 )
 

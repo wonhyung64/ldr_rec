@@ -131,11 +131,8 @@ if args.dr_anchor != "user":
 epoch = 0
 
 save_dir = Path(args.save_path)
-pattern = f"{args.save_path}/{args.model_name}_lambda{args.lambda1}_e{epoch}_seed{args.seed}_window_prior.pt"
+pattern = f"{args.save_path}/{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}_window_prior.pt"
 matched_files = sorted(save_dir.glob(pattern))
-print(save_dir)
-print(pattern)
-print(matched_files)
 if len(matched_files) > 0:
     recent_file = max(matched_files, key=get_epoch)
     checkpoint = torch.load(recent_file, map_location=args.device)

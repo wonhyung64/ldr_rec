@@ -133,18 +133,18 @@ epoch = 0
 save_dir = Path(args.save_path)
 print(save_dir)
 
-pattern = f"{args.save_path}/{args.model_name}"
+pattern = f"{args.model_name}"
 matched_files = sorted(save_dir.glob(pattern))
 print(pattern)
 print(matched_files)
 
 
-pattern = f"{args.save_path}/{args.model_name}_lambda{args.lambda1}"
+pattern = f"{args.model_name}_lambda{args.lambda1}"
 matched_files = sorted(save_dir.glob(pattern))
 print(pattern)
 print(matched_files)
 
-pattern = f"{args.save_path}/{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}_window_prior.pt"
+pattern = f"{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}_window_prior.pt"
 matched_files = sorted(save_dir.glob(pattern))
 print(pattern)
 print(matched_files)

@@ -82,6 +82,14 @@ experiments=(
     "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=kuairand --seed=3 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
     "./baseline/debiased_cf_window_prior.py --model-name=ncf --dataset=kuairand --seed=4 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
 
+    "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=kuairand --seed=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/seq_rec.py --model-name=fearec --dataset=kuairand --seed=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/seq_rec_tisasrec.py --model-name=tisasrec --dataset=ml-1m --seed=1 --evaluate-interval=500 --epochs=500"
+    "./baseline/seq_rec.py --model-name=fearec --dataset=ml-1m --seed=1 --evaluate-interval=500 --epochs=500"
+
+    "./baseline/cf.py --model-name=mf --dataset=micro_video --seed=1 --evaluate-interval=500 --epochs=500"
+
+
 )
 
 

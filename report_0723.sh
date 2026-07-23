@@ -54,13 +54,6 @@ experiments=(
 
 
 
-    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0."
-    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.1"
-    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
-    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.7"
-    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
-    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=1."
-
 
 #     "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=grurec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
 #     "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=grurec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.3 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
@@ -85,6 +78,15 @@ experiments=(
     "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.5 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
     "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
     "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
+
+
+    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0."
+    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.1"
+    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.3"
+    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.7"
+    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.9"
+    "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=fearec --dataset=ml-1m --seed=1 --tau=0.1 --lambda1=0.1 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=1."
+
 
     "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=bsarec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --alpha=0.9 --c=1 --epochs=500 --ablation=shared --alpha1=0."
     "./baseline/debiased_seq_rec_weighted_fixed.py --model-name=bsarec --dataset=kuairand --seed=1 --tau=0.1 --lambda1=0.9 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --alpha=0.9 --c=1 --epochs=500 --ablation=shared --alpha1=0.1"

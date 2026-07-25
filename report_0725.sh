@@ -3,21 +3,21 @@
 read -r -d '' SLURM_SCRIPT<<'EOF'
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=2
 #SBATCH --partition=gpu5,gpu3,gpu4,gpu2,gpu6,gpu1
 ##
 #SBATCH --job-name=DCRec
 #SBATCH -o logs/s_%j.out
 #SBATCH -e logs/s_%j.err
 ##
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:2
 
 hostname
 date
 check_jobs() {
     jobs -r | wc -l
 }
-MAX_JOBS=16
+MAX_JOBS=2
 experiments=(
 
 EOF
@@ -31,7 +31,7 @@ for index in ${!experiments[*]}; do
         sleep 1m
     done
 
-    GPU_ID=$(( COUNTER % 4 ))
+    GPU_ID=$(( COUNTER % 2 ))
     export CUDA_VISIBLE_DEVICES=$GPU_ID
 
     echo "Launching on GPU $GPU_ID: "
@@ -287,7 +287,7 @@ for index in ${!experiments[*]}; do
     echo "\"$ENV ${experiments[$index]} --data_path=$DATADIR\"" >> runner.sh
     (( COUNTER++ ))
 
-    if [ "$COUNTER" -eq 16  ]; then
+    if [ "$COUNTER" -eq 2  ]; then
         echo "$EXECUTER" >> runner.sh
         chmod +x runner.sh
 

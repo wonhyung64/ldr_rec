@@ -142,8 +142,6 @@ else:
 
 #%%
 # Test
-pred_list, gt_list = [], []
-model.eval()
 
 eval_datasets = [
     ("head_overall", dataset.test_head_overall_dict),
@@ -159,6 +157,10 @@ with torch.no_grad():
     pop_directions = compute_popularity_directions(v_emb, item_pop_norm, args.k_pop)
 
 for (split_name, data_split) in eval_datasets:
+
+    pred_list, gt_list = [], []
+    model.eval()
+
     for (user, item), pos_time_val in dataset.set_to_pair(data_split, dataset.time_dict, dataset.time_unit).items():
         hist_item_np, _ = dataset.build_histories(zip([user], [0], [pos_time_val]), args.max_seq_len)
         hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)

@@ -12,6 +12,12 @@ class UserItemTime(Dataset):
         self.train_dict = np.load(f'{path}/training_dict.npy', allow_pickle=True).item()
         self.valid_dict = np.load(f'{path}/validation_dict.npy', allow_pickle=True).item()
         self.test_dict = np.load(f'{path}/testing_dict.npy', allow_pickle=True).item()
+        self.test_head_overall_dict = np.load(f'{path}/testing_dict_head_overall.npy', allow_pickle=True).item()
+        self.test_head_recent_3d_dict = np.load(f'{path}/testing_dict_head_recent_3d.npy', allow_pickle=True).item()
+        self.test_head_recent_7d_dict = np.load(f'{path}/testing_dict_head_recent_7d.npy', allow_pickle=True).item()
+        self.test_tail_overall_dict = np.load(f'{path}/testing_dict_tail_overall.npy', allow_pickle=True).item()
+        self.test_tail_recent_3d_dict = np.load(f'{path}/testing_dict_tail_recent_3d.npy', allow_pickle=True).item()
+        self.test_tail_recent_7d_dict = np.load(f'{path}/testing_dict_tail_recent_7d.npy', allow_pickle=True).item()
 
         self.trainUniqueUsers, self.trainUser, self.trainItem, self.trainDataSize = self.load_set(self.train_dict)
         self.validUniqueUsers, self.validUser, self.validItem, self.validDataSize = self.load_set(self.valid_dict)

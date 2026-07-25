@@ -108,11 +108,12 @@ eval_datasets = [
     ("tail_recent_7d", dataset.test_tail_recent_7d_dict),
 ]
 
-pred_list, gt_list = [], []
-model.eval()
-
 
 for (split_name, data_split) in eval_datasets:
+
+    pred_list, gt_list = [], []
+    model.eval()
+
     for (user, item), pos_time_val in dataset.set_to_pair(data_split, dataset.time_dict, dataset.time_unit).items():
         user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 

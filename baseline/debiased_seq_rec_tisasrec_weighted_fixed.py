@@ -52,20 +52,6 @@ if wandb_login:
 
 #%%
 dataset = UserItemTime("./data", args.dataset, "d", 50, args.max_seq_len)
-
-# `item_time_array` is built in module/dataset.py's time_dict_to_array from
-# the raw (unix-second) time_dict, while every query time used in this
-# script (hot/cold_event_time_list, valid/test event times) is in "day"
-# units (time_unit="d" above divides by 86400 in set_to_pair). Left
-# unconverted, item_time_array (~1e9) is never < a day-scale query time
-# (~1e4), so `model.prior`'s mask = batch_time_all < query is always False:
-# the Hawkes excitation term collapses to 0 and the prior degenerates to a
-# static per-item bias (mu) with no recency signal at all, regardless of
-# beta. Align item_time_array to the same day-unit scale so the decay term
-# actually reflects recent interactions. (Note this is unrelated to the
-# `* 24 * 60 * 60` conversions below, which convert TiSASRec's own
-# day-scale history times back to seconds for its internal time-embedding -
-# that part was already self-consistent.)
 dataset.item_time_array = dataset.item_time_array / 86400.0
 
 mini_batch = args.batch_size // args.contrast_size
@@ -363,6 +349,72 @@ if epoch % args.evaluate_interval == 0:
         wandb_var.log(dict(zip([f"test_recall_{k}_{epoch}" for k in args.topks], test_results[1])))
         wandb_var.log(dict(zip([f"test_ndcg_{k}_{epoch}" for k in args.topks], test_results[2])))
         wandb_var.log(dict(zip([f"test_mrr_{k}_{epoch}" for k in args.topks], test_results[3])))
+
+
+if args.debiased_eval == "true":
+
+    eval_datasets = [
+        ("head_overall", dataset.test_head_overall_dict),
+        ("head_recent_3d", dataset.test_head_recent_3d_dict),
+        ("head_recent_7d", dataset.test_head_recent_7d_dict),
+        ("tail_overall", dataset.test_tail_overall_dict),
+        ("tail_recent_3d", dataset.test_tail_recent_3d_dict),
+        ("tail_recent_7d", dataset.test_tail_recent_7d_dict),
+    ]
+
+    with torch.no_grad():
+        mu, alpha, beta = model.prior_parameters_from_embeddings()
+
+    for (split_name, data_split) in eval_datasets:
+
+        pred_list, gt_list = [], []
+        model.eval()
+
+        for (user, item), pos_time_val in dataset.set_to_pair(data_split, dataset.time_dict, dataset.time_unit).items():
+            hist_item_np, hist_time_np = dataset.build_histories(zip([user], [0], [pos_time_val]), args.max_seq_len)
+            hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
+            hist_time_t = torch.tensor(hist_time_np, dtype=torch.long, device=args.device) * 24 * 60 * 60
+
+            with torch.no_grad():
+                resid = score_all(model, hist_item_t, hist_time_t).squeeze(0)
+
+            pos_time_t = torch.tensor([pos_time_val], dtype=torch.float32).to(args.device)
+
+            item_logits_list = []
+            for idx2 in range(dataset.m_item // args.batch_size + 1):
+                item_idx = all_item_idxs[idx2 * args.batch_size: (idx2 + 1) * args.batch_size]
+                if len(item_idx) == 0:
+                    continue
+
+                batch_time_all = torch.tensor(dataset.item_time_array[item_idx], dtype=torch.float32).to(args.device)
+                batch_time_mask = batch_time_all < pos_time_t
+                batch_time_delta = (pos_time_t - batch_time_all).clamp(min=0.0)
+
+                with torch.no_grad():
+                    time_intensity = (torch.exp(-beta * batch_time_delta) * batch_time_mask).sum(-1, keepdim=True)
+                    logits = (mu[item_idx] + alpha[item_idx] * time_intensity.squeeze(-1)).flatten()
+                item_logits_list.append(logits)
+
+            item_logits = torch.concat(item_logits_list)
+            item_log_prob = torch.log(item_logits + 1e-12) - torch.log(item_logits.sum() + 1e-12)
+
+            pred = (item_log_prob * args.alpha1 + resid * (1-args.alpha1)).cpu()
+
+
+            exclude_items = list(dataset._allPos[user])
+            pred[exclude_items] = -9999
+            _, pred_k = torch.topk(pred, k=max(args.topks))
+            pred_list.append(pred_k.cpu())
+            gt_list.append([item])
+
+        test_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
+
+        if wandb_login:
+            wandb_var.log(dict(zip([f"test_{split_name}_precision_{k}_{epoch}" for k in args.topks], test_results[0])))
+            wandb_var.log(dict(zip([f"test_{split_name}_recall_{k}_{epoch}" for k in args.topks], test_results[1])))
+            wandb_var.log(dict(zip([f"test_{split_name}_ndcg_{k}_{epoch}" for k in args.topks], test_results[2])))
+            wandb_var.log(dict(zip([f"test_{split_name}_mrr_{k}_{epoch}" for k in args.topks], test_results[3])))
+
 
 if wandb_login:
     wandb_var.finish()

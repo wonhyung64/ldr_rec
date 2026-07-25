@@ -136,10 +136,6 @@ else:
     raise ValueError
 
 #%%
-pred_list, gt_list = [], []
-model.eval()
-model.precompute_item_enhancements()
-
 eval_datasets = [
     ("head_overall", dataset.test_head_overall_dict),
     ("head_recent_3d", dataset.test_head_recent_3d_dict),
@@ -149,8 +145,11 @@ eval_datasets = [
     ("tail_recent_7d", dataset.test_tail_recent_7d_dict),
 ]
 
-
 for (split_name, data_split) in eval_datasets:
+    pred_list, gt_list = [], []
+    model.eval()
+    model.precompute_item_enhancements()
+
     for (user, item), pos_time_val in dataset.set_to_pair(data_split, dataset.time_dict, dataset.time_unit).items():
         hist_item_np, _ = dataset.build_histories(zip([user], [0], [pos_time_val]), args.max_seq_len)
         hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)

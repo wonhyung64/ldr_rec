@@ -21,7 +21,6 @@ DATASET_TITLES = {
 
 MODEL_LABELS = {
     "mf": "MF",
-    "ncf": "NCF",
     "grurec": "GRU4Rec",
     "sasrec": "SASRec",
     "tisasrec": "TiSASRec",
@@ -34,18 +33,28 @@ ALPHA1_VALUES = [0.1, 0.3, 0.5, 0.7, 0.9]
 ALPHA1_VALUES_WITH_ETA0 = [0.0, 0.1, 0.3, 0.5, 0.7, 0.9]
 ALPHA1_VALUES_FULL = [0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0]
 
-MARKERS = ["o", "s", "^", "D", "v", "P", "X"]
+# Keyed by model (not list position) so each model keeps a fixed
+# color/marker even if a model is dropped from MODEL_LABELS.
+MARKERS = {
+    "mf": "o",
+    "ncf": "s",
+    "grurec": "^",
+    "sasrec": "D",
+    "tisasrec": "v",
+    "fearec": "P",
+    "bsarec": "X",
+}
 # Palette matched to the paper's figure (navy header, steel/teal blues,
 # pink and peach accent boxes, slate gray).
-COLORS = [
-    "#2E3F5C",  # navy (header bar)
-    "#3E7CB1",  # steel blue
-    "#5FA8D3",  # sky blue
-    "#4FB0A5",  # teal
-    "#8C97A8",  # slate gray
-    "#D98CA0",  # rose pink (Ranking Score box)
-    "#E8B172",  # peach/tan (Prior Negative Sampling box)
-]
+COLORS = {
+    "mf": "#2E3F5C",       # navy (header bar)
+    "ncf": "#3E7CB1",      # steel blue
+    "grurec": "#5FA8D3",   # sky blue
+    "sasrec": "#4FB0A5",   # teal
+    "tisasrec": "#8C97A8", # slate gray
+    "fearec": "#D98CA0",   # rose pink (Ranking Score box)
+    "bsarec": "#E8B172",   # peach/tan (Prior Negative Sampling box)
+}
 
 
 def load_data(xlsx_path=XLSX_PATH, sheet_name=SHEET_NAME):
@@ -73,15 +82,15 @@ def _draw_lines(ax, sub, alpha1_values, linewidth=3.0, markersize=10):
     # 0/0.1 or 0.9/1). Equal spacing keeps every tick label legible.
     position = {v: i for i, v in enumerate(alpha1_values)}
     lines = {}
-    for i, model in enumerate(MODEL_ORDER):
+    for model in MODEL_ORDER:
         m = sub[(sub["model"] == model) & (sub["alpha1"].isin(alpha1_values))].sort_values("alpha1")
         if m.empty:
             continue
         (line,) = ax.plot(
             [position[v] for v in m["alpha1"]],
             m["recall_10"],
-            marker=MARKERS[i % len(MARKERS)],
-            color=COLORS[i % len(COLORS)],
+            marker=MARKERS[model],
+            color=COLORS[model],
             linewidth=linewidth,
             markersize=markersize,
             markeredgewidth=0,
@@ -135,7 +144,7 @@ def plot_combined(df, alpha1_values=ALPHA1_VALUES, out_path=None, figsize=(15, 4
         labels_seen,
         loc="upper center",
         bbox_to_anchor=(0.5, 1.12),
-        ncol=7,
+        ncol=len(labels_seen),
         fontsize=22,
         frameon=False,
         handlelength=2.2,

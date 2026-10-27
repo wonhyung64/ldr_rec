@@ -45,7 +45,11 @@ plt.rcParams.update({
     "axes.linewidth": 0.9,
 })
 
-XLSX_PATH = "assets/head_tail.xlsx"
+XLSX_PATH = "assets/head_tail2.xlsx"
+# head_tail2.xlsx has empty stub rows for KuaiRand cells whose rerun hasn't
+# finished; fall back to their last-known values from the previous results
+# file as a temporary stand-in.
+FALLBACK_XLSX_PATH = "assets/head_tail.xlsx"
 OUT_PATH = "assets/head_tail_barplot.png"
 
 SHEET_TO_DATASET = {
@@ -61,19 +65,27 @@ PERIODS = [
     ("Recent 7d", "5d"),  # xlsx column suffix is "5d" but represents a 7-day window
 ]
 
-# name prefix (run "Name" column with the trailing timestamp/seed suffix
-# stripped) -> display name, in legend/plot order.
-METHOD_PREFIX = {
-    "SASRec": "debiased_seq_rec_weighted_pop_sasrec",
-    "TiSASRec": "debiased_seq_rec_tisasrec_weighted_pop_tisasrec",
-    "FEARec": "debiased_seq_rec_weighted_pop_fearec",
-    "BSARec": "debiased_seq_rec_weighted_pop_bsarec",
-    "DCRec": "dcrec_pop",
-    "PAUDRec": "paud_rec_pop",
-    "PAAC": "paac_pop",
-    "TPAB": "tpab",
+# display name -> possible run-name prefixes (with the trailing timestamp/seed
+# suffix stripped), in legend/plot order. SASRec/TiSASRec/FEARec/BSARec were
+# rerun with a fixed setup (the "_fixed_" prefix); KuaiRand hasn't finished
+# rerunning all of them yet, so the older "_pop_" runs are kept as a fallback
+# so those bars aren't empty (see PLACEHOLDER_CELLS below).
+METHOD_ALIASES = {
+    "SASRec": ["debiased_seq_rec_weighted_fixed_sasrec", "debiased_seq_rec_weighted_pop_sasrec"],
+    "TiSASRec": [
+        "debiased_seq_rec_tisasrec_weighted_fixed_tisasrec",
+        "debiased_seq_rec_tisasrec_weighted_pop_tisasrec",
+    ],
+    "FEARec": ["debiased_seq_rec_weighted_fixed_fearec", "debiased_seq_rec_weighted_pop_fearec"],
+    "BSARec": ["debiased_seq_rec_weighted_fixed_bsarec", "debiased_seq_rec_weighted_pop_bsarec"],
+    "DCRec": ["dcrec_pop"],
+    "PAUDRec": ["paud_rec_pop"],
+    "PAAC": ["paac_pop"],
+    "TPAB": ["tpab"],
 }
-METHODS = list(METHOD_PREFIX.keys())
+METHODS = list(METHOD_ALIASES.keys())
+_PREFIX_TO_METHOD = {p: m for m, prefixes in METHOD_ALIASES.items() for p in prefixes}
+_FIXED_PREFIXES = {prefixes[0] for prefixes in METHOD_ALIASES.values()}
 
 # SASRec/TiSASRec/FEARec/BSARec are sampled from the paper's eta line plot
 # legend (teal, blue-gray, rose, mustard). DCRec/PAUDRec/PAAC/SAPID are new
@@ -95,30 +107,50 @@ COLORS = {method: lighten(hex_color, 0.35) for method, hex_color in _BASE_COLORS
 
 def match_method(run_name):
     prefix = re.sub(r"_\d{6}_\d{6}_\d+$", "", str(run_name))
-    for method, p in METHOD_PREFIX.items():
-        if prefix == p:
-            return method
-    return None
+    return _PREFIX_TO_METHOD.get(prefix), prefix
+
+
+VALUE_COLS = [f"{g}_{suffix}" for suffix in ["overall", "3d", "5d"] for g in ("head", "tail")]
+
+
+def read_sheet(xlsx_path, sheet):
+    df = pd.read_excel(pd.ExcelFile(xlsx_path), sheet_name=sheet, header=0)
+    # some sheets label the recent-window columns "_7d" (the actual window
+    # length) instead of "_5d"; normalize to "_5d" so both line up.
+    df = df.rename(columns={"head_7d": "head_5d", "tail_7d": "tail_5d"})
+    df = df.dropna(subset=["Name"]).copy()
+    matched = df["Name"].apply(match_method)
+    df["method"] = matched.apply(lambda t: t[0])
+    df["prefix"] = matched.apply(lambda t: t[1])
+    return df[df["method"].notna()].copy()
 
 
 def load_data():
-    xls = pd.ExcelFile(XLSX_PATH)
     frames = []
     for sheet, dataset in SHEET_TO_DATASET.items():
-        df = pd.read_excel(xls, sheet_name=sheet, header=0)
-        # some sheets label the recent-window columns "_7d" (the actual window
-        # length) instead of "_5d"; normalize to "_5d" so both line up.
-        df = df.rename(columns={"head_7d": "head_5d", "tail_7d": "tail_5d"})
-        df = df.dropna(subset=["Name"]).copy()
-        df["method"] = df["Name"].apply(match_method)
-        df = df[df["method"].notna()].copy()
+        df = read_sheet(XLSX_PATH, sheet)
         df["dataset"] = dataset
         frames.append(df)
     full = pd.concat(frames, ignore_index=True)
 
-    value_cols = [f"{g}_{suffix}" for suffix in ["overall", "3d", "5d"] for g in ("head", "tail")]
-    stats = full.groupby(["dataset", "method"])[value_cols].agg(["mean", "std"])
-    return stats
+    # cells whose rerun ("_fixed_") results aren't in yet are empty stub rows
+    # (all value columns NaN) matched only via the older "_pop_" prefix.
+    is_stale_prefix = ~full["prefix"].isin(_FIXED_PREFIXES)
+    is_empty = full[VALUE_COLS].isna().all(axis=1)
+    placeholders = sorted(set(zip(full.loc[is_stale_prefix & is_empty, "dataset"],
+                                   full.loc[is_stale_prefix & is_empty, "method"])))
+
+    stats = full.groupby(["dataset", "method"])[VALUE_COLS].agg(["mean", "std"])
+
+    # backfill placeholder cells with their last-known values from the
+    # previous results file, as a temporary stand-in.
+    dataset_to_sheet = {v: k for k, v in SHEET_TO_DATASET.items()}
+    for dataset, method in placeholders:
+        fb = read_sheet(FALLBACK_XLSX_PATH, dataset_to_sheet[dataset])
+        fb = fb[fb["method"] == method]
+        stats.loc[(dataset, method), :] = fb[VALUE_COLS].agg(["mean", "std"]).T.stack().values
+
+    return stats, placeholders
 
 
 N_OURS = 4  # first N_OURS entries in METHODS (SASRec/TiSASRec/FEARec/BSARec) are ours
@@ -218,10 +250,14 @@ def plot(stats):
 
 
 def main():
-    stats = load_data()
+    stats, placeholders = load_data()
     fig = plot(stats)
     fig.savefig(OUT_PATH, dpi=300)
     print(f"saved {OUT_PATH}")
+    if placeholders:
+        print("placeholder (old-run) cells used:")
+        for dataset, method in placeholders:
+            print(f"  {dataset} / {method}")
 
 
 if __name__ == "__main__":

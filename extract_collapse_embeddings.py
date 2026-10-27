@@ -182,6 +182,9 @@ def parse_args():
     p.add_argument("--dropout", type=float, default=0.2)
     p.add_argument("--alpha", type=float, default=0.5, help="BSARec only: frequency-mixing weight.")
     p.add_argument("--c", type=int, default=3, help="BSARec only: low-pass filter cutoff.")
+    p.add_argument("--force-debiased", action="store_true",
+                    help="Build the debiased (Hawkes wrapper) model even if --condition != 'ours' "
+                         "(e.g. for custom condition names like 'timefix' pointing at a debiased checkpoint).")
     p.add_argument("--weights-path", type=str, default="./weights")
     p.add_argument("--out-dir", type=str, default="./collapse_analysis/embeddings")
     p.add_argument("--device", type=str, default="none")
@@ -229,7 +232,7 @@ model = build_model(
     n_heads=args.n_heads,
     dropout=args.dropout,
     time_span=time_span,
-    debiased=(args.condition == "ours"),
+    debiased=(args.condition == "ours") or args.force_debiased,
     ablation=args.ablation,
     alpha=args.alpha,
     c=args.c,

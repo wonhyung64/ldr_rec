@@ -18,6 +18,7 @@ from module.dataset import UserItemTime
 from module.model import score_pair, score_all, MODEL_REGISTRY
 from module.debias import build_debias_model, build_unshared_debias_model, build_linear_debias_model, build_unshared_linear_debias_model
 from module.sampler import make_prior_snapshot, sample_epoch_negatives
+from module.static_pop import static_power_prior, ckpt_tag, evaluate_eta_grid, log_eta_results, dump_results
 
 
 def get_epoch(path):
@@ -63,8 +64,7 @@ cold_idxs = np.arange(dataset.coldDataSize)
 all_item_idxs = np.arange(dataset.m_item)
 
 #%%o
-static_prior = np.array(dataset.UserItemNet.sum(0))[0]
-static_prior = static_prior / static_prior.sum()
+static_prior = static_power_prior(dataset.UserItemNet, args.pop_power)
 static_prior_t = torch.tensor(static_prior, dtype=torch.float32, device=args.device)
 
 
@@ -115,7 +115,7 @@ item_cold_negs = sample_item_static_negs(static_prior, dataset.coldDataSize, arg
 epoch = 0
 
 save_dir = Path(args.save_path)
-pattern = f"{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}_static_prior.pt"
+pattern = f"{args.model_name}_lambda{args.lambda1}_e???_seed{args.seed}_{ckpt_tag(args.pop_power)}.pt"
 matched_files = sorted(save_dir.glob(pattern))
 if len(matched_files) > 0:
     recent_file = max(matched_files, key=get_epoch)
@@ -124,6 +124,9 @@ if len(matched_files) > 0:
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     epoch = checkpoint["epoch"]
     print("MODEL LOADED!")
+
+if args.eval_only and epoch != args.epochs:
+    raise SystemExit(f"--eval-only: no e{args.epochs} checkpoint matching {pattern} in {save_dir}")
 
 while epoch < args.epochs: 
     epoch += 1
@@ -171,7 +174,7 @@ while epoch < args.epochs:
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "loss": epoch_user_loss,
-        }, f"{args.save_path}/{args.model_name}_lambda{args.lambda1}_e{epoch}_seed{args.seed}_static_prior.pt")
+        }, f"{args.save_path}/{args.model_name}_lambda{args.lambda1}_e{epoch}_seed{args.seed}_{ckpt_tag(args.pop_power)}.pt")
 
     if epoch % args.pair_reset_interval == 0:
         print("Reset Negs")
@@ -179,66 +182,23 @@ while epoch < args.epochs:
         item_cold_negs = sample_item_static_negs(static_prior, dataset.coldDataSize, args.contrast_size-1)
 
 if epoch % args.evaluate_interval == 0:
-    item_nll_list = []
-    pred_list = []
-    gt_list = []
-
     model.eval()
     item_log_prob = torch.log(static_prior_t + 1e-12).cpu()
 
-    for (user, item), pos_time_val in dataset.valid_user_item_time.items():
+    def score_user(user, pos_time_val):
         hist_item_np, hist_time_np = dataset.build_histories(zip([user], [0], [pos_time_val]), args.max_seq_len)
         hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
         user_t = torch.tensor([user], dtype=torch.long, device=args.device)
-
         with torch.no_grad():
-            resid = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+            return score_all(model, hist_item_t, user_t).squeeze(0).cpu()
 
-        pred = (item_log_prob + resid).cpu()
-
-        exclude_items = list(dataset._allPos[user])
-        pred[exclude_items] = -9999
-        _, pred_k = torch.topk(pred, k=max(args.topks))
-        pred_list.append(pred_k.cpu())
-        gt_list.append([item])
-
-    valid_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
+    valid_results = evaluate_eta_grid(score_user, dataset.valid_user_item_time, dataset._allPos, item_log_prob, args.topks)
+    test_results = evaluate_eta_grid(score_user, dataset.test_user_item_time, dataset._allPos, item_log_prob, args.topks)
+    dump_results(args, epoch, valid_results, test_results)
 
     if wandb_login:
-        wandb_var.log(dict(zip([f"valid_precision_{k}_{epoch}" for k in args.topks], valid_results[0])))
-        wandb_var.log(dict(zip([f"valid_recall_{k}_{epoch}" for k in args.topks], valid_results[1])))
-        wandb_var.log(dict(zip([f"valid_ndcg_{k}_{epoch}" for k in args.topks], valid_results[2])))
-        wandb_var.log(dict(zip([f"valid_mrr_{k}_{epoch}" for k in args.topks], valid_results[3])))
-
-
-    pred_list = []
-    gt_list = []
-    model.eval()
-
-    for (user, item), pos_time_val in dataset.test_user_item_time.items():
-        hist_item_np, hist_time_np = dataset.build_histories(zip([user], [0], [pos_time_val]), args.max_seq_len)
-        hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
-        user_t = torch.tensor([user], dtype=torch.long, device=args.device)
-
-        with torch.no_grad():
-            resid = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
-
-        pred = (item_log_prob + resid).cpu()
-
-        exclude_items = list(dataset._allPos[user])
-        pred[exclude_items] = -9999
-        _, pred_k = torch.topk(pred, k=max(args.topks))
-        pred_list.append(pred_k.cpu())
-        gt_list.append([item])
-
-    test_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
-
-    if wandb_login:
-        wandb_var.log(dict(zip([f"test_precision_{k}_{epoch}" for k in args.topks], test_results[0])))
-        wandb_var.log(dict(zip([f"test_recall_{k}_{epoch}" for k in args.topks], test_results[1])))
-        wandb_var.log(dict(zip([f"test_ndcg_{k}_{epoch}" for k in args.topks], test_results[2])))
-        wandb_var.log(dict(zip([f"test_mrr_{k}_{epoch}" for k in args.topks], test_results[3])))
-
+        log_eta_results(wandb_var, "valid", epoch, valid_results, args.topks)
+        log_eta_results(wandb_var, "test", epoch, test_results, args.topks)
 
 if wandb_login:
     wandb_var.finish()

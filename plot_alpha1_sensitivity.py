@@ -1,14 +1,14 @@
 #%%
 """Sensitivity analysis plots for alpha1 (paper notation: eta).
 
-Reads assets/sensitivity_alpha1.xlsx and, for each dataset, draws one line
+Reads assets/sensitivity_alpha1_2.xlsx and, for each dataset, draws one line
 plot with one curve per model (Recall@10 vs. eta).
 """
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-XLSX_PATH = "assets/sensitivity_alpha1.xlsx"
+XLSX_PATH = "assets/sensitivity_alpha1_2.xlsx"
 SHEET_NAME = "sen_gamma"
 OUT_DIR = Path("assets/sensitivity_alpha1_figures")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -21,7 +21,7 @@ DATASET_TITLES = {
 
 MODEL_LABELS = {
     "mf": "MF",
-    "grurec": "GRU4Rec",
+    "grurec": "GRU",
     "sasrec": "SASRec",
     "tisasrec": "TiSASRec",
     "fearec": "FEARec",
@@ -62,9 +62,11 @@ def load_data(xlsx_path=XLSX_PATH, sheet_name=SHEET_NAME):
     dataset, model, alpha1, recall_10."""
     raw = pd.read_excel(xlsx_path, sheet_name=sheet_name, header=None)
 
+    # Column layout (assets/sensitivity_alpha1_2.xlsx): Name, State, dataset,
+    # seed, test_recall_10, test_ndcg_10, model_name, lambda1, alpha1.
     rows = []
     for _, r in raw.iterrows():
-        dataset, model, alpha1, recall_10 = r[2], r[6], r[7], r[4]
+        dataset, model, alpha1, recall_10 = r[2], r[6], r[8], r[4]
         if dataset not in DATASET_TITLES or model not in MODEL_LABELS:
             continue
         rows.append((dataset, model, float(alpha1), float(recall_10)))

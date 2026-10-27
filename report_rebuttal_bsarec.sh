@@ -52,46 +52,41 @@ DATADIR=/home1/wonhyung64/Github/ldr_rec/data
 
 # Rebuttal: BSARec x ML-1M with the same backbone configuration as the vanilla
 # BSARec of Table 1 (c=5, alpha=0.9). Everything else is the submitted Ours
-# setting (gamma=lambda1=0.7, tau=0.1). eta is chosen afterwards on validation by
-# rebuttal_bsarec_eval.py, so --alpha1 here has no effect on the results.
+# setting (gamma=lambda1=0.7, tau=0.1, dr-anchor=user, ablation=shared). eta is
+# chosen afterwards on validation by rebuttal_bsarec_eval.py.
 #
-# Checkpoints go to ./weights_rebuttal/<config>/ml-1m/. Do NOT drop --weights_path:
-# the file names do not encode c/alpha, so the default ./weights/ml-1m would resume
-# from the submitted c=1 checkpoint and skip training.
+# Uses rebuttal-only copies of the training scripts (same training loop, no wandb,
+# no in-training eval). They always save to ./weights_rebuttal/ml-1m/ with names
+#   rebuttal_ours_bsarec_c{c}_a{alpha}_lambda{lambda1}_e{epoch}_seed{seed}.pt
+#   rebuttal_vanilla_cos_bsarec_c{c}_a{alpha}_e{epoch}_seed{seed}.pt
+# so existing checkpoints in ./weights are never loaded or overwritten.
 #
 # Phase 1: seed 1 for c=5 and c=3, plus the cosine-scored vanilla (uniform negatives,
 #          same c/alpha/tau) as the same-scorer control.
 # Phase 2: uncomment seeds 2-4 for the configuration that works.
 
-#
-# wandb is off: the server's wandb client fails in wandb.init (CommError), and every
-# number we need comes from rebuttal_bsarec_eval.py. A missing --cred_path makes the
-# scripts skip wandb entirely. --evaluate-interval=1000 (> epochs) also skips the Ours
-# script's own end-of-training eval, which would only have been logged to wandb.
-NO_WANDB="--cred_path=./no_wandb"
-
-OURS="--model-name=bsarec --dataset=ml-1m --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=1000 --epochs=500 --ablation=shared --alpha1=0.5 $NO_WANDB"
-VANILLA="--model-name=bsarec --dataset=ml-1m --tau=0.1 --evaluate-interval=500 --epochs=500 $NO_WANDB"
+OURS="--dataset=ml-1m --tau=0.1 --lambda1=0.7 --pair-reset-interval=5 --epochs=500"
+VANILLA="--dataset=ml-1m --tau=0.1 --epochs=500"
 
 experiments=(
 
     # ---- Phase 1 ----
-    "./baseline/debiased_seq_rec_weighted_fixed.py $OURS --seed=1 --c=5 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_c5_a0.9"
-    "./baseline/debiased_seq_rec_weighted_fixed.py $OURS --seed=1 --c=3 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_c3_a0.9"
-    "./baseline/seq_rec.py $VANILLA --seed=1 --c=5 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_vanilla_cos_c5_a0.9"
+    "./baseline/rebuttal_bsarec_ours.py $OURS --seed=1 --c=5 --alpha=0.9"
+    "./baseline/rebuttal_bsarec_ours.py $OURS --seed=1 --c=3 --alpha=0.9"
+    "./baseline/rebuttal_bsarec_vanilla.py $VANILLA --seed=1 --c=5 --alpha=0.9"
 
     # ---- Phase 2 (seeds 2-4) ----
-    # "./baseline/debiased_seq_rec_weighted_fixed.py $OURS --seed=2 --c=5 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_c5_a0.9"
-    # "./baseline/debiased_seq_rec_weighted_fixed.py $OURS --seed=3 --c=5 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_c5_a0.9"
-    # "./baseline/debiased_seq_rec_weighted_fixed.py $OURS --seed=4 --c=5 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_c5_a0.9"
+    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=2 --c=5 --alpha=0.9"
+    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=3 --c=5 --alpha=0.9"
+    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=4 --c=5 --alpha=0.9"
 
-    # "./baseline/debiased_seq_rec_weighted_fixed.py $OURS --seed=2 --c=3 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_c3_a0.9"
-    # "./baseline/debiased_seq_rec_weighted_fixed.py $OURS --seed=3 --c=3 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_c3_a0.9"
-    # "./baseline/debiased_seq_rec_weighted_fixed.py $OURS --seed=4 --c=3 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_c3_a0.9"
+    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=2 --c=3 --alpha=0.9"
+    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=3 --c=3 --alpha=0.9"
+    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=4 --c=3 --alpha=0.9"
 
-    # "./baseline/seq_rec.py $VANILLA --seed=2 --c=5 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_vanilla_cos_c5_a0.9"
-    # "./baseline/seq_rec.py $VANILLA --seed=3 --c=5 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_vanilla_cos_c5_a0.9"
-    # "./baseline/seq_rec.py $VANILLA --seed=4 --c=5 --alpha=0.9 --weights_path=./weights_rebuttal/bsarec_vanilla_cos_c5_a0.9"
+    # "./baseline/rebuttal_bsarec_vanilla.py $VANILLA --seed=2 --c=5 --alpha=0.9"
+    # "./baseline/rebuttal_bsarec_vanilla.py $VANILLA --seed=3 --c=5 --alpha=0.9"
+    # "./baseline/rebuttal_bsarec_vanilla.py $VANILLA --seed=4 --c=5 --alpha=0.9"
 )
 
 

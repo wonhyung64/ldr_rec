@@ -45,13 +45,13 @@ DEFAULT_SPECS = [
     ("submitted_ours_c1_a0.7", "bsarec", "ours", {"c": 1, "alpha": 0.7}, 0.1,
      "./weights/{ds}/_bsarec_lambda0.7_e500_seed*_ablationshared_timefix.pt"),
     ("ours_c5_a0.9", "bsarec", "ours", {"c": 5, "alpha": 0.9}, 0.1,
-     "./weights_rebuttal/bsarec_c5_a0.9/{ds}/_bsarec_lambda0.7_e500_seed*_ablationshared_timefix.pt"),
+     "./weights_rebuttal/{ds}/rebuttal_ours_bsarec_c5_a0.9_lambda0.7_e500_seed*.pt"),
     ("ours_c3_a0.9", "bsarec", "ours", {"c": 3, "alpha": 0.9}, 0.1,
-     "./weights_rebuttal/bsarec_c3_a0.9/{ds}/_bsarec_lambda0.7_e500_seed*_ablationshared_timefix.pt"),
+     "./weights_rebuttal/{ds}/rebuttal_ours_bsarec_c3_a0.9_lambda0.7_e500_seed*.pt"),
     ("vanilla_dot_c5_a0.9", "bsarec", "dot", {"c": 5, "alpha": 0.9}, 0.1,
      "./weights/{ds}/_backbone_bsarec_e500_seed*.pt"),
     ("vanilla_cos_c5_a0.9", "bsarec", "cos", {"c": 5, "alpha": 0.9}, 0.1,
-     "./weights_rebuttal/bsarec_vanilla_cos_c5_a0.9/{ds}/norm_backbone_bsarec_e500_seed*.pt"),
+     "./weights_rebuttal/{ds}/rebuttal_vanilla_cos_bsarec_c5_a0.9_e500_seed*.pt"),
 ]
 REFERENCE_SPECS = [
     ("ref_sasrec_ours", "sasrec", "ours", {}, 0.1,

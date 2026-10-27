@@ -45,8 +45,13 @@ if file_name.endswith(".py"):
 if wandb_login:
     expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
     args.expt_name = f"{file_name.split('.')[-2]}_{args.model_name}_{expt_num}"
-    wandb_var = wandb.init(project="ldr_rec_ablation", config=vars(args))
-    wandb.run.name = args.expt_name
+    try:
+        wandb_var = wandb.init(project="ldr_rec_ablation", config=vars(args))
+        wandb.run.name = args.expt_name
+    except Exception as e:
+        # results are also written to ./results/static_pop, so training goes on without wandb
+        print(f"wandb.init failed, continuing without wandb: {e}")
+        wandb_login = False
 
 
 #%%

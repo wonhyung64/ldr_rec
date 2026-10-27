@@ -53,7 +53,7 @@ DATADIR=/home1/wonhyung64/Github/ldr_rec/data
 # Rebuttal: BSARec x ML-1M with the same backbone configuration as the vanilla
 # BSARec of Table 1 (c=5, alpha=0.9). Everything else is the submitted Ours
 # setting (gamma=lambda1=0.7, tau=0.1). eta is chosen afterwards on validation by
-# rebuttal_bsarec_eval.py, so --alpha1 here only affects the wandb log.
+# rebuttal_bsarec_eval.py, so --alpha1 here has no effect on the results.
 #
 # Checkpoints go to ./weights_rebuttal/<config>/ml-1m/. Do NOT drop --weights_path:
 # the file names do not encode c/alpha, so the default ./weights/ml-1m would resume
@@ -63,8 +63,15 @@ DATADIR=/home1/wonhyung64/Github/ldr_rec/data
 #          same c/alpha/tau) as the same-scorer control.
 # Phase 2: uncomment seeds 2-4 for the configuration that works.
 
-OURS="--model-name=bsarec --dataset=ml-1m --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=500 --epochs=500 --ablation=shared --alpha1=0.5"
-VANILLA="--model-name=bsarec --dataset=ml-1m --tau=0.1 --evaluate-interval=500 --epochs=500"
+#
+# wandb is off: the server's wandb client fails in wandb.init (CommError), and every
+# number we need comes from rebuttal_bsarec_eval.py. A missing --cred_path makes the
+# scripts skip wandb entirely. --evaluate-interval=1000 (> epochs) also skips the Ours
+# script's own end-of-training eval, which would only have been logged to wandb.
+NO_WANDB="--cred_path=./no_wandb"
+
+OURS="--model-name=bsarec --dataset=ml-1m --tau=0.1 --lambda1=0.7 --dr-anchor=user --pair-reset-interval=5 --evaluate-interval=1000 --epochs=500 --ablation=shared --alpha1=0.5 $NO_WANDB"
+VANILLA="--model-name=bsarec --dataset=ml-1m --tau=0.1 --evaluate-interval=500 --epochs=500 $NO_WANDB"
 
 experiments=(
 

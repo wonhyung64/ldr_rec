@@ -17,14 +17,14 @@
 | **Model** | **Micro Video** | | **MovieLens** | | **KuaiRand** | |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | | **Head** | **Tail** | **Head** | **Tail** | **Head** | **Tail** |
-| SASRec | 0.174±0.006 | 0.124±0.002 | 0.106±0.002 | 0.087±0.002 | 0.020±0.002 | 0.027±0.001 |
-| +Ours | **0.196±0.004** | **0.147±0.003** | **0.132±0.003** | **0.096±0.002** | **0.092±0.001** | 0.011±0.001 |
-| TiSASRec | 0.185±0.003 | 0.129±0.001 | 0.104±0.002 | 0.091±0.001 | 0.021±0.001 | 0.027±0.001 |
-| +Ours | **0.216±0.005** | **0.156±0.002** | **0.133±0.002** | **0.101±0.001** | **0.093±0.001** | 0.012±0.001 |
-| FEARec | 0.176±0.005 | 0.128±0.001 | 0.095±0.006 | 0.075±0.003 | 0.002±0.000 | 0.005±0.000 |
-| +Ours | **0.214±0.003** | **0.158±0.003** | **0.105±0.004** | **0.077±0.002** | **0.075±0.001** | 0.003±0.000 |
-| BSARec | 0.119±0.018 | 0.076±0.018 | 0.084±0.002 | 0.075±0.001 | 0.000±0.000 | 0.000±0.000 |
-| +Ours | **0.219±0.003** | **0.151±0.002** | 0.067±0.003 | 0.019±0.001 | **0.079±0.001** | **0.008±0.000** |
+| SASRec | .174±.006 | .124±.002 | .106±.002 | .087±.002 | .020±.002 | .027±.001 |
+| +Ours | **.196±.004** | **.147±.003** | **.132±.003** | **.096±.002** | **.092±.001** | .011±.001 |
+| TiSASRec | .185±.003 | .129±.001 | .104±.002 | .091±.001 | .021±.001 | .027±.001 |
+| +Ours | **.216±.005** | **.156±.002** | **.133±.002** | **.101±.001** | **.093±.001** | .012±.001 |
+| FEARec | .176±.005 | .128±.001 | .095±.006 | .075±.003 | .002±.000 | .005±.000 |
+| +Ours | **.214±.003** | **.158±.003** | **.105±.004** | **.077±.002** | **.075±.001** | .003±.000 |
+| BSARec | .119±.018 | .076±.018 | .084±.002 | .075±.001 | .000±.000 | .000±.000 |
+| +Ours | **.219±.003** | **.151±.002** | .067±.003 | .019±.001 | **.079±.001** | **.008±.000** |
 
 
 
@@ -57,7 +57,21 @@
 
 ### In the ablations, what would happen if you changed static popularity to be parameterized by alpha and consider a range of values 1/(popularity)^alpha for alpha and pick the best result through validation? Would the proposed approach still do better?
 
+| **MF** | **Micro Video** | **MovieLens** | **KuaiRand** |
+|:---|:---:|:---:|:---:|
+|$\text{pop}^{-\alpha} ~(\alpha=)$|.062 (0.5)|.037 (0.5)|.067 (0.5)|
+|Hawkes|.060|.038|.069|
+
+| **SASRec** | **Micro Video** | **MovieLens** | **KuaiRand** |
+|:---|:---:|:---:|:---:|
+|$\text{pop}^{-\alpha}~(\alpha=)$|.134 (1)|.104 (0.5)|.071(0.5)|
+|Hawkes|.163|.107|.075|
+
+* Following the suggestion, we parameterized the popularity estimator as $\text{pop}^{-\alpha}$, and evaluated its performance using Recall@10 on the test set. We searched $\alpha \in \{0.5, 1, 1.5\}$ and also tuned $\eta$ on the same grid, selecting both by validation Recall@10. Hawkes remains better in 5 of 6 settings. The exception is MF on Micro-Video, where the two estimators were already tied in Table 3. Hence the gain is not explained by the strength of the popularity correction alone, but by modeling its temporal variation.
+
+
 ### Figure 3 is not referenced in the section "Performance on Head, Mid-Tail, and Tail Items". Also, in Figure 3, what is the y-axis?
+* Fig.3 is discussed in the corresponding results section, and its caption specifies Recall@10. We will make the figure reference and y-axis label more explicit.
 
 ### Why are the error bars an order of magnitude higher for the baselines but not for ours? This raises some concerns. This is a recurring observation in many general recommender and ours section for several of the baselines.
 
@@ -66,6 +80,10 @@
 ### There are also no statistical significance of the results making it hard to know whether these improvements are real.
 
 ### It is quite disappointing that the authors do not cite any papers on Hawkes -- neither on the Hawkes process nor on other papers in recommendations using Hawkes. This is a very serious omission.
+
+* Thank you for pointing this out. We will add a citation to the original work [1].
+
+[1] Hawkes, A. G. (1971). Spectra of some self-exciting and mutually exciting point processes. Biometrika, 58(1), 83-90.
 
 
 # Review by CW75

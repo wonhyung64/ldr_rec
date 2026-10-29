@@ -70,15 +70,15 @@ VANILLA="--dataset=ml-1m --tau=0.1 --epochs=500"
 
 experiments=(
 
-    # ---- Phase 1 ----
-    "./baseline/rebuttal_bsarec_ours.py $OURS --seed=1 --c=5 --alpha=0.9"
-    "./baseline/rebuttal_bsarec_ours.py $OURS --seed=1 --c=3 --alpha=0.9"
-    "./baseline/rebuttal_bsarec_vanilla.py $VANILLA --seed=1 --c=5 --alpha=0.9"
+    # ---- Phase 1 (done 2026-10-29) ----
+    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=1 --c=5 --alpha=0.9"
+    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=1 --c=3 --alpha=0.9"
+    # "./baseline/rebuttal_bsarec_vanilla.py $VANILLA --seed=1 --c=5 --alpha=0.9"
 
-    # ---- Phase 2 (seeds 2-4) ----
-    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=2 --c=5 --alpha=0.9"
-    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=3 --c=5 --alpha=0.9"
-    # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=4 --c=5 --alpha=0.9"
+    # ---- Phase 2 (seeds 2-4): c=5, the vanilla BSARec configuration on ML-1M ----
+    "./baseline/rebuttal_bsarec_ours.py $OURS --seed=2 --c=5 --alpha=0.9"
+    "./baseline/rebuttal_bsarec_ours.py $OURS --seed=3 --c=5 --alpha=0.9"
+    "./baseline/rebuttal_bsarec_ours.py $OURS --seed=4 --c=5 --alpha=0.9"
 
     # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=2 --c=3 --alpha=0.9"
     # "./baseline/rebuttal_bsarec_ours.py $OURS --seed=3 --c=3 --alpha=0.9"

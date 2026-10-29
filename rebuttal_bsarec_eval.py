@@ -253,13 +253,17 @@ def evaluate_checkpoint(spec, path, ds, valid_ev, test_ev, item_times, device):
     res["eta_star"] = eta_star
     res["test_at_eta_star"] = res["test"][str(eta_star)]
 
-    # head / tail (overall popularity, as in Figure 3) at eta*
+    # head / tail at eta* under the three popularity definitions of Figure 3
+    # (test_head / test_tail = overall; the rebuttal head/tail table uses recent_3d)
     key_to_idx = {k: i for i, k in enumerate(test_ev["keys"])}
-    for part, d in [("head", ds.test_head_overall_dict), ("tail", ds.test_tail_overall_dict)]:
-        idx = [key_to_idx[k] for k in ds.set_to_pair(d, ds.time_dict, ds.time_unit) if k in key_to_idx]
-        sub = subset(test_ev, idx)
-        p = rank(U["test"][idx], V, kind, tau, None if LP["test"] is None else LP["test"][idx], sub, [eta_star], device)
-        res[f"test_{part}"] = dict(metrics(sub["gts"], p[eta_star]), n=len(idx))
+    for pop_def in ["overall", "recent_3d", "recent_7d"]:
+        for part in ["head", "tail"]:
+            d = getattr(ds, f"test_{part}_{pop_def}_dict")
+            idx = [key_to_idx[k] for k in ds.set_to_pair(d, ds.time_dict, ds.time_unit) if k in key_to_idx]
+            sub = subset(test_ev, idx)
+            p = rank(U["test"][idx], V, kind, tau, None if LP["test"] is None else LP["test"][idx], sub, [eta_star], device)
+            res[f"test_{part}_{pop_def}"] = dict(metrics(sub["gts"], p[eta_star]), n=len(idx))
+    res["test_head"], res["test_tail"] = res["test_head_overall"], res["test_tail_overall"]
 
     # representation probes on test at eta*
     hist = test_ev["hist"]
@@ -299,7 +303,7 @@ def summarize(out_dir, dataset):
         return fmt.format(np.mean(vals)) + (("±" + fmt.format(np.std(vals))) if len(vals) > 1 else "")
 
     cols = ["seeds", "eta*", "R@10", "N@10", "R@10(eta=0)", "R@10(eta=1)", "head R@10", "tail R@10",
-            "last-only", "mean-user", "shuffle", "R2(last)", "cos-sim"]
+            "head 3d", "tail 3d", "last-only", "mean-user", "shuffle", "R2(last)", "cos-sim"]
     print(f"\n[{dataset}] test metrics, eta* by validation Recall@10 (mean±std over seeds)")
     print("| label | " + " | ".join(cols) + " |")
     print("|---|" + "---|" * len(cols))
@@ -314,6 +318,8 @@ def summarize(out_dir, dataset):
             ms([r["test"].get("1.0", {}).get("recall@10") for r in rs]),
             ms([r["test_head"]["recall@10"] for r in rs]),
             ms([r["test_tail"]["recall@10"] for r in rs]),
+            ms([r.get("test_head_recent_3d", {}).get("recall@10") for r in rs]),
+            ms([r.get("test_tail_recent_3d", {}).get("recall@10") for r in rs]),
             ms([r["probe"]["recall@10_last_item_only"] for r in rs]),
             ms([r["probe"]["recall@10_mean_user"] for r in rs]),
             ms([r["probe"]["shuffle_rel_change"] for r in rs], "{:.3f}"),
@@ -360,7 +366,7 @@ def main():
     for spec, path in jobs:
         seed = re.search(r"seed(\d+)", path).group(1)
         out = os.path.join(args.out_dir, args.dataset, f"{spec[0]}_seed{seed}.json")
-        if os.path.exists(out) and not args.overwrite:
+        if os.path.exists(out) and not args.overwrite and "test_head_recent_3d" in json.load(open(out)):
             print(f"[cached] {out}")
             continue
         print(f"[eval] {spec[0]} seed{seed}: {path}", flush=True)

@@ -3,7 +3,7 @@
 Reads ./results/static_pop/*.json written by baseline/*_static_prior.py --pop-power=a and,
 for each (dataset, backbone), picks alpha (and eta) by validation Recall@10.
 
-    python rebuttal_static_alpha_table.py [--results ./results/static_pop] [--sample-std]
+    python rebuttal_static_alpha_table.py [--results ./results/static_pop] [--population-std]
 
 The last table reports mean±std over seeds with (alpha*, eta*) fixed from seed-1 validation
 (seeds 2-4 come from report_rebuttal_static_alpha_seeds.sh).
@@ -98,11 +98,12 @@ def cell_order(k):
     return (DATASETS.index(k[0]) if k[0] in DATASETS else 99, k[1])
 
 
-def seed_summary(runs, sample_std):
-    sd = statistics.stdev if sample_std else statistics.pstdev
+def seed_summary(runs, population_std):
+    # sample std reproduces the paper (Tab.3 SASRec/Micro-Video static: 0.1268±0.0015 from the same 4 checkpoints)
+    sd = statistics.pstdev if population_std else statistics.stdev
     std = lambda v: sd(v) if len(v) > 1 else None
     print(f"\n## Mean ± std over seeds (alpha*, eta* fixed from seed-{SELECT_SEED} validation; "
-          f"{'sample' if sample_std else 'population'} std)\n")
+          f"{'population' if population_std else 'sample'} std)\n")
     print("| Dataset | Backbone | alpha*, eta* | seeds | Vanilla R@10 (Tab.1) | Static a=1 R@10 (Tab.3) "
           "| Tuned static R@10 | Tuned static N@10 | Hawkes R@10 (Tab.1) | Hawkes N@10 (Tab.1) | Hawkes vs tuned |")
     print("|---|---|---|---|---|---|---|---|---|---|---|")
@@ -138,7 +139,7 @@ def seed_summary(runs, sample_std):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--results", default="./results/static_pop")
-    parser.add_argument("--sample-std", action="store_true", help="ddof=1 std instead of population std (np.std default)")
+    parser.add_argument("--population-std", action="store_true", help="ddof=0 std (np.std default) instead of the paper's sample std")
     args = parser.parse_args()
 
     runs = load(args.results)
@@ -194,7 +195,7 @@ def main():
               "or the checkpoint is gone), so alpha=1 is not part of the selection there; compare with the Tab.3 column.")
     print("\nRows above are per seed; Tab.1/Tab.3 references are 4-seed means.")
 
-    seed_summary(runs, args.sample_std)
+    seed_summary(runs, args.population_std)
 
 
 if __name__ == "__main__":

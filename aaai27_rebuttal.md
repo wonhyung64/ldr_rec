@@ -7,10 +7,9 @@
 
 ### (Weakness 2) Why does the Hawkes estimator trail Static/Sliding-window estimators on 9 of 12 cases across MovieLens-1M and KuaiRand (Table 3) and cause BSARec to drop from 0.0771 to 0.0335 on MovieLens-1M?
 
-- **W2.** Hawkes is best in 5/6 Micro-Video settings but only 3/12 settings elsewhere. Its benefit is dataset-dependent; we do not claim universal superiority. The BSARec failure is addressed in our reply to R3.
+
 
 ### (Weakness 3) From your existing Table 1 logs, what is the exact Head and Tail Recall@10 of the Vanilla Backbones compared to Backbone+(Ours)?
-
 
 
 
@@ -31,11 +30,14 @@
 
 ### (Weakness 4) How does Eq. (4) avoid uniform sampling bias when optimizing \ell_{pop}(\Phi), and how does tuning \gamma affect training given that \Phi and \Psi share no gradients under stop-gradient snapshot \tilde{\Phi}?
 
-- **W4.** Uniform negatives in $\ell_{\rm pop}$ serve to estimate the *marginal* item distribution; Cor. 1 concerns the *user-conditional* recommendation score. These are different targets. Since $\Phi$ and $\Psi$ share no gradients, Adam largely cancels constant loss scaling; we will qualify the claimed role of $\gamma$.
+* For $\ell_{\mathrm{pop}}$, the population minimizer of the sampled classification loss satisfies $\lambda_v(t)\propto\pi_0(v\mid t)$ under uniform negative sampling and correct model specification. Thus, unlike in density-ratio learning, uniform sampling does not introduce a popularity term into the estimation target, although finite-sample approximation errors remain.
+
+* Regarding $\gamma$, the absence of shared gradients is intentional, as $\Phi$ and $\Psi$ solve distinct estimation problems. We use $\gamma$ to weight their losses within a single optimizer. For $0<\gamma<1$, this weighting does not alter their respective minimizers, and Adam largely normalizes the gradient scaling. The two components are instead coupled through periodic snapshot updates and negative resampling. Thus, cross-model gradient flow is neither required nor intended.
+
 
 ### (Weakness 5) During chronological test evaluation, are test interactions dynamically appended to \mathcal{H}_t^v to compute \hat{\pi}(v|t), or is \mathcal{H}_t^v frozen after the validation split?
 
-5. During test evaluation, we only use interactions of train and validation split for computing both of $f$ and $\hat{\pi}$.
+* During test evaluation, we only use interactions of train and validation split for computing both of $f$ and $\hat{\pi}$. Further implementation details are available in the attached code.
 
 
 # Review by VShq
@@ -54,6 +56,8 @@
 
 
 ### The ablation is also a bit incomplete. As the entire approach of the paper is not just negative sampling based on the Hawke's process estimators only but also involve a few changes. This makes the ablation study incomplete.
+
+* Thank you for your suggestion. Our ablation analyses are already presented across several sections: Table 1 compares backbones with and without our framework, Figure 4 examines inference-time calibration (including $\eta=0$, which uses only the debiased score), and Table 3 compares different popularity estimators. To make these analyses easier to review collectively, we will consolidate and summarize them in a dedicated appendix section.
 
 ### In the ablations, what would happen if you changed static popularity to be parameterized by alpha and consider a range of values 1/(popularity)^alpha for alpha and pick the best result through validation? Would the proposed approach still do better?
 

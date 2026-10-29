@@ -1,0 +1,54 @@
+{
+  "label": "ref_sasrec_vanilla_dot",
+  "checkpoint": "./weights/ml-1m/_backbone_sasrec_e500_seed3.pt",
+  "model": "sasrec",
+  "kind": "dot",
+  "cfg": {},
+  "tau": 0.1,
+  "seed": 3,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.1232,
+      "recall@20": 0.2079,
+      "ndcg@10": 0.052,
+      "ndcg@20": 0.0733
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.0909,
+      "recall@20": 0.1597,
+      "ndcg@10": 0.0384,
+      "ndcg@20": 0.0557
+    }
+  },
+  "eta_star": 0.0,
+  "test_at_eta_star": {
+    "recall@10": 0.0909,
+    "recall@20": 0.1597,
+    "ndcg@10": 0.0384,
+    "ndcg@20": 0.0557
+  },
+  "test_head": {
+    "recall@10": 0.1131,
+    "recall@20": 0.1961,
+    "ndcg@10": 0.0478,
+    "ndcg@20": 0.0686,
+    "n": 27250
+  },
+  "test_tail": {
+    "recall@10": 0.0477,
+    "recall@20": 0.0891,
+    "ndcg@10": 0.0201,
+    "ndcg@20": 0.0305,
+    "n": 14010
+  },
+  "probe": {
+    "recall@10_last_item_only": 0.0374,
+    "recall@10_mean_user": 0.033,
+    "shuffle_rel_change": 0.5403314232826233,
+    "last_item_r2": 0.3920861426306138,
+    "mean_pairwise_cosine": 0.4754752761082897
+  },
+  "limit": 0
+}

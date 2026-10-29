@@ -1,0 +1,58 @@
+{
+  "label": "vanilla_cos_c5_a0.9",
+  "checkpoint": "./weights_rebuttal/ml-1m/rebuttal_vanilla_cos_bsarec_c5_a0.9_e500_seed1.pt",
+  "model": "bsarec",
+  "kind": "cos",
+  "cfg": {
+    "c": 5,
+    "alpha": 0.9
+  },
+  "tau": 0.1,
+  "seed": 1,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.1201,
+      "recall@20": 0.2074,
+      "ndcg@10": 0.0559,
+      "ndcg@20": 0.0777
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.0955,
+      "recall@20": 0.1562,
+      "ndcg@10": 0.0436,
+      "ndcg@20": 0.0588
+    }
+  },
+  "eta_star": 0.0,
+  "test_at_eta_star": {
+    "recall@10": 0.0955,
+    "recall@20": 0.1562,
+    "ndcg@10": 0.0436,
+    "ndcg@20": 0.0588
+  },
+  "test_head": {
+    "recall@10": 0.1295,
+    "recall@20": 0.2044,
+    "ndcg@10": 0.0598,
+    "ndcg@20": 0.0786,
+    "n": 27250
+  },
+  "test_tail": {
+    "recall@10": 0.0294,
+    "recall@20": 0.0625,
+    "ndcg@10": 0.012,
+    "ndcg@20": 0.0203,
+    "n": 14010
+  },
+  "probe": {
+    "recall@10_last_item_only": 0.0473,
+    "recall@10_mean_user": 0.0302,
+    "shuffle_rel_change": 0.37414076924324036,
+    "last_item_r2": 0.8001903268937458,
+    "mean_pairwise_cosine": 0.43244818799810203,
+    "batched_vs_per_user_rel_change": 0.04969632998108864
+  },
+  "limit": 0
+}

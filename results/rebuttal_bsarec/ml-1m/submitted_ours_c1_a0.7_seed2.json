@@ -1,0 +1,130 @@
+{
+  "label": "submitted_ours_c1_a0.7",
+  "checkpoint": "./weights/ml-1m/_bsarec_lambda0.7_e500_seed2_ablationshared_timefix.pt",
+  "model": "bsarec",
+  "kind": "ours",
+  "cfg": {
+    "c": 1,
+    "alpha": 0.7
+  },
+  "tau": 0.1,
+  "seed": 2,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.0002,
+      "recall@20": 0.0008,
+      "ndcg@10": 0.0,
+      "ndcg@20": 0.0002
+    },
+    "0.1": {
+      "recall@10": 0.0013,
+      "recall@20": 0.0039,
+      "ndcg@10": 0.0005,
+      "ndcg@20": 0.0011
+    },
+    "0.3": {
+      "recall@10": 0.0158,
+      "recall@20": 0.028,
+      "ndcg@10": 0.0075,
+      "ndcg@20": 0.0105
+    },
+    "0.5": {
+      "recall@10": 0.0284,
+      "recall@20": 0.0494,
+      "ndcg@10": 0.0136,
+      "ndcg@20": 0.0188
+    },
+    "0.7": {
+      "recall@10": 0.0338,
+      "recall@20": 0.0598,
+      "ndcg@10": 0.0164,
+      "ndcg@20": 0.0229
+    },
+    "0.9": {
+      "recall@10": 0.0337,
+      "recall@20": 0.0614,
+      "ndcg@10": 0.0153,
+      "ndcg@20": 0.0222
+    },
+    "1.0": {
+      "recall@10": 0.0322,
+      "recall@20": 0.0606,
+      "ndcg@10": 0.0131,
+      "ndcg@20": 0.0202
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.0004,
+      "recall@20": 0.001,
+      "ndcg@10": 0.0002,
+      "ndcg@20": 0.0003
+    },
+    "0.1": {
+      "recall@10": 0.0032,
+      "recall@20": 0.0065,
+      "ndcg@10": 0.0014,
+      "ndcg@20": 0.0022
+    },
+    "0.3": {
+      "recall@10": 0.0179,
+      "recall@20": 0.0302,
+      "ndcg@10": 0.009,
+      "ndcg@20": 0.0121
+    },
+    "0.5": {
+      "recall@10": 0.0284,
+      "recall@20": 0.0512,
+      "ndcg@10": 0.0138,
+      "ndcg@20": 0.0195
+    },
+    "0.7": {
+      "recall@10": 0.0334,
+      "recall@20": 0.0609,
+      "ndcg@10": 0.0161,
+      "ndcg@20": 0.023
+    },
+    "0.9": {
+      "recall@10": 0.0348,
+      "recall@20": 0.0634,
+      "ndcg@10": 0.0167,
+      "ndcg@20": 0.0238
+    },
+    "1.0": {
+      "recall@10": 0.0347,
+      "recall@20": 0.0624,
+      "ndcg@10": 0.0166,
+      "ndcg@20": 0.0235
+    }
+  },
+  "eta_star": 0.7,
+  "test_at_eta_star": {
+    "recall@10": 0.0334,
+    "recall@20": 0.0609,
+    "ndcg@10": 0.0161,
+    "ndcg@20": 0.023
+  },
+  "test_head": {
+    "recall@10": 0.0506,
+    "recall@20": 0.0923,
+    "ndcg@10": 0.0243,
+    "ndcg@20": 0.0348,
+    "n": 27250
+  },
+  "test_tail": {
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "ndcg@10": 0.0,
+    "ndcg@20": 0.0,
+    "n": 14010
+  },
+  "probe": {
+    "recall@10_last_item_only": 0.0334,
+    "recall@10_mean_user": 0.0341,
+    "shuffle_rel_change": 6.906716309984517e-10,
+    "last_item_r2": 0.9999949339350884,
+    "mean_pairwise_cosine": 0.9133527081427455,
+    "batched_vs_per_user_rel_change": 0.5848387479782104
+  },
+  "limit": 0
+}

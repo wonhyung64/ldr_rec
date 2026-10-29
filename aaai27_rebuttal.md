@@ -115,3 +115,5 @@ $$
 ### Given that sliding-window popularity sometimes beats the Hawkes estimator, under what conditions do the authors expect Hawkes to be preferable? A short characterization in terms of burstiness or temporal dynamics would help position the method more precisely.
 
 ### Could the authors clarify the intended logical role of Theorem 1? As I read it, the theorem shows how existing embedding concentration propagates to items, but does not prove that popularity confounding is the cause of that concentration in the first place.
+
+* We agree that Theorem 1 characterizes how user-embedding concentration propagates to aligned item embeddings, rather than establishing its cause. Its purpose is to highlight the geometric consequences of such concentration. Importantly, Table 2 empirically demonstrates that substantial user-embedding concentration occurs in models trained on real data and that our framework effectively mitigates it. Together with Corollaries 1–2, which establish how popularity confounding enters the learning target, these findings motivate our approach to preventing such undesirable representation geometry. We will clarify this logical connection.

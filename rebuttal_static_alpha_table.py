@@ -3,10 +3,14 @@
 Reads ./results/static_pop/*.json written by baseline/*_static_prior.py --pop-power=a and,
 for each (dataset, backbone), picks alpha (and eta) by validation Recall@10.
 
-    python rebuttal_static_alpha_table.py [--results ./results/static_pop]
+    python rebuttal_static_alpha_table.py [--results ./results/static_pop] [--sample-std]
+
+The last table reports mean±std over seeds with (alpha*, eta*) fixed from seed-1 validation
+(seeds 2-4 come from report_rebuttal_static_alpha_seeds.sh).
 """
 import json
 import argparse
+import statistics
 from glob import glob
 from collections import defaultdict
 
@@ -24,6 +28,14 @@ HAWKES = {  # Table 1 "+(Ours)" (= Table 3 Hawkes row)
     ("micro_video", "fearec"): (0.1760, 0.0896), ("ml-1m", "fearec"): (0.0852, 0.0408), ("kuairand", "fearec"): (0.0598, 0.0297),
     ("micro_video", "bsarec"): (0.1728, 0.0883), ("ml-1m", "bsarec"): (0.0335, 0.0160), ("kuairand", "bsarec"): (0.0638, 0.0308),
 }
+HAWKES_STD = {  # Table 1 "+(Ours)", std over the same 4 seeds
+    ("micro_video", "mf"): (0.0014, 0.0005), ("ml-1m", "mf"): (0.0005, 0.0002), ("kuairand", "mf"): (0.0007, 0.0001),
+    ("micro_video", "grurec"): (0.0070, 0.0054), ("ml-1m", "grurec"): (0.0010, 0.0006), ("kuairand", "grurec"): (0.0005, 0.0003),
+    ("micro_video", "sasrec"): (0.0025, 0.0014), ("ml-1m", "sasrec"): (0.0022, 0.0012), ("kuairand", "sasrec"): (0.0003, 0.0002),
+    ("micro_video", "tisasrec"): (0.0028, 0.0009), ("ml-1m", "tisasrec"): (0.0008, 0.0005), ("kuairand", "tisasrec"): (0.0009, 0.0002),
+    ("micro_video", "fearec"): (0.0018, 0.0006), ("ml-1m", "fearec"): (0.0019, 0.0010), ("kuairand", "fearec"): (0.0008, 0.0005),
+    ("micro_video", "bsarec"): (0.0022, 0.0010), ("ml-1m", "bsarec"): (0.0002, 0.0001), ("kuairand", "bsarec"): (0.0007, 0.0004),
+}
 STATIC_A1 = {  # Table 3 "Static popularity" Recall@10 (alpha=1, eta=0.5 protocol)
     ("micro_video", "mf"): 0.0598, ("ml-1m", "mf"): 0.0343, ("kuairand", "mf"): 0.0674,
     ("micro_video", "grurec"): 0.1114, ("ml-1m", "grurec"): 0.0641, ("kuairand", "grurec"): 0.0433,
@@ -32,13 +44,27 @@ STATIC_A1 = {  # Table 3 "Static popularity" Recall@10 (alpha=1, eta=0.5 protoco
     ("micro_video", "fearec"): 0.1406, ("ml-1m", "fearec"): 0.0967, ("kuairand", "fearec"): 0.0686,
     ("micro_video", "bsarec"): 0.0299, ("ml-1m", "bsarec"): 0.0662, ("kuairand", "bsarec"): 0.0558,
 }
+STATIC_A1_STD = {  # Table 3 "Static popularity", Recall@10 std
+    ("micro_video", "mf"): 0.0004, ("ml-1m", "mf"): 0.0004, ("kuairand", "mf"): 0.0005,
+    ("micro_video", "grurec"): 0.0021, ("ml-1m", "grurec"): 0.0007, ("kuairand", "grurec"): 0.0005,
+    ("micro_video", "sasrec"): 0.0015, ("ml-1m", "sasrec"): 0.0010, ("kuairand", "sasrec"): 0.0007,
+    ("micro_video", "tisasrec"): 0.0017, ("ml-1m", "tisasrec"): 0.0001, ("kuairand", "tisasrec"): 0.0007,
+    ("micro_video", "fearec"): 0.0008, ("ml-1m", "fearec"): 0.0016, ("kuairand", "fearec"): 0.0009,
+    ("micro_video", "bsarec"): 0.0097, ("ml-1m", "bsarec"): 0.0154, ("kuairand", "bsarec"): 0.0134,
+}
 VANILLA = {  # Table 1 backbone (uniform negatives, i.e. alpha=0)
     ("micro_video", "mf"): (0.0121, 0.0061), ("ml-1m", "mf"): (0.0308, 0.0145), ("kuairand", "mf"): (0.0427, 0.0218),
     ("micro_video", "sasrec"): (0.1217, 0.0604), ("ml-1m", "sasrec"): (0.0805, 0.0348), ("kuairand", "sasrec"): (0.0515, 0.0220),
     ("micro_video", "tisasrec"): (0.1453, 0.0691), ("ml-1m", "tisasrec"): (0.1058, 0.0464), ("kuairand", "tisasrec"): (0.0590, 0.0248),
 }
+VANILLA_STD = {
+    ("micro_video", "mf"): (0.0009, 0.0006), ("ml-1m", "mf"): (0.0006, 0.0004), ("kuairand", "mf"): (0.0006, 0.0004),
+    ("micro_video", "sasrec"): (0.0385, 0.0120), ("ml-1m", "sasrec"): (0.0223, 0.0083), ("kuairand", "sasrec"): (0.0112, 0.0040),
+    ("micro_video", "tisasrec"): (0.0049, 0.0026), ("ml-1m", "tisasrec"): (0.0215, 0.0126), ("kuairand", "tisasrec"): (0.0008, 0.0003),
+}
 
 KEY = "recall@10"
+SELECT_SEED = 1  # alpha* and eta* are chosen on this seed's validation split, then kept fixed for the other seeds
 
 
 def load(results_dir):
@@ -54,13 +80,65 @@ def best_eta(r, etas=None):
     return max(etas, key=lambda e: r["valid"][e][KEY])
 
 
+def select_alpha_eta(by_alpha):
+    # joint (alpha, eta) selection on validation
+    return max(((a, e) for a, r in by_alpha.items() for e in r["valid"]),
+               key=lambda ae: by_alpha[ae[0]]["valid"][ae[1]][KEY])
+
+
 def pct(a, b):
     return f"{100 * (a - b) / b:+.1f}%"
+
+
+def pm(mean, std):
+    return f"{mean:.4f}" if std is None else f"{mean:.4f}±{std:.4f}"
+
+
+def cell_order(k):
+    return (DATASETS.index(k[0]) if k[0] in DATASETS else 99, k[1])
+
+
+def seed_summary(runs, sample_std):
+    sd = statistics.stdev if sample_std else statistics.pstdev
+    std = lambda v: sd(v) if len(v) > 1 else None
+    print(f"\n## Mean ± std over seeds (alpha*, eta* fixed from seed-{SELECT_SEED} validation; "
+          f"{'sample' if sample_std else 'population'} std)\n")
+    print("| Dataset | Backbone | alpha*, eta* | seeds | Vanilla R@10 (Tab.1) | Static a=1 R@10 (Tab.3) "
+          "| Tuned static R@10 | Tuned static N@10 | Hawkes R@10 (Tab.1) | Hawkes N@10 (Tab.1) | Hawkes vs tuned |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|")
+    for (dataset, model) in sorted(runs, key=cell_order):
+        cell = runs[(dataset, model)]
+        by_alpha = {a: r for (a, seed), r in cell.items() if seed == SELECT_SEED}
+        if not by_alpha:
+            continue
+        a_star, e_star = select_alpha_eta(by_alpha)
+        picked = [cell[(a, seed)] for (a, seed) in sorted(cell, key=lambda k: k[1]) if a == a_star]
+        rec = [r["test"][e_star][KEY] for r in picked]
+        ndcg = [r["test"][e_star]["ndcg@10"] for r in picked]
+
+        key = (dataset, model)
+        hk, hk_sd = HAWKES.get(key), HAWKES_STD.get(key)
+        van, van_sd = VANILLA.get(key), VANILLA_STD.get(key)
+        cells = [
+            DATASET_NAMES.get(dataset, dataset),
+            MODEL_NAMES.get(model, model),
+            f"{a_star:g}, {e_star}",
+            ",".join(str(r["seed"]) for r in picked),
+            pm(van[0], van_sd[0]) if van else "n/a",
+            pm(STATIC_A1[key], STATIC_A1_STD[key]) if key in STATIC_A1 else "n/a",
+            pm(statistics.mean(rec), std(rec)),
+            pm(statistics.mean(ndcg), std(ndcg)),
+            pm(hk[0], hk_sd[0]) if hk else "n/a",
+            pm(hk[1], hk_sd[1]) if hk else "n/a",
+            pct(hk[0], statistics.mean(rec)) if hk else "n/a",
+        ]
+        print("| " + " | ".join(cells) + " |")
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--results", default="./results/static_pop")
+    parser.add_argument("--sample-std", action="store_true", help="ddof=1 std instead of population std (np.std default)")
     args = parser.parse_args()
 
     runs = load(args.results)
@@ -71,7 +149,7 @@ def main():
     print("| Dataset | Backbone | seed | alpha | eta* | Valid R@10 | Test R@10 | Test N@10 | Test R@10 (eta=0.5) |")
     print("|---|---|---|---|---|---|---|---|---|")
     summary = []
-    for (dataset, model) in sorted(runs, key=lambda k: (DATASETS.index(k[0]) if k[0] in DATASETS else 99, k[1])):
+    for (dataset, model) in sorted(runs, key=cell_order):
         by_seed = defaultdict(dict)
         for (a, seed), r in runs[(dataset, model)].items():
             by_seed[seed][a] = r
@@ -81,9 +159,7 @@ def main():
                 print(f"| {DATASET_NAMES.get(dataset, dataset)} | {MODEL_NAMES.get(model, model)} | {seed} | {a:g} | {e} "
                       f"| {r['valid'][e][KEY]:.4f} | {r['test'][e][KEY]:.4f} | {r['test'][e]['ndcg@10']:.4f} | {r['test']['0.5'][KEY]:.4f} |")
 
-            # joint (alpha, eta) selection on validation
-            a_star, e_star = max(((a, e) for a, r in by_alpha.items() for e in r["valid"]),
-                                 key=lambda ae: by_alpha[ae[0]]["valid"][ae[1]][KEY])
+            a_star, e_star = select_alpha_eta(by_alpha)
             # Table 3 protocol: eta fixed to 0.5, select alpha only
             a_half = max(by_alpha, key=lambda a: by_alpha[a]["valid"]["0.5"][KEY])
             summary.append((dataset, model, seed, sorted(by_alpha), a_star, e_star, by_alpha[a_star]["test"][e_star],
@@ -116,7 +192,9 @@ def main():
     if missing_a1:
         print(f"\nNOTE: no alpha=1 JSON for {', '.join(missing_a1)} (eval-only re-scoring of the Table 3 checkpoint did not run "
               "or the checkpoint is gone), so alpha=1 is not part of the selection there; compare with the Tab.3 column.")
-    print("\nNew runs are single-seed; Tab.1/Tab.3 references are 4-seed means.")
+    print("\nRows above are per seed; Tab.1/Tab.3 references are 4-seed means.")
+
+    seed_summary(runs, args.sample_std)
 
 
 if __name__ == "__main__":

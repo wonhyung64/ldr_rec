@@ -9,7 +9,7 @@
 #   bash report_rebuttal_static_alpha.sh dry      # print what each sbatch job would run, submit nothing
 #   bash report_rebuttal_static_alpha.sh          # submit pending runs (finished runs are skipped)
 #
-#   SEEDS="2 3 4" ALPHAS="0.5" bash report_rebuttal_static_alpha.sh   # e.g. extra seeds later
+#   seeds 2-4 at the selected alpha*: report_rebuttal_static_alpha_seeds.sh
 
 MODE=${1:-submit}
 SEEDS=${SEEDS:-1}

@@ -1,0 +1,24 @@
+{
+  "dataset": "kuairand",
+  "model": "grurec",
+  "kind": "vanilla",
+  "seed": 4,
+  "checkpoint": "./weights/kuairand/_backbone_grurec_e500_seed4.pt",
+  "limit": 0,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.0386,
+      "recall@20": 0.0702,
+      "ndcg@10": 0.0181,
+      "ndcg@20": 0.026
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.0347,
+      "recall@20": 0.0633,
+      "ndcg@10": 0.0159,
+      "ndcg@20": 0.0231
+    }
+  }
+}

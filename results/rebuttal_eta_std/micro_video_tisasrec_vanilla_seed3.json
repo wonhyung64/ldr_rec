@@ -1,0 +1,24 @@
+{
+  "dataset": "micro_video",
+  "model": "tisasrec",
+  "kind": "vanilla",
+  "seed": 3,
+  "checkpoint": "./weights/micro_video/_backbone_tisasrec_e500_seed3.pt",
+  "limit": 0,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.1709,
+      "recall@20": 0.2235,
+      "ndcg@10": 0.0823,
+      "ndcg@20": 0.0956
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.149,
+      "recall@20": 0.1978,
+      "ndcg@10": 0.0709,
+      "ndcg@20": 0.0833
+    }
+  }
+}

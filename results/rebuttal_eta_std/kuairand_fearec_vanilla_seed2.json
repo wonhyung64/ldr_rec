@@ -1,0 +1,24 @@
+{
+  "dataset": "kuairand",
+  "model": "fearec",
+  "kind": "vanilla",
+  "seed": 2,
+  "checkpoint": "./weights/kuairand/_backbone_fearec_e500_seed2.pt",
+  "limit": 0,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.0599,
+      "recall@20": 0.1013,
+      "ndcg@10": 0.0286,
+      "ndcg@20": 0.039
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.0551,
+      "recall@20": 0.0926,
+      "ndcg@10": 0.0263,
+      "ndcg@20": 0.0357
+    }
+  }
+}

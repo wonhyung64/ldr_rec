@@ -1,0 +1,24 @@
+{
+  "dataset": "micro_video",
+  "model": "grurec",
+  "kind": "vanilla",
+  "seed": 2,
+  "checkpoint": "./weights/micro_video/_backbone_grurec_e500_seed2.pt",
+  "limit": 0,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.0841,
+      "recall@20": 0.1039,
+      "ndcg@10": 0.0598,
+      "ndcg@20": 0.0648
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.0658,
+      "recall@20": 0.0838,
+      "ndcg@10": 0.0425,
+      "ndcg@20": 0.047
+    }
+  }
+}

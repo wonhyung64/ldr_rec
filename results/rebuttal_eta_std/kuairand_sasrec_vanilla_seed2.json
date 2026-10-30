@@ -1,0 +1,24 @@
+{
+  "dataset": "kuairand",
+  "model": "sasrec",
+  "kind": "vanilla",
+  "seed": 2,
+  "checkpoint": "./weights/kuairand/_backbone_sasrec_e500_seed2.pt",
+  "limit": 0,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.0641,
+      "recall@20": 0.1175,
+      "ndcg@10": 0.0279,
+      "ndcg@20": 0.0413
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.0568,
+      "recall@20": 0.1049,
+      "ndcg@10": 0.0238,
+      "ndcg@20": 0.0359
+    }
+  }
+}

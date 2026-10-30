@@ -1,0 +1,24 @@
+{
+  "dataset": "micro_video",
+  "model": "bsarec",
+  "kind": "vanilla",
+  "seed": 4,
+  "checkpoint": "./weights/micro_video/_backbone_bsarec_e500_seed4.pt",
+  "limit": 0,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.0964,
+      "recall@20": 0.1258,
+      "ndcg@10": 0.0546,
+      "ndcg@20": 0.0619
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.0866,
+      "recall@20": 0.1117,
+      "ndcg@10": 0.0502,
+      "ndcg@20": 0.0565
+    }
+  }
+}

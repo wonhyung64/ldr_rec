@@ -1,0 +1,24 @@
+{
+  "dataset": "micro_video",
+  "model": "fearec",
+  "kind": "vanilla",
+  "seed": 1,
+  "checkpoint": "./weights/micro_video/_backbone_fearec_e500_seed1.pt",
+  "limit": 0,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.1633,
+      "recall@20": 0.2113,
+      "ndcg@10": 0.0802,
+      "ndcg@20": 0.0923
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.1422,
+      "recall@20": 0.1853,
+      "ndcg@10": 0.0693,
+      "ndcg@20": 0.0802
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "dataset": "kuairand",
+  "model": "bsarec",
+  "kind": "vanilla",
+  "seed": 4,
+  "checkpoint": "./weights/kuairand/_backbone_bsarec_e500_seed4.pt",
+  "limit": 0,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.0382,
+      "recall@20": 0.0633,
+      "ndcg@10": 0.0203,
+      "ndcg@20": 0.0266
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.0364,
+      "recall@20": 0.0629,
+      "ndcg@10": 0.0196,
+      "ndcg@20": 0.0262
+    }
+  }
+}

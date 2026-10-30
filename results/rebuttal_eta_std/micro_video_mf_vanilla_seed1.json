@@ -1,0 +1,24 @@
+{
+  "dataset": "micro_video",
+  "model": "mf",
+  "kind": "vanilla",
+  "seed": 1,
+  "checkpoint": "./weights/micro_video/_backbone_mf_e500_seed1.pt",
+  "limit": 0,
+  "valid": {
+    "0.0": {
+      "recall@10": 0.0187,
+      "recall@20": 0.0288,
+      "ndcg@10": 0.0088,
+      "ndcg@20": 0.0113
+    }
+  },
+  "test": {
+    "0.0": {
+      "recall@10": 0.0116,
+      "recall@20": 0.0211,
+      "ndcg@10": 0.006,
+      "ndcg@20": 0.0084
+    }
+  }
+}

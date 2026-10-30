@@ -63,13 +63,14 @@
 
 | **MF** | **Micro Video** | **MovieLens** | **KuaiRand** |
 |:---|:---:|:---:|:---:|
-|$\text{pop}^{-\alpha} ~(\alpha=)$|.062 (0.5)|.037 (0.5)|.067 (0.5)|
-|Hawkes|.060|.038|.069|
+|$\text{pop}^{-\alpha} ~(\alpha=)$|.063±.001 (.5)|.037±.000 (.5)|.068±.001 (.5)|
+|Hawkes|.060±.001|.038±.001|.069±.001|
+
 
 | **SASRec** | **Micro Video** | **MovieLens** | **KuaiRand** |
 |:---|:---:|:---:|:---:|
-|$\text{pop}^{-\alpha}~(\alpha=)$|.134 (1)|.104 (0.5)|.071(0.5)|
-|Hawkes|.163|.107|.075|
+|$\text{pop}^{-\alpha}~(\alpha=)$|.131±.004 (1)|.104±.001 (.5)|.071±.001 (.5)|
+|Hawkes|.163±.003|.107±.002|.075±.000|
 
 * Following the suggestion, we parameterized the popularity estimator as $\text{pop}^{-\alpha}$, and evaluated its performance using Recall@10 on the test set. We searched $\alpha \in \{0.5, 1, 1.5\}$ and also tuned $\eta$ on the same grid, selecting both by validation Recall@10. Hawkes remains better in 5 of 6 settings. The exception is MF on Micro-Video, where the two estimators were already tied in Table 3. Hence the gain is not explained by the strength of the popularity correction alone, but by modeling its temporal variation.
 
